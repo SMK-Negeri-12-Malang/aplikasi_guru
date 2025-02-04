@@ -1,5 +1,7 @@
+import 'package:aplikasi_ortu/main.dart';
+import 'package:aplikasi_ortu/pages/login.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
+import 'package:aplikasi_ortu/profil.dart';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -8,30 +10,15 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   late PageController _pageController;
-  late Timer _timer;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    _timer = Timer.periodic(Duration(seconds: 6), (timer) {
-      if (_pageController.hasClients) {
-        int nextPage = (_pageController.page?.toInt() ?? 0) + 1;
-        if (nextPage >= 5) {
-          nextPage = 0;
-        }
-        _pageController.animateToPage(
-          nextPage,
-          duration: Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      }
-    });
   }
 
   @override
   void dispose() {
-    _timer.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -153,49 +140,39 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-class ScheduleItem extends StatefulWidget {
+class ScheduleItem extends StatelessWidget {
   final String title;
 
   const ScheduleItem({Key? key, required this.title}) : super(key: key);
 
   @override
-  _ScheduleItemState createState() => _ScheduleItemState();
-}
-
-class _ScheduleItemState extends State<ScheduleItem> {
-  bool isChecked = false;
-
-  @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 5),
-      padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [Colors.blue, Colors.indigo]),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            widget.title,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginScreen(),
+          ),
+        );
+      },
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 5),
+        padding: EdgeInsets.all(10),
+        width: double.infinity,  // Menjadikan container sepanjang lebar layar
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [Colors.blue, Colors.indigo]),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))],
+        ),
+        child: Center( // Menambahkan Center agar text tetap di tengah
+          child: Text(
+            title,
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                isChecked = !isChecked;
-              });
-            },
-            child: Icon(
-              isChecked ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: isChecked ? Colors.greenAccent : Colors.white,
-              size: 28,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
+
