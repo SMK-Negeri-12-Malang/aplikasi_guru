@@ -1,12 +1,12 @@
-import 'package:aplikasi_ortu/chatlist.dart';
-import 'package:aplikasi_ortu/grade.dart';
+import 'package:aplikasi_ortu/pages/chatlist.dart';
+import 'package:aplikasi_ortu/pages/grade.dart';
 import 'package:aplikasi_ortu/pages/guru.dart';
 import 'package:aplikasi_ortu/pages/laporan_guru.dart';
-import 'package:aplikasi_ortu/pages/login.dart';
-import 'package:aplikasi_ortu/pages/loginreg/absensi.dart';
-import 'package:aplikasi_ortu/pages/loginreg/berita_page.dart';
-import 'package:aplikasi_ortu/pages/loginreg/chat.dart';
-import 'package:aplikasi_ortu/profil.dart';
+import 'package:aplikasi_ortu/loginreg/login.dart';
+import 'package:aplikasi_ortu/pages/absensi.dart';
+import 'package:aplikasi_ortu/pages/berita.dart';
+import 'package:aplikasi_ortu/pages/profil.dart';
+import 'package:aplikasi_ortu/pages/settings.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -148,10 +148,10 @@ class _DashboardPageState extends State<homeview> {
               leading: Icon(Icons.settings),
               title: Text('Settings'),
               onTap: () {
-                //Navigator.push(
-                //context,
-                //MaterialPageRoute(builder: (context) => SettingsPage()), // Pastikan halaman SettingsPage tersedia
-                //);
+                Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsPage()), // Pastikan halaman SettingsPage tersedia
+                );
               },
             ),
             ListTile(
@@ -217,23 +217,23 @@ class _DashboardPageState extends State<homeview> {
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Home',
+            label: 'Beranda',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.message),
-            label: 'Messages',
+            label: 'Pesan',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.event),
-            label: 'News',
+            label: 'Berita',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.list),
-            label: 'Abesnsi',
+            label: 'Absensi',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.note_add),
-            label: 'Grade',
+            label: 'Nilai',
           ),
         ],
       ),
