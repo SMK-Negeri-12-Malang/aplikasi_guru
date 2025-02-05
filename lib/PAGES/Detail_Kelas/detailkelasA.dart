@@ -15,11 +15,6 @@ class DetailKelasA extends StatelessWidget {
             Navigator.pop(context);
           },
         ),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
-        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
