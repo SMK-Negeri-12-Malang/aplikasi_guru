@@ -1,12 +1,13 @@
-import 'package:aplikasi_ortu/pages/chatlist.dart';
-import 'package:aplikasi_ortu/pages/grade.dart';
-import 'package:aplikasi_ortu/pages/guru.dart';
-import 'package:aplikasi_ortu/pages/laporan_guru.dart';
-import 'package:aplikasi_ortu/loginreg/login.dart';
-import 'package:aplikasi_ortu/pages/absensi.dart';
-import 'package:aplikasi_ortu/pages/berita.dart';
-import 'package:aplikasi_ortu/pages/profil.dart';
-import 'package:aplikasi_ortu/pages/settings.dart';
+import 'package:aplikasi_ortu/LOGIN/login.dart';
+import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
+import 'package:aplikasi_ortu/PAGES/Berita/News_page.dart';
+import 'package:aplikasi_ortu/PAGES/Chat/listchat_page.dart';
+import 'package:aplikasi_ortu/PAGES/Drawer/Laporan_guru/laporan_guru.dart';
+import 'package:aplikasi_ortu/PAGES/Drawer/Profil/profil_page.dart';
+import 'package:aplikasi_ortu/PAGES/Drawer/Setting/setting_page.dart';
+import 'package:aplikasi_ortu/PAGES/Grade/grade_page.dart';
+import 'package:aplikasi_ortu/PAGES/Home/Home_Guru.dart';
+import 'package:aplikasi_ortu/splashscreen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
+      home: SplashScreen(),
     );
   }
 }
@@ -85,6 +86,10 @@ class _DashboardPageState extends State<homeview> {
               ],
             ),
           ],
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+          
         ),
       ),
       drawer: Drawer(
@@ -203,11 +208,11 @@ class _DashboardPageState extends State<homeview> {
           DashboardPage(),
           ChatListPage(),
           NewsPage(),
-          Absensi(),
-          Grade(),
+          AbsensiPage(),
+          GradePage(),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: BottomNavigationBar(   
         currentIndex: _currentIndex,
         backgroundColor: Colors.blue[900],
         selectedItemColor: Colors.white,
@@ -217,23 +222,23 @@ class _DashboardPageState extends State<homeview> {
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Beranda',
+            label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.message),
-            label: 'Pesan',
+            label: 'Messages',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.event),
-            label: 'Berita',
+            label: 'News',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.list),
-            label: 'Absensi',
+            label: 'Abesnsi',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.note_add),
-            label: 'Nilai',
+            label: 'Grade',
           ),
         ],
       ),
