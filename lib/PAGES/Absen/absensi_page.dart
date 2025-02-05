@@ -1,130 +1,70 @@
-
-import 'package:aplikasi_ortu/PAGES/Home/Home_Guru.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class AbsensiPage extends StatefulWidget {
-  @override
-  _AbsensiPageState createState() => _AbsensiPageState();
-}
-
-class _AbsensiPageState extends State<AbsensiPage> {
-  List<Map<String, dynamic>> students = [
-    {'name': 'Siswa 1', 'isPresent': false},
-    {'name': 'Siswa 2', 'isPresent': false},
-    {'name': 'Siswa 3', 'isPresent': false},
-    {'name': 'Siswa 4', 'isPresent': false},
-    {'name': 'Siswa 5', 'isPresent': false},
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadAbsensi();
-  }
-
-  // Fungsi untuk memuat status absensi yang disimpan
-  _loadAbsensi() async {
-    final prefs = await SharedPreferences.getInstance();
-    for (int i = 0; i < students.length; i++) {
-      bool isPresent = prefs.getBool('absensi_siswa_${i + 1}') ?? false;
-      setState(() {
-        students[i]['isPresent'] = isPresent;
-      });
-    }
-  }
-
-  // Fungsi untuk mengubah status absensi
-  void _toggleAbsensi(int index) {
-    setState(() {
-      students[index]['isPresent'] = !students[index]['isPresent'];
-    });
-    _saveAbsensi(index);
-  }
-
-  // Fungsi untuk menyimpan status absensi per siswa
-  _saveAbsensi(int index) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setBool('absensi_siswa_${index + 1}', students[index]['isPresent']);
-  }
-
-  // Fungsi untuk menyimpan seluruh absensi dan pindah ke halaman Guru
-  void _saveAllAbsensi() async {
-    final prefs = await SharedPreferences.getInstance();
-    for (int i = 0; i < students.length; i++) {
-      prefs.setBool('absensi_siswa_${i + 1}', students[i]['isPresent']);
-    }
-
-    // Menampilkan snack bar dan pindah ke halaman Guru setelah absensi disimpan
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Absensi Disimpan')));
-
-    // Pindah ke halaman Guru setelah absensi disimpan
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => DashboardPage()), // Halaman Guru
-    );
-  }
+class AbsensiKelasPage extends StatelessWidget {
+  const AbsensiKelasPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text("Absensi Siswa", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-        centerTitle: true,
-        
+        title: const Text('Absensi Kelas'),
+        backgroundColor: Colors.blue.shade300,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Daftar Siswa',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: students.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    elevation: 4,
-                    margin: EdgeInsets.symmetric(vertical: 8),
-                    child: ListTile(
-                      leading: Icon(
-                        students[index]['isPresent']
-                            ? Icons.check_box
-                            : Icons.check_box_outline_blank,
-                        color: students[index]['isPresent']
-                            ? Colors.green
-                            : Colors.grey,
-                      ),
-                      title: Text(students[index]['name'], style: TextStyle(fontSize: 16)),
-                      subtitle: Text(
-                        students[index]['isPresent'] ? 'Hadir' : 'Tidak Hadir',
-                        style: TextStyle(fontSize: 14, color: students[index]['isPresent'] ? Colors.green : Colors.red),
-                      ),
-                      onTap: () => _toggleAbsensi(index),
-                    ),
-                  );
-                },
-              ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 8.0, top: 8.0, bottom: 4.0),
+            child: Text(
+              'List Kelas',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: _saveAllAbsensi,  // Menyimpan absensi dan pindah ke halaman Guru
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[600], // Warna tombol
-                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12), // Padding tombol
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8), // Sudut melengkung
+          ),
+          SizedBox(
+            height: 100,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 4,
+              itemBuilder: (context, index) {
+                return Container(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade900,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ),
-                child: Text('Simpan Absensi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+          const Divider(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: 10,
+              itemBuilder: (context, index) {
+                return Card(
+                  color: Colors.blue.shade300,
+                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.person, color: Colors.blue.shade900),
+                    ),
+                    title: const Text('Paul Walker', style: TextStyle(color: Colors.white)),
+                    subtitle: const Text('Absen: 01', style: TextStyle(color: Colors.white70)),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.check, color: Colors.white),
+                      onPressed: () {},
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
