@@ -61,36 +61,32 @@ class _DashboardPageState extends State<homeview> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue[300],
-        title: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(Icons.person, color: Colors.blue),
-            ),
-            SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Selamat Datang',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                ),
-                Text(
-                  'Purwanto Hermawan S.KON',
-                  style: TextStyle(
-                      //fontWeight: FontWeight.bold,
-                      fontSize: 12),
+    appBar: AppBar(
+  backgroundColor: Colors.blue[300],
+  title: Row(
+    children: [
+      CircleAvatar(
+        backgroundColor: Colors.white,
+        child: Icon(Icons.person, color: Colors.blue),
+      ),
+      SizedBox(width: 10),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Selamat Datang',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          ),
+          Text(
+            'Purwanto Hermawan S.KON',
+            style: TextStyle(
+              fontSize: 12),
                 ),
               ],
             ),
           ],
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-          
-        ),
+       
       ),
       drawer: Drawer(
         child: ListView(
@@ -208,7 +204,7 @@ class _DashboardPageState extends State<homeview> {
           DashboardPage(),
           ChatListPage(),
           NewsPage(),
-          AbsensiPage(),
+          AbsensiKelasPage(),
           GradePage(),
         ],
       ),
