@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:aplikasi_ortu/LOGIN/login.dart';
 import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
 import 'package:aplikasi_ortu/PAGES/Berita/News_page.dart';
@@ -34,6 +36,7 @@ class homeview extends StatefulWidget {
 class _DashboardPageState extends State<homeview> {
   late PageController _pageController;
   int _currentIndex = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -58,37 +61,53 @@ class _DashboardPageState extends State<homeview> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-    appBar: AppBar(
-  backgroundColor: Colors.blue[300],
-  title: Row(
-    children: [
-      CircleAvatar(
-        backgroundColor: Colors.white,
-        child: Icon(Icons.person, color: Colors.blue),
-      ),
-      SizedBox(width: 10),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Selamat Datang',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-          ),
-          Text(
-            'Purwanto Hermawan S.KON',
-            style: TextStyle(
-              fontSize: 12),
+ @override
+Widget build(BuildContext context) {
+  return WillPopScope(
+    onWillPop: () async {
+      if (_currentIndex != 0) {
+        // Jika bukan halaman pertama, pindah ke halaman home
+        setState(() {
+          _currentIndex = 0;
+          _pageController.jumpToPage(0);
+        });
+        return false; // Mencegah keluar dari aplikasi
+      }
+      return true; // Keluar dari aplikasi jika sudah di halaman Home
+    },
+    child: Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(
+        backgroundColor: Colors.blue[300],
+        title: Row(
+          children: [
+            GestureDetector(
+              onTap: () {
+                _scaffoldKey.currentState?.openDrawer();
+              },
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(Icons.person, color: Colors.blue),
+              ),
+            ),
+            SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Selamat Datang',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+                Text(
+                  'Purwanto Hermawan S.KON',
+                  style: TextStyle(fontSize: 12),
                 ),
               ],
             ),
           ],
         ),
-       
       ),
-      drawer: Drawer(
+       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
@@ -201,14 +220,17 @@ class _DashboardPageState extends State<homeview> {
           });
         },
         children: [
-          DashboardPage(),
+          //LoginScreen(),
+          DashboardPage(),         
           ChatListPage(),
+          // ignore: avoid_types_as_parameter_names
           NewsPage(),
           AbsensiKelasPage(),
           GradePage(),
+          
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(   
+      bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         backgroundColor: Colors.blue[900],
         selectedItemColor: Colors.white,
@@ -230,7 +252,7 @@ class _DashboardPageState extends State<homeview> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.list),
-            label: 'Abesnsi',
+            label: 'Absen',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.note_add),
@@ -238,6 +260,7 @@ class _DashboardPageState extends State<homeview> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

@@ -1,3 +1,4 @@
+import 'package:aplikasi_ortu/PAGES/Drawer/Setting/tampilan_page.dart';
 import 'package:flutter/material.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -50,7 +51,12 @@ class SettingsPage extends StatelessWidget {
               icon: Icons.brush,
               title: 'Tampilan',
               color: Colors.purple,
-              onTap: () {},
+              onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => TampilanPage()),
+              );
+            },
             ),
             _buildSettingTile(
               icon: Icons.notifications,

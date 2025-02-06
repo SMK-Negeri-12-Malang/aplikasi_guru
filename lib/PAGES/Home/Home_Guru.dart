@@ -1,6 +1,7 @@
 import 'package:aplikasi_ortu/PAGES/Detail_Kelas/detailkelasA.dart';
+import 'package:aplikasi_ortu/PAGES/Detail_Kelas/detailkelasB.dart';
+import 'package:aplikasi_ortu/PAGES/Detail_Kelas/detailkelasC.dart';
 import 'package:flutter/material.dart';
-
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -9,7 +10,7 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   late PageController _pageController;
-
+  
   @override
   void initState() {
     super.initState();
@@ -40,8 +41,80 @@ class _DashboardPageState extends State<DashboardPage> {
             SizedBox(height: 20),
             Text('Jadwal Mengajar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
-            Column(
-              children: List.generate(4, (index) => ScheduleItem(title: 'Jadwal Mengajar ${index + 1}')),
+            //container button
+            Container(
+              //color: Colors.blueAccent,
+              padding: EdgeInsets.all(10),
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>DetailKelasA(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:  Colors.blue[700],
+                      minimumSize: Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Kelas A',
+                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailKelasB(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:  Colors.blue[700],
+                      minimumSize: Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Kelas B',
+                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailKelasC(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:  Colors.blue[700],
+                      minimumSize: Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Kelas C',
+                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+                //
+              ),
             ),
           ],
         ),
@@ -59,7 +132,7 @@ class _DashboardPageState extends State<DashboardPage> {
           return Container(
             margin: EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
-              color: Colors.blue[600],
+              color: Colors.blue[700],
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2)),
@@ -130,7 +203,7 @@ class _DashboardPageState extends State<DashboardPage> {
             value: percentage / 100,
             minHeight: 10,
             backgroundColor: Colors.white.withOpacity(0.2),
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.greenAccent),
+            valueColor: AlwaysStoppedAnimation<Color>(const Color.fromARGB(255, 255, 255, 255)),
           ),
         ),
         SizedBox(height: 10),
@@ -138,40 +211,3 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 }
-
-class ScheduleItem extends StatelessWidget {
-  final String title;
-
-  const ScheduleItem({Key? key, required this.title}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DetailKelasA(),
-          ),
-        );
-      },
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 5),
-        padding: EdgeInsets.all(10),
-        width: double.infinity,  // Menjadikan container sepanjang lebar layar
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [Colors.blue, Colors.indigo]),
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))],
-        ),
-        child: Center( // Menambahkan Center agar text tetap di tengah
-          child: Text(
-            title,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ),
-    );
-  }
-}
-

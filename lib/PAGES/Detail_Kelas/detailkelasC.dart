@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 
-class DetailKelasB extends StatelessWidget {
+class DetailKelasC extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-        title: const Text('Tugas Kelas B'),
+        title: const Text('Tugas Kelas C'),
         centerTitle: true,
         backgroundColor: Colors.blue[300],
         leading: IconButton(
