@@ -2,7 +2,6 @@ import 'package:aplikasi_ortu/main.dart';
 import 'package:flutter/material.dart';
 import 'package:aplikasi_ortu/LOGIN/VerificationCode.dart';
 
-
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
 
@@ -82,7 +81,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         margin: const EdgeInsets.symmetric(horizontal: 16),
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Colors.blue.shade200,
                           borderRadius: BorderRadius.circular(25),
                         ),
                         child: Column(
@@ -92,11 +91,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                               obscureText: !isPasswordVisible,
                               decoration: InputDecoration(
                                 labelText: 'Password:',
+                                labelStyle: const TextStyle(
+                                  color: Colors.black54,
+                                ),
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     isPasswordVisible
                                         ? Icons.visibility
                                         : Icons.visibility_off,
+                                    color: Colors.black54,
                                   ),
                                   onPressed: () {
                                     setState(() {
@@ -104,8 +107,23 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                     });
                                   },
                                 ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                  borderSide: const BorderSide(
+                                    color: Color.fromARGB(255, 0, 0, 0),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                  borderSide: const BorderSide(
+                                    color: Color.fromARGB(255, 0, 122, 221),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
                                 ),
                               ),
                             ),
@@ -116,11 +134,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                               obscureText: !isConfirmPasswordVisible,
                               decoration: InputDecoration(
                                 labelText: 'Verify Password:',
+                                labelStyle: const TextStyle(
+                                  color: Colors.black54,
+                                ),
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     isConfirmPasswordVisible
                                         ? Icons.visibility
                                         : Icons.visibility_off,
+                                    color: Colors.black54,
                                   ),
                                   onPressed: () {
                                     setState(() {
@@ -129,8 +151,23 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                     });
                                   },
                                 ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                  borderSide: const BorderSide(
+                                    color: Color.fromARGB(255, 0, 0, 0),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                  borderSide: const BorderSide(
+                                    color: Color.fromARGB(255, 0, 122, 221),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
                                 ),
                               ),
                             ),
@@ -151,7 +188,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                     const Color.fromARGB(255, 0, 140, 255),
                                 minimumSize: const Size(double.infinity, 50),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(25),
                                 ),
                               ),
                               child: const Text(
