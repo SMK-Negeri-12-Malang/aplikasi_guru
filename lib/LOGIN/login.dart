@@ -4,8 +4,15 @@ import 'package:aplikasi_ortu/main.dart';
 
 import 'package:flutter/material.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  bool _isPasswordVisible = false; // State untuk mengatur visibilitas password
 
   @override
   Widget build(BuildContext context) {
@@ -63,11 +70,8 @@ class LoginScreen extends StatelessWidget {
                         vertical: 40, horizontal: 30),
                     decoration: BoxDecoration(
                       color: Colors.blue.shade200,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(45),
-                        topRight: Radius.circular(45),
-                        bottomRight: Radius.circular(45),
-                        bottomLeft: Radius.circular(45),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(45),
                       ),
                     ),
                     child: Column(
@@ -98,15 +102,27 @@ class LoginScreen extends StatelessWidget {
 
                         // Password Input
                         TextField(
-                          obscureText: true,
+                          obscureText: !_isPasswordVisible, // Terkait visibilitas
                           decoration: InputDecoration(
                             labelText: 'Password:',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            suffixIcon: const Icon(Icons.visibility_off),
                             contentPadding:
                                 const EdgeInsets.symmetric(horizontal: 20),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible =
+                                      !_isPasswordVisible; // Toggle visibilitas
+                                });
+                              },
+                            ),
                           ),
                         ),
 
@@ -116,14 +132,14 @@ class LoginScreen extends StatelessWidget {
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                             onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const Fgpassword(),
-                                  ),
-                                );
-                              },
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const Fgpassword(),
+                                ),
+                              );
+                            },
                             child: const Text(
                               'Lupa Password',
                               style: TextStyle(color: Colors.blue),
@@ -135,14 +151,14 @@ class LoginScreen extends StatelessWidget {
 
                         // Login Button
                         ElevatedButton(
-                           onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>  homeview()),
-                                  
-                                );
-                              },
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => homeview(),
+                              ),
+                            );
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
                                 const Color.fromARGB(255, 0, 140, 255),
@@ -154,11 +170,9 @@ class LoginScreen extends StatelessWidget {
                           child: const Text(
                             'Masuk',
                             style: TextStyle(
-                              color: Colors
-                                  .white, // Warna teks putih agar lebih jelas
-                              fontSize: 16, // Ukuran teks sedikit lebih besar
-                              fontWeight:
-                                  FontWeight.bold, // Membuat teks lebih tegas
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
