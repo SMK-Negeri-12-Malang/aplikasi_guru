@@ -1,7 +1,9 @@
 import 'package:aplikasi_ortu/MUSYRIF/Detail_Kamar/studentpage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert'; // Untuk menyimpan list sebagai JSON
+import 'package:file_picker/file_picker.dart';
+import 'dart:convert';
+import 'dart:io';
 
 class TaskPage extends StatefulWidget {
   final String roomName;
@@ -14,47 +16,105 @@ class TaskPage extends StatefulWidget {
 }
 
 class _TaskPageState extends State<TaskPage> {
-  List<String> tasks = [];
-  Map<String, bool> taskStatus = {};
+  List<Map<String, dynamic>> tasks = [];
+  bool isSelectionMode = false;
+  Set<int> selectedTasks = Set<int>();
 
   @override
   void initState() {
     super.initState();
-    _loadTasks(); // Ambil data dari penyimpanan saat pertama kali dibuka
+    _loadTasks();
   }
 
-  // 📝 Fungsi untuk menyimpan daftar tugas ke SharedPreferences
   Future<void> _saveTasks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('tasks', jsonEncode(tasks));
-    await prefs.setString('taskStatus', jsonEncode(taskStatus));
+    await prefs.setString('tasks_${widget.roomName}', jsonEncode(tasks));
   }
 
-  // 🔄 Fungsi untuk mengambil data tugas saat aplikasi dibuka kembali
   Future<void> _loadTasks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? tasksData = prefs.getString('tasks');
-    String? statusData = prefs.getString('taskStatus');
+    String? tasksData = prefs.getString('tasks_${widget.roomName}');
 
     if (tasksData != null) {
       setState(() {
-        tasks = List<String>.from(jsonDecode(tasksData));
-        taskStatus = Map<String, bool>.from(jsonDecode(statusData ?? '{}'));
+        tasks = List<Map<String, dynamic>>.from(jsonDecode(tasksData));
+        // Ensure 'completed' field is always a boolean
+        tasks.forEach((task) {
+          if (task['completed'] == null) {
+            task['completed'] = false;
+          }
+        });
       });
     }
   }
 
-  // ➕ Tambah tugas baru
   void _addTask() {
     TextEditingController taskController = TextEditingController();
+    TextEditingController descriptionController = TextEditingController();
+    List<String> selectedFiles = [];
+    List<String> selectedImages = [];
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text("Tambah Tugas"),
-          content: TextField(
-            controller: taskController,
-            decoration: InputDecoration(hintText: "Nama Tugas"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: taskController,
+                decoration: InputDecoration(hintText: "Nama Tugas"),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: descriptionController,
+                decoration: InputDecoration(hintText: "Deskripsi Tugas"),
+                maxLines: 3,
+              ),
+              SizedBox(height: 10),
+
+              // Satu tombol untuk upload dokumen dan gambar
+              ElevatedButton.icon(
+                onPressed: () async {
+                  FilePickerResult? result = await FilePicker.platform.pickFiles(
+                    type: FileType.custom,
+                    allowedExtensions: ['pdf', 'ppt', 'docx', 'jpg', 'png'],
+                    allowMultiple: true,
+                  );
+
+                  if (result != null) {
+                    for (var file in result.files) {
+                      String path = file.path!;
+                      if (path.endsWith('.jpg') || path.endsWith('.png')) {
+                        selectedImages.add(path);
+                      } else {
+                        selectedFiles.add(path);
+                      }
+                    }
+                    setState(() {});
+                  }
+                },
+                icon: Icon(Icons.attach_file),
+                label: Text("Upload Dokumen / Gambar"),
+              ),
+              SizedBox(height: 10),
+
+              // Display selected images
+              if (selectedImages.isNotEmpty)
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: selectedImages.map((image) {
+                    return Image.file(
+                      File(image),
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    );
+                  }).toList(),
+                ),
+            ],
           ),
           actions: [
             TextButton(
@@ -65,10 +125,16 @@ class _TaskPageState extends State<TaskPage> {
               onPressed: () {
                 if (taskController.text.isNotEmpty) {
                   setState(() {
-                    String newTask = taskController.text;
-                    tasks.add(newTask);
-                    taskStatus[newTask] = false;
-                    _saveTasks(); // Simpan data ke penyimpanan
+                    tasks.add({
+                      'name': taskController.text,
+                      'description': descriptionController.text,
+                      'created_at': "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
+                      'files': selectedFiles,
+                      'images': selectedImages,
+                      'completed': false,
+                    });
+
+                    _saveTasks();
                   });
                 }
                 Navigator.pop(context);
@@ -81,13 +147,62 @@ class _TaskPageState extends State<TaskPage> {
     );
   }
 
-  // 🗑 Hapus tugas dari daftar
-  void _deleteTask(String task) {
+  void _deleteSelectedTasks() {
     setState(() {
-      tasks.remove(task);
-      taskStatus.remove(task);
-      _saveTasks(); // Simpan perubahan
+      tasks.removeWhere((task) => selectedTasks.contains(tasks.indexOf(task)));
+      selectedTasks.clear();
+      isSelectionMode = false;
+      _saveTasks();
     });
+  }
+
+  void _toggleSelectionMode() {
+    setState(() {
+      isSelectionMode = !isSelectionMode;
+      selectedTasks.clear();
+    });
+  }
+
+  void _toggleTaskSelection(int index) {
+    setState(() {
+      if (selectedTasks.contains(index)) {
+        selectedTasks.remove(index);
+      } else {
+        selectedTasks.add(index);
+      }
+    });
+  }
+
+  void _updateTaskCompletion(int index, bool completed) {
+    setState(() {
+      tasks[index]['completed'] = completed;
+      _saveTasks();
+    });
+  }
+
+  void _navigateToStudentPage(String taskName, String taskDescription, List<String> students, List<String> files, List<String> images) async {
+    bool allStudentsCompleted = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => StudentPage(
+          taskName: taskName,
+          taskDescription: taskDescription,
+          students: students,
+          files: files,
+          images: images,
+        ),
+      ),
+    );
+
+    if (allStudentsCompleted) {
+      setState(() {
+        int taskIndex = tasks.indexWhere((task) => task['name'] == taskName);
+        if (taskIndex != -1) {
+          tasks[taskIndex]['completed'] = true;
+          _saveTasks();
+        }
+      });
+    }
   }
 
   @override
@@ -96,6 +211,23 @@ class _TaskPageState extends State<TaskPage> {
       appBar: AppBar(
         title: Text("Tugas di ${widget.roomName}"),
         backgroundColor: Colors.blue,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'delete') {
+                _toggleSelectionMode();
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return {'Hapus Tugas'}.map((String choice) {
+                return PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Text(choice),
+                );
+              }).toList();
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: EdgeInsets.all(10),
@@ -105,58 +237,80 @@ class _TaskPageState extends State<TaskPage> {
               child: ListView.builder(
                 itemCount: tasks.length,
                 itemBuilder: (context, index) {
-                  String task = tasks[index];
+                  var task = tasks[index];
+                  bool isSelected = selectedTasks.contains(index);
+
                   return Card(
                     margin: EdgeInsets.symmetric(vertical: 5),
+                    color: isSelected ? Colors.grey[300] : null,
                     child: ListTile(
-                      title: Text(task),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Checkbox(
-                            value: taskStatus[task],
-                            onChanged: (value) {},
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _deleteTask(task),
-                          ),
-                        ],
-                      ),
-                      onTap: () async {
-                        bool? result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => StudentPage(
-                              taskName: task,
-                              students: widget.students,
-                            ),
-                          ),
-                        );
-
-                        if (result == true) {
-                          setState(() {
-                            taskStatus[task] = true;
-                            _saveTasks(); // Simpan status setelah checklist siswa selesai
-                          });
+                      onLongPress: () {
+                        if (!isSelectionMode) {
+                          _toggleSelectionMode();
+                          _toggleTaskSelection(index);
                         }
                       },
+                      onTap: () {
+                        if (isSelectionMode) {
+                          _toggleTaskSelection(index);
+                        } else {
+                          _navigateToStudentPage(
+                            task['name'],
+                            task['description'],
+                            widget.students,
+                            List<String>.from(task['files']),
+                            List<String>.from(task['images']),
+                          );
+                        }
+                      },
+                      title: Text(task['name']),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Dibuat pada: ${task['created_at']}", style: TextStyle(color: Colors.grey)),
+                          Text("Deskripsi: ${task['description']}", style: TextStyle(color: Colors.black45)),
+
+                          if (task['files'].isNotEmpty)
+                            Text("📄 ${task['files'].length} Dokumen Terlampir", style: TextStyle(color: Colors.blue)),
+
+                          if (task['images'].isNotEmpty)
+                            Text("🖼 ${task['images'].length} Gambar Terlampir", style: TextStyle(color: Colors.green)),
+                        ],
+                      ),
+                      trailing: isSelectionMode
+                          ? Checkbox(
+                              value: isSelected,
+                              onChanged: (value) {
+                                _toggleTaskSelection(index);
+                              },
+                            )
+                          : Checkbox(
+                              value: task['completed'],
+                              onChanged: (value) {
+                                _updateTaskCompletion(index, value!);
+                              },
+                            ),
                     ),
                   );
                 },
               ),
             ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _addTask,
-              child: Text("Tambah Tugas"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            if (isSelectionMode)
+              ElevatedButton(
+                onPressed: _deleteSelectedTasks,
+                child: Text("Hapus Tugas Terpilih"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                ),
               ),
-            ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addTask,
+        child: Icon(Icons.add),
+        backgroundColor: Colors.blue,
       ),
     );
   }
