@@ -2,6 +2,7 @@ import 'package:aplikasi_ortu/LOGIN/FGpassword.dart';
 import 'package:aplikasi_ortu/LOGIN/register.dart';
 import 'package:aplikasi_ortu/main.dart';
 
+
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -155,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => homeview(),
+                                builder: (context) =>  homeview(),
                               ),
                             );
                           },

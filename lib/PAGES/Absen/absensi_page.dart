@@ -8,31 +8,87 @@ class AbsensiKelasPage extends StatefulWidget {
 }
 
 class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
-  // Contoh data kelas
   final List<String> kelasList = ['Kelas A', 'Kelas B', 'Kelas C', 'Kelas D'];
-
-  // Contoh data siswa untuk setiap kelas
-  final Map<String, List<Map<String, String>>> siswaData = {
+  final Map<String, List<Map<String, dynamic>>> siswaData = {
     'Kelas A': [
-      {'name': 'Paul Walker', 'absen': '01'},
-      {'name': 'John Doe', 'absen': '02'},
+      {'name': 'Paul Walker', 'absen': '01', 'checked': false},
+      {'name': 'John Doe', 'absen': '02', 'checked': false},
     ],
     'Kelas B': [
-      {'name': 'Jane Doe', 'absen': '01'},
-      {'name': 'Max Payne', 'absen': '02'},
+      {'name': 'Jane Doe', 'absen': '01', 'checked': false},
+      {'name': 'Max Payne', 'absen': '02', 'checked': false},
     ],
     'Kelas C': [
-      {'name': 'Alice Brown', 'absen': '01'},
-      {'name': 'Bob Smith', 'absen': '02'},
+      {'name': 'Alice Brown', 'absen': '01', 'checked': false},
+      {'name': 'Bob Smith', 'absen': '02', 'checked': false},
     ],
     'Kelas D': [
-      {'name': 'Charlie Green', 'absen': '01'},
-      {'name': 'Emma White', 'absen': '02'},
+      {'name': 'Charlie Green', 'absen': '01', 'checked': false},
+      {'name': 'Emma White', 'absen': '02', 'checked': false},
     ],
   };
 
-  // Menyimpan kelas yang sedang dipilih
   String? selectedClass;
+  int checkedCount = 0;
+
+  void _toggleCheck(int index) {
+    setState(() {
+      if (selectedClass != null) {
+        siswaData[selectedClass]![index]['checked'] =
+            !siswaData[selectedClass]![index]['checked'];
+        checkedCount = siswaData[selectedClass]!
+            .where((siswa) => siswa['checked'])
+            .length;
+      }
+    });
+  }
+
+  void _addSiswa() {
+    if (selectedClass != null) {
+      TextEditingController nameController = TextEditingController();
+      TextEditingController absenController = TextEditingController();
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Tambah Siswa Baru'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(labelText: 'Nama Siswa'),
+              ),
+              TextField(
+                controller: absenController,
+                decoration: InputDecoration(labelText: 'Nomor Absen'),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  siswaData[selectedClass]!.add({
+                    'name': nameController.text,
+                    'absen': absenController.text,
+                    'checked': false,
+                  });
+                });
+                Navigator.pop(context);
+              },
+              child: Text('Tambah'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +119,9 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
                   onTap: () {
                     setState(() {
                       selectedClass = kelas;
+                      checkedCount = siswaData[selectedClass]!
+                          .where((siswa) => siswa['checked'])
+                          .length;
                     });
                   },
                   child: Container(
@@ -73,13 +132,28 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Center(
-                      child: Text(
-                        kelas,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            kelas,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (selectedClass == kelas)
+                            Text(
+                              checkedCount == (siswaData[selectedClass]?.length ?? 0)
+                                  ? 'Hadir Semua'
+                                  : 'Hadir: $checkedCount',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),
@@ -88,12 +162,41 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
             ),
           ),
           const Divider(),
-          if (selectedClass != null) ...[
+          if (selectedClass == null) ...[
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 100,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 20),
+                    Text(
+                      'Pilih kelas untuk melihat daftar siswa',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ] else ...[
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Siswa di $selectedClass',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Siswa di $selectedClass',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.add, color: Colors.blue.shade900),
+                    onPressed: _addSiswa,
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -108,27 +211,17 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.white,
-                        child: Icon(Icons.person, color: Colors.blue.shade900),
-                      ),
                       title: Text(siswa['name']!, style: TextStyle(color: Colors.white)),
                       subtitle: Text('Absen: ${siswa['absen']}', style: TextStyle(color: Colors.white70)),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.check, color: Colors.white),
-                        onPressed: () {},
+                      trailing: Checkbox(
+                        value: siswa['checked'],
+                        onChanged: (value) {
+                          _toggleCheck(index);
+                        },
                       ),
                     ),
                   );
                 },
-              ),
-            ),
-          ] else ...[
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                'Pilih kelas untuk melihat daftar siswa',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
             ),
           ],

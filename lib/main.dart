@@ -5,9 +5,11 @@ import 'package:aplikasi_ortu/PAGES/Chat/listchat_page.dart';
 import 'package:aplikasi_ortu/PAGES/Drawer/Laporan_guru/laporan_guru.dart';
 import 'package:aplikasi_ortu/PAGES/Drawer/Profil/profil_page.dart';
 import 'package:aplikasi_ortu/PAGES/Drawer/Setting/setting_page.dart';
+import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
+import 'package:aplikasi_ortu/PAGES/Grade/grade.dart';
 import 'package:aplikasi_ortu/PAGES/Home/Home_Guru.dart';
+import 'package:aplikasi_ortu/splashscreen.dart';
 import 'package:flutter/material.dart';
-import 'PAGES/Grade/class_selection_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -17,11 +19,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Aplikasi Guru',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: ClassSelectionPage(),
+      home: SplashScreen(),
     );
   }
 }
@@ -252,7 +255,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
             ChatListPage(),
             DashboardPage(),
             AbsensiKelasPage(),
-            //GradePage(),
+            ClassSelectionPage(),
           ],
         ),
         bottomNavigationBar: Container(
@@ -299,6 +302,8 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
             backgroundColor: Colors.white,
             type: BottomNavigationBarType.fixed,
             onTap: _onBottomNavTapped,
+            showSelectedLabels: true,
+            showUnselectedLabels: false,
           ),
         ),
       ),

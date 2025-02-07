@@ -1,160 +1,168 @@
 import 'package:flutter/material.dart';
 
-class DetailKelasA extends StatelessWidget {
+class DetailKelasA extends StatefulWidget {
+  @override
+  _TaskPageState createState() => _TaskPageState();
+}
+
+class _TaskPageState extends State<DetailKelasA> {
+  List<Map<String, dynamic>> tasks = [];
+
+  void _addTask() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController titleController = TextEditingController();
+        TextEditingController descController = TextEditingController();
+        DateTime? selectedDate;
+
+        return AlertDialog(
+          title: Text("Tambah Tugas"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: InputDecoration(labelText: "Judul Tugas"),
+              ),
+              TextField(
+                controller: descController,
+                decoration: InputDecoration(labelText: "Deskripsi Tugas"),
+              ),
+              SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2101),
+                  );
+                  if (pickedDate != null) {
+                    setState(() {
+                      selectedDate = pickedDate;
+                    });
+                  }
+                },
+                child: Text("Pilih Tanggal"),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Batal"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (titleController.text.isNotEmpty && selectedDate != null) {
+                  setState(() {
+                    tasks.add({
+                      "title": titleController.text,
+                      "description": descController.text,
+                      "date": selectedDate,
+                      "completedBy": [],
+                    });
+                  });
+                  Navigator.pop(context);
+                }
+              },
+              child: Text("Simpan"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _openTaskDetail(int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TaskDetailPage(task: tasks[index]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Tugas Kelas A',
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.blue[300],
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+      appBar: AppBar(title: Text("Daftar Tugas")),
+      body: ListView.builder(
+        itemCount: tasks.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(tasks[index]["title"] ?? ""),
+            subtitle: Text("${tasks[index]["date"]?.toLocal()}".split(' ')[0]),
+            onTap: () => _openTaskDetail(index),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addTask,
+        child: Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class TaskDetailPage extends StatelessWidget {
+  final Map<String, dynamic> task;
+
+  TaskDetailPage({required this.task});
+
+  void _openStudentDetail(BuildContext context, String studentName) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => StudentDetailPage(studentName: studentName),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(task["title"] ?? "Detail Tugas")),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Deskripsi:", style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(task["description"] ?? "Tidak ada deskripsi"),
+            SizedBox(height: 10),
+            Text("Tanggal: ${task["date"]?.toLocal()}".split(' ')[0]),
+            SizedBox(height: 10),
+            Text("Sudah Dikerjakan oleh:", style: TextStyle(fontWeight: FontWeight.bold)),
+            ...task["completedBy"].map<Widget>((name) => ListTile(
+              title: Text(name),
+              onTap: () => _openStudentDetail(context, name),
+            )).toList(),
+          ],
         ),
       ),
+    );
+  }
+}
+
+class StudentDetailPage extends StatelessWidget {
+  final String studentName;
+
+  StudentDetailPage({required this.studentName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Detail Siswa")),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 161, 188, 238),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Tugas Harian",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.add, color: Colors.black),
-                            onPressed: () {
-                              // Tambahkan fungsi untuk menambahkan tugas
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: Text(
-                        "Tugas 1",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[700],
-                        minimumSize: Size(350, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: Text(
-                        "Tugas 2",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[700],
-                        minimumSize: Size(350, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 99, 99, 99),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Tugas Mingguan",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.add, color: Colors.white),
-                            onPressed: () {
-                              // Tambahkan fungsi untuk menambahkan tugas
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    Divider(
-                      color: Colors.red,
-                    ),
-                    SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: Text(
-                        "Tugas 1",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[700],
-                        minimumSize: Size(350, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: Text(
-                        "Tugas 2",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[700],
-                        minimumSize: Size(350, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            Text("Nama Siswa:", style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(studentName),
+            // Tambahkan detail siswa lainnya di sini
           ],
         ),
       ),
