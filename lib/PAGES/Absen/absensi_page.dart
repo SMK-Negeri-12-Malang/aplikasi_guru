@@ -102,11 +102,6 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Absensi Kelas'),
-        centerTitle: true,
-      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

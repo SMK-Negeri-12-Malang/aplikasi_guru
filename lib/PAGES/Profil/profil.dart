@@ -1,198 +1,143 @@
-// profile_detail.dart
 import 'package:flutter/material.dart';
 
 class ProfileDetailPage extends StatelessWidget {
-  const ProfileDetailPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        title: const Text('Profile Detail'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              // TODO: Implement edit profile
-            },
-          ),
-        ],
-      ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            // Profile Image
-            Center(
-              child: Stack(
-                children: [
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 4,
-                      ),
-                      image: const DecorationImage(
-                        image: NetworkImage('https://via.placeholder.com/150'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: 35,
-                      height: 35,
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 2,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Profile Info
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      _buildProfileItem(
-                        icon: Icons.person,
-                        title: 'Full Name',
-                        value: 'John Doe',
-                      ),
-                      const Divider(),
-                      _buildProfileItem(
-                        icon: Icons.email,
-                        title: 'Email',
-                        value: 'johndoe@example.com',
-                      ),
-                      const Divider(),
-                      _buildProfileItem(
-                        icon: Icons.phone,
-                        title: 'Phone',
-                        value: '+1234567890',
-                      ),
-                      const Divider(),
-                      _buildProfileItem(
-                        icon: Icons.location_on,
-                        title: 'Address',
-                        value: '123 Street Name, City, Country',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Stats Card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildStatItem('Posts', '120'),
-                      _buildStatItem('Followers', '1.2K'),
-                      _buildStatItem('Following', '847'),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileItem({
-    required IconData icon,
-    required String title,
-    required String value,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: Colors.blue,
-            size: 24,
-          ),
-          const SizedBox(width: 16),
-          Column(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
+              // Header
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade200,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.green,
+                      child: Text(
+                        'E',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Efendi Sudarmono',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text('Guru Bahasa Thailand'),
+                      ],
+                    )
+                  ],
                 ),
               ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+
+              SizedBox(height: 20),
+
+              // Personal Section
+              _buildListItem(
+                context,
+                icon: Icons.person,
+                title: 'Personal',
+                subtitle: 'Informasi pemilik akun',
+                onTap: () {},
+              ),
+
+              // Daftar Anak Section
+              _buildListItem(
+                context,
+                icon: Icons.people,
+                title: 'Daftar Anak',
+                subtitle: 'Pilih anak sebagai default',
+                onTap: () {},
+              ),
+
+              // Ubah Password Section
+              _buildListItem(
+                context,
+                icon: Icons.key,
+                title: 'Ubah Password',
+                subtitle: 'Pengaturan untuk merubah kata sandi',
+                onTap: () {},
+              ),
+
+              SizedBox(height: 20),
+
+              // Logout Button
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: EdgeInsets.symmetric(horizontal: 160, vertical: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () {},
+                  child: Text(
+                    'Logout',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: const Color.fromARGB(255, 255, 255, 255),
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatItem(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+  Widget _buildListItem(BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 14,
+        elevation: 4,
+        shadowColor: Colors.grey.withOpacity(0.5),
+        margin: EdgeInsets.symmetric(vertical: 10),
+        child: ListTile(
+          contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          leading: Icon(icon, size: 40, color: const Color.fromARGB(255, 168, 171, 174)),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
           ),
+          subtitle: Text(subtitle),
+          trailing: Icon(Icons.arrow_forward_ios),
         ),
-      ],
+      ),
     );
   }
 }

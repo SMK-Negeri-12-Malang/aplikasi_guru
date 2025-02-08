@@ -15,10 +15,11 @@ class NewsPage extends StatefulWidget {
 class _NewsPageState extends State<NewsPage> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
-  final TextEditingController _jenisController = TextEditingController();
   final TextEditingController _judulController = TextEditingController();
   final TextEditingController _tempatController = TextEditingController();
   final TextEditingController _deskripsiController = TextEditingController();
+  final TextEditingController _tanggalController = TextEditingController();
+  final TextEditingController _waktuController = TextEditingController();
 
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -29,18 +30,46 @@ class _NewsPageState extends State<NewsPage> {
     }
   }
 
+  Future<void> _pickDate() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (pickedDate != null) {
+      setState(() {
+        _tanggalController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+      });
+    }
+  }
+
+  Future<void> _pickTime() async {
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (pickedTime != null) {
+      setState(() {
+        _waktuController.text = pickedTime.format(context);
+      });
+    }
+  }
+
   void _submitNews() {
-    if (_jenisController.text.isNotEmpty &&
-        _judulController.text.isNotEmpty &&
+    if (_judulController.text.isNotEmpty &&
         _tempatController.text.isNotEmpty &&
         _deskripsiController.text.isNotEmpty &&
-        _selectedImage != null) {
+        _selectedImage != null &&
+        _tanggalController.text.isNotEmpty &&
+        _waktuController.text.isNotEmpty) {
       final news = {
-        'jenis': _jenisController.text,
         'judul': _judulController.text,
         'tempat': _tempatController.text,
         'deskripsi': _deskripsiController.text,
         'image': _selectedImage,
+        'tanggal': _tanggalController.text,
+        'waktu': _waktuController.text,
       };
       widget.onNewsAdded(news);
       Navigator.pop(context); // Ensure this navigates back to DashboardPage
@@ -75,11 +104,6 @@ class _NewsPageState extends State<NewsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             _buildInputSection(
-              title: 'Jenis Informasi',
-              child: _buildTextField('Masukkan jenis informasi', controller: _jenisController, maxLines: 1),
-            ),
-            
-            _buildInputSection(
               title: 'Judul Informasi',
               child: _buildTextField('Masukkan judul informasi', controller: _judulController, maxLines: 1),
             ),
@@ -92,6 +116,26 @@ class _NewsPageState extends State<NewsPage> {
             _buildInputSection(
               title: 'Deskripsi',
               child: _buildTextField('Masukkan deskripsi', controller: _deskripsiController, maxLines: 4),
+            ),
+            
+            _buildInputSection(
+              title: 'Tanggal',
+              child: InkWell(
+                onTap: _pickDate,
+                child: IgnorePointer(
+                  child: _buildTextField('Pilih tanggal', controller: _tanggalController, maxLines: 1),
+                ),
+              ),
+            ),
+            
+            _buildInputSection(
+              title: 'Waktu',
+              child: InkWell(
+                onTap: _pickTime,
+                child: IgnorePointer(
+                  child: _buildTextField('Pilih waktu', controller: _waktuController, maxLines: 1),
+                ),
+              ),
             ),
             
             _buildInputSection(
@@ -218,3 +262,4 @@ class _NewsPageState extends State<NewsPage> {
     );
   }
 }
+  

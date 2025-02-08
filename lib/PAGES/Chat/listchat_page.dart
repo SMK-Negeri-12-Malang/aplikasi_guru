@@ -66,7 +66,6 @@ class _ChatListPageState extends State<ChatListPage> {
             style: TextStyle(color: Colors.black),
           ),
         ),
-    
       ),
       body: filteredChats.isEmpty
           ? Center(

@@ -168,12 +168,7 @@ class _DashboardPageState extends State<Mainmusrif> with SingleTickerProviderSta
               leading: Icon(Icons.message),
               title: Text('Laporan Guru'),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          LaporanGuru()), // Pastikan halaman LaporanGuruPage tersedia
-                );
+              
               },
             ),
             Divider(

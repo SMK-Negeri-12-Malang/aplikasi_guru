@@ -7,6 +7,7 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: Colors.blue[700],
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
@@ -14,7 +15,7 @@ class SettingsPage extends StatelessWidget {
         ),
         title: Text(
           'Pengaturan',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24),
         ),
         //elevation: 4,
         //shape: RoundedRectangleBorder(
@@ -30,19 +31,19 @@ class SettingsPage extends StatelessWidget {
             _buildSettingTile(
               icon: Icons.person,
               title: 'Ubah Profil',
-              color: Colors.blueAccent,
+              color: Colors.blue[700]!,
               onTap: () {},
             ),
             _buildSettingTile(
               icon: Icons.security,
               title: 'Keamanan',
-              color: Colors.redAccent,
+              color: Colors.blue[700]!,
               onTap: () {},
             ),
             _buildSettingTile(
               icon: Icons.privacy_tip,
               title: 'Privasi',
-              color: Colors.green,
+              color: Colors.blue[700]!,
               onTap: () {},
             ),
             SizedBox(height: 20),
@@ -50,7 +51,7 @@ class SettingsPage extends StatelessWidget {
             _buildSettingTile(
               icon: Icons.brush,
               title: 'Tampilan',
-              color: Colors.purple,
+              color: Colors.blue[700]!,
               onTap: () {
               Navigator.push(
                 context,
@@ -61,13 +62,13 @@ class SettingsPage extends StatelessWidget {
             _buildSettingTile(
               icon: Icons.notifications,
               title: 'Notifikasi',
-              color: Colors.orange,
+              color: Colors.blue[700]!,
               onTap: () {},
             ),
             _buildSettingTile(
               icon: Icons.language,
               title: 'Bahasa',
-              color: Colors.teal,
+              color: Colors.blue[700]!,
               onTap: () {},
             ),
           ],
@@ -81,7 +82,7 @@ class SettingsPage extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8.0, top: 16.0),
       child: Text(
         title,
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
       ),
     );
   }
@@ -95,7 +96,7 @@ class SettingsPage extends StatelessWidget {
           backgroundColor: color.withOpacity(0.2),
           child: Icon(icon, color: color),
         ),
-        title: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        title: Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
         trailing: Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
         onTap: onTap,
       ),

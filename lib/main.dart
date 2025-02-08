@@ -3,6 +3,7 @@ import 'package:aplikasi_ortu/LOGIN/login.dart';
 import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
 import 'package:aplikasi_ortu/PAGES/Chat/listchat_page.dart';
 import 'package:aplikasi_ortu/PAGES/Drawer/Laporan_guru/laporan_guru.dart';
+import 'package:aplikasi_ortu/PAGES/Drawer/Laporan_guru/view_laporan.dart';
 import 'package:aplikasi_ortu/PAGES/Drawer/Profil/profil_page.dart';
 import 'package:aplikasi_ortu/PAGES/Drawer/Setting/setting_page.dart';
 import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
@@ -45,7 +46,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
 
   final List<NavItem> _navItems = [
     NavItem(icon: Icons.note_add, label: 'Grade'),
-    NavItem(icon: Icons.message, label: 'Chat'),
+    NavItem(icon: Icons.report, label: 'Laporan'),
     NavItem(icon: Icons.home, label: 'Home'),
     NavItem(icon: Icons.list, label: 'Absen'),
     NavItem(icon: Icons.person, label: 'Profil'),
@@ -122,37 +123,10 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
       },
       child: Scaffold(
         key: _scaffoldKey,
-        appBar: AppBar(
+        appBar: _currentIndex == 2 ? _buildHomeAppBar() : AppBar(
           backgroundColor: Colors.blue[700],
-          title: Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  _scaffoldKey.currentState?.openDrawer();
-                },
-                child: CircleAvatar(
-                  backgroundColor: Colors.white,
-                  backgroundImage: _profileImage != null
-                      ? FileImage(_profileImage!)
-                      : AssetImage('assets/images/profile.jpg') as ImageProvider,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    'Selamat Datang',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                  ),
-                  Text(
-                    'Purwanto Hermawan S.KON',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ],
-          ),
+          title: Text(_getAppBarTitle(), textAlign: TextAlign.center),
+          centerTitle: true,
         ),
         drawer: Drawer(
           child: ListView(
@@ -201,7 +175,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            LaporanGuru()), // Pastikan halaman LaporanGuruPage tersedia
+                            LaporanGuru(onNewsAdded: (news) {})), // Pastikan halaman LaporanGuruPage tersedia
                   );
                 },
               ),
@@ -258,6 +232,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
         ),
         body: PageView(
           controller: _pageController,
+          physics: NeverScrollableScrollPhysics(), // Disable page swiping
           onPageChanged: (index) {
             setState(() {
               _currentIndex = index;
@@ -265,7 +240,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
           },
           children: [
             ClassSelectionPage(),
-            ChatListPage(),
+            LaporanGuru(onNewsAdded: (news) {}),
             DashboardPage(),
             AbsensiKelasPage(),    
             ProfileDetailPage(),
@@ -321,6 +296,58 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
         ),
       ),
     );
+  }
+
+  AppBar _buildHomeAppBar() {
+    return AppBar(
+      backgroundColor: Colors.blue[700],
+      title: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              _scaffoldKey.currentState?.openDrawer();
+            },
+            child: CircleAvatar(
+              backgroundColor: Colors.white,
+              backgroundImage: _profileImage != null
+                  ? FileImage(_profileImage!)
+                  : AssetImage('assets/images/profile.jpg') as ImageProvider,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                'Selamat Datang',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+              Text(
+                'Purwanto Hermawan S.KON',
+                style: TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getAppBarTitle() {
+    switch (_currentIndex) {
+      case 0:
+        return 'Grade';
+      case 1:
+        return 'Laporan Guru';
+      case 2:
+        return 'Beranda';
+      case 3:
+        return 'Absensi Kelas';
+      case 4:
+        return 'Profil';
+      default:
+        return 'Aplikasi Guru';
+    }
   }
 }
 
