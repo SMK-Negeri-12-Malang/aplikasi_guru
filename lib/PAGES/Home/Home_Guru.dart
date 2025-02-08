@@ -1,7 +1,12 @@
+import 'package:aplikasi_ortu/LOGIN/login.dart';
 import 'package:aplikasi_ortu/PAGES/Detail_Kelas/detailkelasA.dart';
 import 'package:aplikasi_ortu/PAGES/Detail_Kelas/detailkelasB.dart';
 import 'package:aplikasi_ortu/PAGES/Detail_Kelas/detailkelasC.dart';
+import 'package:aplikasi_ortu/PAGES/Drawer/Laporan_guru/laporan_guru.dart';
+import 'package:aplikasi_ortu/PAGES/Drawer/Profil/profil_page.dart';
+import 'package:aplikasi_ortu/PAGES/Drawer/Setting/setting_page.dart';
 import 'package:flutter/material.dart';
+import 'package:aplikasi_ortu/PAGES/Berita/News_page.dart';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -11,7 +16,8 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   late PageController _pageController;
   late Future<void> _loadingFuture;
-  
+  List<Map<String, dynamic>> _newsList = [];
+
   @override
   void initState() {
     super.initState();
@@ -26,6 +32,12 @@ class _DashboardPageState extends State<DashboardPage> {
     super.dispose();
   }
 
+  void _addNews(Map<String, dynamic> news) {
+    setState(() {
+      _newsList.add(news);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,8 +46,26 @@ class _DashboardPageState extends State<DashboardPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Berita', 
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Berita',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => NewsPage(onNewsAdded: _addNews),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
             SizedBox(height: 15),
             FutureBuilder(
               future: _loadingFuture,
@@ -93,12 +123,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   _buildClassButton(
                     'Kelas B',
                     () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CustomBottomNavBar(),
-                        ),
-                      );
+                    
                     },
                   ),
                   SizedBox(height: 10),
@@ -144,12 +169,35 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildCardItem() {
+    if (_newsList.isEmpty) {
+      return Container(
+        height: 155,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.info_outline, size: 50, color: Colors.grey),
+              SizedBox(height: 10),
+              Text(
+                'Tidak ada berita',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return SizedBox(
       height: 155,
       child: PageView.builder(
         controller: _pageController,
-        itemCount: 5,
+        itemCount: _newsList.length,
         itemBuilder: (context, index) {
+          final news = _newsList[index];
           return Container(
             margin: EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
@@ -169,8 +217,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      'assets/images/image.png',
+                    child: Image.file(
+                      news['image'],
                       width: 100,
                       height: 100,
                       fit: BoxFit.cover,
@@ -182,7 +230,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Yoga',
+                      news['judul'],
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -191,7 +239,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     SizedBox(height: 5),
                     Text(
-                      'Ah mantap',
+                      news['deskripsi'],
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 12

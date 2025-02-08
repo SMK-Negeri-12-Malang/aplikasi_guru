@@ -1,54 +1,36 @@
-import 'dart:io';
 import 'package:aplikasi_ortu/LOGIN/login.dart';
+import 'package:aplikasi_ortu/MUSYRIF/home_musyrif.dart';
 import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
+import 'package:aplikasi_ortu/PAGES/Berita/News_page.dart';
 import 'package:aplikasi_ortu/PAGES/Chat/listchat_page.dart';
 import 'package:aplikasi_ortu/PAGES/Drawer/Laporan_guru/laporan_guru.dart';
 import 'package:aplikasi_ortu/PAGES/Drawer/Profil/profil_page.dart';
 import 'package:aplikasi_ortu/PAGES/Drawer/Setting/setting_page.dart';
 import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
+import 'package:aplikasi_ortu/PAGES/Grade/grade.dart';
 import 'package:aplikasi_ortu/PAGES/Home/Home_Guru.dart';
-import 'package:aplikasi_ortu/PAGES/Profil/profil.dart';
 import 'package:aplikasi_ortu/splashscreen.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(MyApp());
-}
 
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Aplikasi Guru',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: SplashScreen(),
-    );
-  }
-}
-
-class homeview extends StatefulWidget {
+class Mainmusrif extends StatefulWidget {
   @override
   _DashboardPageState createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<homeview> with SingleTickerProviderStateMixin {
+class _DashboardPageState extends State<Mainmusrif> with SingleTickerProviderStateMixin {
   late PageController _pageController;
   late AnimationController _animationController;
   late List<Animation<double>> _bounceAnimations;
   int _currentIndex = 2;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  File? _profileImage;
 
   final List<NavItem> _navItems = [
-    NavItem(icon: Icons.note_add, label: 'Grade'),
+    NavItem(icon: Icons.newspaper, label: 'Berita'),
     NavItem(icon: Icons.message, label: 'Chat'),
     NavItem(icon: Icons.home, label: 'Home'),
     NavItem(icon: Icons.list, label: 'Absen'),
-    NavItem(icon: Icons.person, label: 'Profil'),
+    NavItem(icon: Icons.note_add, label: 'Grade'),
   ];
 
   @override
@@ -73,18 +55,6 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
         ),
       ),
     );
-
-    _loadProfileImage();
-  }
-
-  Future<void> _loadProfileImage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? imagePath = prefs.getString('profile_image');
-    if (imagePath != null) {
-      setState(() {
-        _profileImage = File(imagePath);
-      });
-    }
   }
 
   @override
@@ -130,11 +100,9 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
                 onTap: () {
                   _scaffoldKey.currentState?.openDrawer();
                 },
-                child: CircleAvatar(
+                child: const CircleAvatar(
                   backgroundColor: Colors.white,
-                  backgroundImage: _profileImage != null
-                      ? FileImage(_profileImage!)
-                      : AssetImage('assets/images/profile.jpg') as ImageProvider,
+                  child: Icon(Icons.person, color: Colors.blue),
                 ),
               ),
               const SizedBox(width: 10),
@@ -155,107 +123,110 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
           ),
         ),
         drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              DrawerHeader(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: const Color.fromARGB(255, 115, 115, 115),
-                      backgroundImage: _profileImage != null
-                          ? FileImage(_profileImage!)
-                          : AssetImage('assets/images/profile.jpg') as ImageProvider,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              //decoration: BoxDecoration(
+              //color: Colors.blue[300],
+              //),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: const Color.fromARGB(255, 115, 115, 115),
+                    child: Icon(Icons.person, color: Colors.blue, size: 40),
+                  ),
+                  SizedBox(height: 18),
+                  Text(
+                    'Purwanto Hermawan S.KON',
+                    style: TextStyle(
+                      //  color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                    SizedBox(height: 18),
-                    Text(
-                      'Purwanto Hermawan S.KON',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'wantoherman123@gmail.com',
-                    ),
-                  ],
-                ),
+                  ),
+                  Text(
+                    'wantoherman123@gmail.com',
+                    //style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ],
               ),
-              ListTile(
-                leading: Icon(Icons.person),
-                title: Text('Profile'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => EditProfilePage()),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.message),
-                title: Text('Laporan Guru'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            LaporanGuru()), // Pastikan halaman LaporanGuruPage tersedia
-                  );
-                },
-              ),
-              Divider(
-                thickness: 1,
-              ),
-              ListTile(
-                leading: Icon(Icons.settings),
-                title: Text('Settings'),
-                onTap: () {
-                  Navigator.push(
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Profile'),
+              onTap: () {
+                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SettingsPage()), // Pastikan halaman SettingsPage tersedia
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.logout),
-                title: Text('Logout'),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text("Konfirmasi Logout"),
-                        content: Text("Apakah Anda yakin ingin logout?"),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context); // Tutup dialog
-                            },
-                            child: Text("Batal"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context); // Tutup dialog
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        LoginScreen()), // Ganti halaman dengan LogoutPage
-                              );
-                            },
-                            child: Text("Logout"),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
+                  MaterialPageRoute(builder: (context) => EditProfilePage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.message),
+              title: Text('Laporan Guru'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          LaporanGuru()), // Pastikan halaman LaporanGuruPage tersedia
+                );
+              },
+            ),
+            Divider(
+              thickness: 1,
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text('Settings'),
+              onTap: () {
+                Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsPage()), // Pastikan halaman SettingsPage tersedia
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Logout'),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text("Konfirmasi Logout"),
+                      content: Text("Apakah Anda yakin ingin logout?"),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context); // Tutup dialog
+                          },
+                          child: Text("Batal"),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context); // Tutup dialog
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      LoginScreen()), // Ganti halaman dengan LogoutPage
+                            );
+                          },
+                          child: Text("Logout"),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ],
         ),
+      ),
         body: PageView(
           controller: _pageController,
           onPageChanged: (index) {
@@ -264,11 +235,13 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
             });
           },
           children: [
-            ClassSelectionPage(),
+            NewsPage(onNewsAdded: (news) {
+              // Handle the news added event here
+            }),
             ChatListPage(),
-            DashboardPage(),
-            AbsensiKelasPage(),    
-            ProfileDetailPage(),
+            DashboardMusyrifPage(),
+            AbsensiKelasPage(),
+            ClassSelectionPage(),
           ],
         ),
         bottomNavigationBar: Container(

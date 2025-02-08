@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class AbsensiKelasPage extends StatefulWidget {
   const AbsensiKelasPage({super.key});
@@ -30,6 +31,8 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
 
   String? selectedClass;
   int checkedCount = 0;
+  int? selectedIndex;
+  List<Map<String, dynamic>> savedAttendance = [];
 
   void _toggleCheck(int index) {
     setState(() {
@@ -43,46 +46,52 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
     });
   }
 
-  void _addSiswa() {
+  void _saveAttendance() {
     if (selectedClass != null) {
-      TextEditingController nameController = TextEditingController();
-      TextEditingController absenController = TextEditingController();
+      setState(() {
+        DateTime now = DateTime.now();
+        String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
+        for (var siswa in siswaData[selectedClass]!) {
+          if (siswa['checked']) {
+            savedAttendance.add({
+              'name': siswa['name'],
+              'absen': siswa['absen'],
+              'date': formattedDate,
+            });
+            siswa['checked'] = false;
+          }
+        }
+        checkedCount = 0;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Absensi berhasil disimpan!')),
+      );
+    }
+  }
 
+  void _showCheckedStudents() {
+    if (savedAttendance.isNotEmpty) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('Tambah Siswa Baru'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(labelText: 'Nama Siswa'),
-              ),
-              TextField(
-                controller: absenController,
-                decoration: InputDecoration(labelText: 'Nomor Absen'),
-                keyboardType: TextInputType.number,
-              ),
-            ],
+          title: Text('Siswa yang telah absen'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: savedAttendance.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(savedAttendance[index]['name']),
+                  subtitle: Text('Absen: ${savedAttendance[index]['absen']} - Tanggal: ${savedAttendance[index]['date']}'),
+                );
+              },
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  siswaData[selectedClass]!.add({
-                    'name': nameController.text,
-                    'absen': absenController.text,
-                    'checked': false,
-                  });
-                });
-                Navigator.pop(context);
-              },
-              child: Text('Tambah'),
+              child: Text('Tutup'),
             ),
           ],
         ),
@@ -102,7 +111,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
-            padding: EdgeInsets.only(left: 8.0, top: 8.0, bottom: 4.0),
+            padding: EdgeInsets.all(8.0),
             child: Text(
               'List Kelas',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -119,6 +128,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
                   onTap: () {
                     setState(() {
                       selectedClass = kelas;
+                      selectedIndex = index;
                       checkedCount = siswaData[selectedClass]!
                           .where((siswa) => siswa['checked'])
                           .length;
@@ -128,8 +138,22 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
                     width: MediaQuery.of(context).size.width * 0.8,
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade900,
+                      color: selectedIndex == index
+                          ? Colors.blue.shade100
+                          : const Color.fromARGB(255, 255, 255, 255),
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.blue.shade900, // Warna border
+                        width: 2, // Ketebalan border
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.4), // Warna lebih pekat
+                          blurRadius: 5, // Blur lebih kecil untuk efek lebih nyata
+                          spreadRadius: 1, // Sedikit menyebar
+                          offset: const Offset(0, 6), // Bayangan lebih panjang ke bawah
+                        ),
+                      ],
                     ),
                     child: Center(
                       child: Column(
@@ -138,7 +162,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
                           Text(
                             kelas,
                             style: TextStyle(
-                              color: Colors.white,
+                              color: const Color.fromARGB(255, 0, 0, 0),
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -149,7 +173,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
                                   ? 'Hadir Semua'
                                   : 'Hadir: $checkedCount',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: const Color.fromARGB(179, 0, 0, 0),
                                 fontSize: 14,
                               ),
                             ),
@@ -161,28 +185,11 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
               },
             ),
           ),
+          SizedBox(
+            height: 16,
+          ),
           const Divider(),
-          if (selectedClass == null) ...[
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 100,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      'Pilih kelas untuk melihat daftar siswa',
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ] else ...[
+          if (selectedClass != null) ...[
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(
@@ -193,8 +200,8 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
-                    icon: Icon(Icons.add, color: Colors.blue.shade900),
-                    onPressed: _addSiswa,
+                    icon: Icon(Icons.info),
+                    onPressed: _showCheckedStudents,
                   ),
                 ],
               ),
@@ -204,15 +211,32 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
                 itemCount: siswaData[selectedClass]?.length ?? 0,
                 itemBuilder: (context, index) {
                   var siswa = siswaData[selectedClass]![index];
-                  return Card(
-                    color: Colors.blue.shade300,
+                  return Container(
                     margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    shape: RoundedRectangleBorder(
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 255, 255, 255),
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.blue.shade900, // Warna border
+                        width: 2, // Ketebalan border
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.3),
+                          blurRadius: 5,
+                          offset: const Offset(0, 6), // Bayangan ke bawah
+                        ),
+                      ],
                     ),
                     child: ListTile(
-                      title: Text(siswa['name']!, style: TextStyle(color: Colors.white)),
-                      subtitle: Text('Absen: ${siswa['absen']}', style: TextStyle(color: Colors.white70)),
+                      title: Text(
+                        siswa['name']!,
+                        style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
+                      ),
+                      subtitle: Text(
+                        'Absen: ${siswa['absen']}',
+                        style: TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
+                      ),
                       trailing: Checkbox(
                         value: siswa['checked'],
                         onChanged: (value) {
@@ -222,6 +246,22 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
                     ),
                   );
                 },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: TextButton(
+                  onPressed: _saveAttendance,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white, backgroundColor: Colors.blue.shade900,
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text('Save'),
+                ),
               ),
             ),
           ],

@@ -1,5 +1,4 @@
-
-import 'package:aplikasi_ortu/GURU/Chat/chat_page.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Chat/chat_page.dart';
 import 'package:flutter/material.dart';
 
 class ChatListPage extends StatefulWidget {

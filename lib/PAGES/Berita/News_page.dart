@@ -4,6 +4,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class NewsPage extends StatefulWidget {
+  final Function(Map<String, dynamic>) onNewsAdded;
+
+  NewsPage({required this.onNewsAdded});
+
   @override
   _NewsPageState createState() => _NewsPageState();
 }
@@ -11,8 +15,10 @@ class NewsPage extends StatefulWidget {
 class _NewsPageState extends State<NewsPage> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
-  DateTime? _selectedDate;
-  TimeOfDay? _selectedTime;
+  final TextEditingController _jenisController = TextEditingController();
+  final TextEditingController _judulController = TextEditingController();
+  final TextEditingController _tempatController = TextEditingController();
+  final TextEditingController _deskripsiController = TextEditingController();
 
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -23,68 +29,27 @@ class _NewsPageState extends State<NewsPage> {
     }
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime now = DateTime.now();
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? now,
-      firstDate: now,
-      lastDate: DateTime(2025, 12, 31),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Colors.indigo[600]!,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black87,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
+  void _submitNews() {
+    if (_jenisController.text.isNotEmpty &&
+        _judulController.text.isNotEmpty &&
+        _tempatController.text.isNotEmpty &&
+        _deskripsiController.text.isNotEmpty &&
+        _selectedImage != null) {
+      final news = {
+        'jenis': _jenisController.text,
+        'judul': _judulController.text,
+        'tempat': _tempatController.text,
+        'deskripsi': _deskripsiController.text,
+        'image': _selectedImage,
+      };
+      widget.onNewsAdded(news);
+      Navigator.pop(context); // Ensure this navigates back to DashboardPage
+    } else {
+      // Tampilkan pesan error jika ada field yang kosong
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Harap isi semua field dan pilih gambar')),
+      );
     }
-  }
-
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay now = TimeOfDay.now();
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime ?? now,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Colors.indigo[600]!,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black87,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null && picked != _selectedTime) {
-      setState(() {
-        _selectedTime = picked;
-      });
-    }
-  }
-
-  String _formatDate(DateTime? date) {
-    if (date == null) return '';
-    return DateFormat('dd MMMM yyyy', 'id_ID').format(date);
-  }
-
-  String _formatTime(TimeOfDay? time) {
-    if (time == null) return '';
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -92,7 +57,6 @@ class _NewsPageState extends State<NewsPage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         elevation: 0,
         backgroundColor: Colors.white,
         title: Text(
@@ -112,89 +76,22 @@ class _NewsPageState extends State<NewsPage> {
           children: <Widget>[
             _buildInputSection(
               title: 'Jenis Informasi',
-              child: _buildTextField('Masukkan jenis informasi', maxLines: 1),
+              child: _buildTextField('Masukkan jenis informasi', controller: _jenisController, maxLines: 1),
             ),
             
             _buildInputSection(
               title: 'Judul Informasi',
-              child: _buildTextField('Masukkan judul informasi', maxLines: 1),
+              child: _buildTextField('Masukkan judul informasi', controller: _judulController, maxLines: 1),
             ),
             
             _buildInputSection(
-              title: 'Waktu',
-              child: Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => _selectDate(context),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.calendar_today, size: 20, color: Colors.grey[600]),
-                            SizedBox(width: 8),
-                            Text(
-                              _selectedDate != null 
-                                ? _formatDate(_selectedDate)
-                                : 'Pilih Tanggal',
-                              style: TextStyle(
-                                color: _selectedDate != null 
-                                  ? Colors.black87 
-                                  : Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => _selectTime(context),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.access_time, size: 20, color: Colors.grey[600]),
-                            SizedBox(width: 8),
-                            Text(
-                              _selectedTime != null 
-                                ? _formatTime(_selectedTime)
-                                : 'Pilih Jam',
-                              style: TextStyle(
-                                color: _selectedTime != null 
-                                  ? Colors.black87 
-                                  : Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            _buildInputSection(
               title: 'Tempat',
-              child: _buildTextField('Masukkan tempat', maxLines: 3),
+              child: _buildTextField('Masukkan tempat', controller: _tempatController, maxLines: 3),
             ),
             
             _buildInputSection(
               title: 'Deskripsi',
-              child: _buildTextField('Masukkan deskripsi', maxLines: 4),
+              child: _buildTextField('Masukkan deskripsi', controller: _deskripsiController, maxLines: 4),
             ),
             
             _buildInputSection(
@@ -243,9 +140,7 @@ class _NewsPageState extends State<NewsPage> {
             
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  // Fungsi untuk menambahkan informasi
-                },
+                onPressed: _submitNews,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.indigo[600],
                   elevation: 0,
@@ -297,8 +192,9 @@ class _NewsPageState extends State<NewsPage> {
     );
   }
 
-  Widget _buildTextField(String hint, {int maxLines = 1}) {
+  Widget _buildTextField(String hint, {required TextEditingController controller, int maxLines = 1}) {
     return TextField(
+      controller: controller,
       maxLines: maxLines,
       style: TextStyle(fontSize: 15),
       decoration: InputDecoration(

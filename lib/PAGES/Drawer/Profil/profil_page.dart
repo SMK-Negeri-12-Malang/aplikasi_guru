@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EditProfilePage extends StatefulWidget {
   @override
@@ -10,6 +13,40 @@ class _EditProfilePageState extends State<EditProfilePage> {
   TextEditingController nameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
+  File? _profileImage;
+  final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileImage();
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _saveProfileImage() async {
+    if (_profileImage != null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString('profile_image', _profileImage!.path);
+    }
+  }
+
+  Future<void> _loadProfileImage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? imagePath = prefs.getString('profile_image');
+    if (imagePath != null) {
+      setState(() {
+        _profileImage = File(imagePath);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +62,39 @@ class _EditProfilePageState extends State<EditProfilePage> {
           children: <Widget>[
             // Gambar Profil Lingkaran
             Center(
-              child: CircleAvatar(
-                radius: 60, // Ukuran lingkaran
-                backgroundImage: AssetImage('assets/images/profile.jpg'), // Ganti dengan path gambar Anda
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 60, // Ukuran lingkaran
+                    backgroundImage: _profileImage != null
+                        ? FileImage(_profileImage!)
+                        : AssetImage('assets/images/profile.jpg') as ImageProvider, // Ganti dengan path gambar Anda
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        width: 35,
+                        height: 35,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 2,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             SizedBox(height: 16),
@@ -129,7 +196,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState?.validate() ?? false) {
-                  // Jika validasi berhasil, lakukan aksi simpan
+                  _saveProfileImage();
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profil berhasil disimpan')));
                 }
               },

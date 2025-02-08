@@ -87,7 +87,8 @@ class _TaskPageState extends State<DetailKelasA> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Daftar Tugas")),
+      appBar: AppBar(title: Text("Daftar Tugas")
+      ),
       body: ListView.builder(
         itemCount: tasks.length,
         itemBuilder: (context, index) {
