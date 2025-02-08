@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:aplikasi_ortu/PAGES/Drawer/Laporan_guru/laporan_kelas_page.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -19,6 +20,7 @@ class _LaporanGuruState extends State<LaporanGuru> {
   final TextEditingController _deskripsiController = TextEditingController();
   final TextEditingController _tanggalController = TextEditingController();
   final TextEditingController _waktuController = TextEditingController();
+  final TextEditingController _poinController = TextEditingController();
   final List<String> _kelasList = ['Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'];
   final Map<String, List<String>> _namaSiswaPerKelas = {
     'Kelas 1': ['Ahmad', 'Ayu', 'Asep', 'Arif', 'Aulia', 'Andi', 'Anita', 'Adit', 'Aldo', 'Alya', 'Ari', 'Ariani', 'Arman', 'Arsyad', 'Asih', 'Asri', 'Astuti', 'Aulia', 'Awan', 'Ayu'],
@@ -73,24 +75,38 @@ class _LaporanGuruState extends State<LaporanGuru> {
         _deskripsiController.text.isNotEmpty &&
         _selectedImage != null &&
         _tanggalController.text.isNotEmpty &&
-        _waktuController.text.isNotEmpty) {
-      final news = {
-        'Nama': _selectedNama,
-        'kelas': _selectedKelas,
-        'deskripsi': _deskripsiController.text,
-        'image': _selectedImage,
-        'tanggal': _tanggalController.text,
-        'waktu': _waktuController.text,
-      };
-      widget.onNewsAdded(news);
-      setState(() {
-        _savedReports.add(news);
-      });
+        _waktuController.text.isNotEmpty &&
+        _poinController.text.isNotEmpty) {
+      final int poin = int.parse(_poinController.text);
+      final existingReportIndex = _savedReports.indexWhere((report) => report['Nama'] == _selectedNama && report['kelas'] == _selectedKelas);
+      
+      if (existingReportIndex != -1) {
+        setState(() {
+          _savedReports[existingReportIndex]['poin'] += poin;
+          _savedReports[existingReportIndex]['deskripsi'] += '\n${_deskripsiController.text}';
+        });
+      } else {
+        final news = {
+          'Nama': _selectedNama,
+          'kelas': _selectedKelas,
+          'deskripsi': _deskripsiController.text,
+          'image': _selectedImage,
+          'tanggal': _tanggalController.text,
+          'waktu': _waktuController.text,
+          'poin': poin,
+        };
+        widget.onNewsAdded(news);
+        setState(() {
+          _savedReports.add(news);
+        });
+      }
+
       // Clear the form fields after submission
       _judulController.clear();
       _deskripsiController.clear();
       _tanggalController.clear();
       _waktuController.clear();
+      _poinController.clear();
       _selectedImage = null;
       _selectedNama = null;
       _selectedKelas = null;
@@ -114,12 +130,29 @@ class _LaporanGuruState extends State<LaporanGuru> {
           width: double.maxFinite,
           child: ListView.builder(
             shrinkWrap: true,
-            itemCount: _savedReports.length,
+            itemCount: _kelasList.length,
             itemBuilder: (context, index) {
-              final report = _savedReports[index];
-              return ListTile(
-                title: Text(report['Nama']),
-                subtitle: Text('Kelas: ${report['kelas']} - Tanggal: ${report['tanggal']} - Waktu: ${report['waktu']}'),
+              final kelas = _kelasList[index];
+              return Container(
+                margin: EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  title: Text(kelas),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LaporanKelasPage(
+                          kelas: kelas,
+                          reports: _savedReports.where((report) => report['kelas'] == kelas).toList(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               );
             },
           ),
@@ -137,7 +170,7 @@ class _LaporanGuruState extends State<LaporanGuru> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(24.0),
         child: Column(
@@ -239,6 +272,11 @@ class _LaporanGuruState extends State<LaporanGuru> {
             ),
             
             _buildInputSection(
+              title: 'Poin Pelanggaran',
+              child: _buildTextField('Masukkan poin pelanggaran', controller: _poinController, maxLines: 1, keyboardType: TextInputType.number),
+            ),
+            
+            _buildInputSection(
               title: 'Foto',
               child: Column(
                 children: [
@@ -282,54 +320,54 @@ class _LaporanGuruState extends State<LaporanGuru> {
 
             SizedBox(height: 32),
             
-            Center(
-              child: ElevatedButton(
-                onPressed: _submitNews,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo[600],
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: _submitNews,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo[600],
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
                   ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 48,
-                    vertical: 16,
-                  ),
-                ),
-                child: Text(
-                  'Kirim Informasi',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            Center(
-              child: ElevatedButton(
-                onPressed: _showSavedReports,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[600],
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 48,
-                    vertical: 16,
+                  child: Text(
+                    'Kirim Informasi',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-                child: Text(
-                  'Lihat Laporan Sebelumnya',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                ElevatedButton(
+                  onPressed: _showSavedReports,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[600],
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                  ),
+                  child: Text(
+                    'Lihat Laporan',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
@@ -361,10 +399,11 @@ class _LaporanGuruState extends State<LaporanGuru> {
     );
   }
 
-  Widget _buildTextField(String hint, {required TextEditingController controller, int maxLines = 1}) {
+  Widget _buildTextField(String hint, {required TextEditingController controller, int maxLines = 1, TextInputType keyboardType = TextInputType.text}) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
+      keyboardType: keyboardType,
       style: TextStyle(fontSize: 15),
       decoration: InputDecoration(
         hintText: hint,

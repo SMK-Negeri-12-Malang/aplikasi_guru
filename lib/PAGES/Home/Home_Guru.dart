@@ -41,6 +41,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -96,12 +97,12 @@ class _DashboardPageState extends State<DashboardPage> {
               },
             ),
             SizedBox(height: 20),
-            Text('Presentase Mengajar', 
+            Text('Jadwal Mengajar', 
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
-            _buildProgressSection(),
+            _buildScheduleTable(),
             SizedBox(height: 20),
-            Text('Jadwal Mengajar', 
+            Text('Kelas', 
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
             Container(
@@ -198,56 +199,60 @@ class _DashboardPageState extends State<DashboardPage> {
         itemCount: _newsList.length,
         itemBuilder: (context, index) {
           final news = _newsList[index];
-          return Container(
-            margin: EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: Colors.blue[700],
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 4,
-                  offset: Offset(2, 2)
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.file(
-                      news['image'],
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
+          return GestureDetector(
+            onTap: () {
+            },
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: Colors.blue[700],
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(2, 2)
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.file(
+                        news['image'],
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      news['judul'],
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16
-                      )
-                    ),
-                    SizedBox(height: 5),
-                    Text(
-                      news['deskripsi'],
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12
-                      )
-                    ),
-                  ],
-                ),
-              ],
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        news['judul'],
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16
+                        )
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        news['tanggal'],
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12
+                        )
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -255,57 +260,38 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildProgressSection() {
-    return Container(
-      padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.blue[700],
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildPercentageProgress('Kelas A', 70),
-          _buildPercentageProgress('Kelas B', 85),
-          _buildPercentageProgress('Kelas C', 90),
-        ],
-      ),
+  Widget _buildScheduleTable() {
+    return Table(
+      border: TableBorder.all(color: Colors.grey),
+      children: [
+        _buildTableRow('Hari', 'Jam Ke-1', 'Jam Ke-2'),
+        _buildTableRow('Senin', '07:00 - 09:00', '11:00 - 13:00'),
+        _buildTableRow('Selasa', '08:00 - 10:00', '12:00 - 14:00'),
+        _buildTableRow('Rabu', '07:00 - 09:00', '11:00 - 13:00'),
+        _buildTableRow('Kamis', '08:00 - 10:00', '12:00 - 14:00'),
+        _buildTableRow('Jumat', '07:00 - 09:00', '11:00 - 13:00'),
+      ],
     );
   }
 
-  Widget _buildPercentageProgress(String title, double percentage) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  TableRow _buildTableRow(String day, String time1, String time2) {
+    return TableRow(
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold
-          )
-        ),
-        SizedBox(height: 5),
-        Text(
-          '${percentage.toStringAsFixed(0)}%',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold
-          )
-        ),
-        SizedBox(height: 5),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(5),
-          child: LinearProgressIndicator(
-            value: percentage / 100,
-            minHeight: 10,
-            backgroundColor: Colors.white.withOpacity(0.2),
-            valueColor: AlwaysStoppedAnimation<Color>(
-              const Color.fromARGB(255, 255, 255, 255)
-            ),
-          ),
-        ),
-        SizedBox(height: 10),
+        _buildTableCell(day),
+        _buildTableCell(time1),
+        _buildTableCell(time2),
       ],
+    );
+  }
+
+  Widget _buildTableCell(String text) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }

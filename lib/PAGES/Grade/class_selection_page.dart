@@ -20,9 +20,10 @@ class ClassSelectionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         title: const Text('Pilih Kelas'),
-        centerTitle: true,
         automaticallyImplyLeading: false,
       ),
       body: Padding(

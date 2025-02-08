@@ -102,6 +102,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
