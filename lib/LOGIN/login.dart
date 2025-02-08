@@ -2,8 +2,6 @@ import 'package:aplikasi_ortu/LOGIN/FGpassword.dart';
 import 'package:aplikasi_ortu/LOGIN/register.dart';
 import 'package:aplikasi_ortu/MUSYRIF/mainmusrif.dart';
 import 'package:aplikasi_ortu/main.dart';
-
-
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -15,6 +13,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false; // State untuk mengatur visibilitas password
+  String _selectedRole = 'Guru'; // Default role
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +87,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         const SizedBox(height: 20),
 
+                        // Role Selection
+                        DropdownButtonFormField<String>(
+                          value: _selectedRole,
+                          items: ['Guru', 'Musyrif'].map((String role) {
+                            return DropdownMenuItem<String>(
+                              value: role,
+                              child: Text(role),
+                            );
+                          }).toList(),
+                          onChanged: (newValue) {
+                            setState(() {
+                              _selectedRole = newValue!;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Login sebagai:',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 20),
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
                         // Email Input
                         TextField(
                           decoration: InputDecoration(
@@ -154,12 +179,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Login Button
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => homeview(),
-                              ),
-                            );
+                            if (_selectedRole == 'Guru') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => homeview(),
+                                ),
+                              );
+                            } else if (_selectedRole == 'Musyrif') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Mainmusrif(),
+                                ),
+                              );
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
