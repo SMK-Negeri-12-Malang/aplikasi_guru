@@ -163,7 +163,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                   borderSide: const BorderSide(
                                     color: Color.fromARGB(255, 0, 122, 221),
                                     width: 1.5,
-                                  ),
+                           ),
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 16,

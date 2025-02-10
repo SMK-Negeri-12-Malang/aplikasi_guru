@@ -3,13 +3,7 @@ import 'package:aplikasi_ortu/MUSYRIF/home_musyrif.dart';
 import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
 import 'package:aplikasi_ortu/PAGES/Berita/News_page.dart';
 import 'package:aplikasi_ortu/PAGES/Chat/listchat_page.dart';
-import 'package:aplikasi_ortu/PAGES/Drawer/Laporan_guru/laporan_guru.dart';
-import 'package:aplikasi_ortu/PAGES/Drawer/Profil/profil_page.dart';
-import 'package:aplikasi_ortu/PAGES/Drawer/Setting/setting_page.dart';
 import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
-import 'package:aplikasi_ortu/PAGES/Grade/grade.dart';
-import 'package:aplikasi_ortu/PAGES/Home/Home_Guru.dart';
-import 'package:aplikasi_ortu/splashscreen.dart';
 import 'package:flutter/material.dart';
 
 
@@ -158,10 +152,7 @@ class _DashboardPageState extends State<Mainmusrif> with SingleTickerProviderSta
               leading: Icon(Icons.person),
               title: Text('Profile'),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => EditProfilePage()),
-                );
+             
               },
             ),
             ListTile(
@@ -178,10 +169,7 @@ class _DashboardPageState extends State<Mainmusrif> with SingleTickerProviderSta
               leading: Icon(Icons.settings),
               title: Text('Settings'),
               onTap: () {
-                Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SettingsPage()), // Pastikan halaman SettingsPage tersedia
-                );
+           
               },
             ),
             ListTile(

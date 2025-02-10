@@ -174,12 +174,12 @@ class _GradePageState extends State<GradePage> {
 
     // Add header row
     List<String> header = ['Nama Siswa', ...taskNames];
-    sheetObject.appendRow(header);
+    sheetObject.appendRow(header.cast<CellValue?>());
 
     // Add student data
     for (var student in students) {
       List<dynamic> row = [student['name'], ...student['grades']];
-      sheetObject.appendRow(row);
+      sheetObject.appendRow(row.cast<CellValue?>());
     }
 
     // Save the file

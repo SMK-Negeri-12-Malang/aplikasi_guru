@@ -1,10 +1,4 @@
-import 'package:aplikasi_ortu/LOGIN/login.dart';
-import 'package:aplikasi_ortu/PAGES/Detail_Kelas/detailkelasA.dart';
-import 'package:aplikasi_ortu/PAGES/Detail_Kelas/detailkelasB.dart';
-import 'package:aplikasi_ortu/PAGES/Detail_Kelas/detailkelasC.dart';
-import 'package:aplikasi_ortu/PAGES/Drawer/Laporan_guru/laporan_guru.dart';
-import 'package:aplikasi_ortu/PAGES/Drawer/Profil/profil_page.dart';
-import 'package:aplikasi_ortu/PAGES/Drawer/Setting/setting_page.dart';
+import 'package:aplikasi_ortu/PAGES/Detail_Tugas_Kelas/taskpage.dart';
 import 'package:flutter/material.dart';
 import 'package:aplikasi_ortu/PAGES/Berita/News_page.dart';
 
@@ -17,6 +11,29 @@ class _DashboardPageState extends State<DashboardPage> {
   late PageController _pageController;
   late Future<void> _loadingFuture;
   List<Map<String, dynamic>> _newsList = [];
+
+  final Map<String, List<Map<String, String>>> _jadwalMengajar = {
+    'Senin': [
+      {'jam': '07:00 - 09:00', 'mataPelajaran': 'Matematika'},
+      {'jam': '11:00 - 13:00', 'mataPelajaran': 'Bahasa Indonesia'},
+    ],
+    'Selasa': [
+      {'jam': '08:00 - 10:00', 'mataPelajaran': 'IPA'},
+      {'jam': '12:00 - 14:00', 'mataPelajaran': 'IPS'},
+    ],
+    'Rabu': [
+      {'jam': '07:00 - 09:00', 'mataPelajaran': 'Bahasa Inggris'},
+      {'jam': '11:00 - 13:00', 'mataPelajaran': 'Seni Budaya'},
+    ],
+    'Kamis': [
+      {'jam': '08:00 - 10:00', 'mataPelajaran': 'Pendidikan Jasmani'},
+      {'jam': '12:00 - 14:00', 'mataPelajaran': 'Prakarya'},
+    ],
+    'Jumat': [
+      {'jam': '07:00 - 09:00', 'mataPelajaran': 'Agama'},
+      {'jam': '11:00 - 13:00', 'mataPelajaran': 'Pendidikan Kewarganegaraan'},
+    ],
+  };
 
   @override
   void initState() {
@@ -36,6 +53,44 @@ class _DashboardPageState extends State<DashboardPage> {
     setState(() {
       _newsList.add(news);
     });
+  }
+
+  void _showJadwalMengajar(String hari) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Jadwal Mengajar - $hari'),
+          content: SingleChildScrollView(
+            child: Table(
+              border: TableBorder.all(color: Colors.grey),
+              children: [
+                TableRow(
+                  children: [
+                    _buildTableCell('Jam'),
+                    _buildTableCell('Mata Pelajaran'),
+                  ],
+                ),
+                ..._jadwalMengajar[hari]!.map((jadwal) {
+                  return TableRow(
+                    children: [
+                      _buildTableCell(jadwal['jam']!),
+                      _buildTableCell(jadwal['mataPelajaran']!),
+                    ],
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Tutup'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -100,7 +155,7 @@ class _DashboardPageState extends State<DashboardPage> {
             Text('Jadwal Mengajar', 
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
-            _buildScheduleTable(),
+            _buildJadwalMengajarButtons(),
             SizedBox(height: 20),
             Text('Kelas', 
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -115,7 +170,10 @@ class _DashboardPageState extends State<DashboardPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => DetailKelasA(),
+                          builder: (context) => tugaskelas(
+                            roomName: 'Kelas A',
+                            students: [], // Add appropriate list of students
+                          ),
                         ),
                       );
                     },
@@ -124,7 +182,15 @@ class _DashboardPageState extends State<DashboardPage> {
                   _buildClassButton(
                     'Kelas B',
                     () {
-                    
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => tugaskelas(
+                            roomName: 'Kelas B',
+                            students: [], // Add appropriate list of students
+                          ),
+                        ),
+                      );
                     },
                   ),
                   SizedBox(height: 10),
@@ -134,7 +200,10 @@ class _DashboardPageState extends State<DashboardPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => DetailKelasC(),
+                          builder: (context) => tugaskelas(
+                            roomName: 'Kelas C',
+                            students: [], // Add appropriate list of students
+                          ),
                         ),
                       );
                     },
@@ -260,27 +329,31 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildScheduleTable() {
-    return Table(
-      border: TableBorder.all(color: Colors.grey),
-      children: [
-        _buildTableRow('Hari', 'Jam Ke-1', 'Jam Ke-2'),
-        _buildTableRow('Senin', '07:00 - 09:00', '11:00 - 13:00'),
-        _buildTableRow('Selasa', '08:00 - 10:00', '12:00 - 14:00'),
-        _buildTableRow('Rabu', '07:00 - 09:00', '11:00 - 13:00'),
-        _buildTableRow('Kamis', '08:00 - 10:00', '12:00 - 14:00'),
-        _buildTableRow('Jumat', '07:00 - 09:00', '11:00 - 13:00'),
-      ],
-    );
-  }
-
-  TableRow _buildTableRow(String day, String time1, String time2) {
-    return TableRow(
-      children: [
-        _buildTableCell(day),
-        _buildTableCell(time1),
-        _buildTableCell(time2),
-      ],
+  Widget _buildJadwalMengajarButtons() {
+    return Column(
+      children: _jadwalMengajar.keys.map((hari) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: ElevatedButton(
+            onPressed: () => _showJadwalMengajar(hari),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[700],
+              minimumSize: Size(double.infinity, 50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: Text(
+              hari,
+              style: TextStyle(
+                color: Colors.white, 
+                fontSize: 16, 
+                fontWeight: FontWeight.bold
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 

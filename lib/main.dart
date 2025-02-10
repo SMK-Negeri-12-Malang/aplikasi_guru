@@ -1,11 +1,7 @@
 import 'dart:io';
 import 'package:aplikasi_ortu/LOGIN/login.dart';
 import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
-import 'package:aplikasi_ortu/PAGES/Chat/listchat_page.dart';
-import 'package:aplikasi_ortu/PAGES/Drawer/Laporan_guru/laporan_guru.dart';
-import 'package:aplikasi_ortu/PAGES/Drawer/Laporan_guru/view_laporan.dart';
-import 'package:aplikasi_ortu/PAGES/Drawer/Profil/profil_page.dart';
-import 'package:aplikasi_ortu/PAGES/Drawer/Setting/setting_page.dart';
+import 'package:aplikasi_ortu/PAGES/Laporan_guru/laporan_guru.dart';
 import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
 import 'package:aplikasi_ortu/PAGES/Home/Home_Guru.dart';
 import 'package:aplikasi_ortu/PAGES/Profil/profil.dart';
@@ -128,108 +124,6 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
           title: Text(_getAppBarTitle(), textAlign: TextAlign.center),
           centerTitle: true,
         ),
-        drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              DrawerHeader(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: const Color.fromARGB(255, 115, 115, 115),
-                      backgroundImage: _profileImage != null
-                          ? FileImage(_profileImage!)
-                          : AssetImage('assets/images/profile.jpg') as ImageProvider,
-                    ),
-                    SizedBox(height: 18),
-                    Text(
-                      'Purwanto Hermawan S.KON',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'wantoherman123@gmail.com',
-                    ),
-                  ],
-                ),
-              ),
-              ListTile(
-                leading: Icon(Icons.person),
-                title: Text('Profile'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => EditProfilePage()),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.message),
-                title: Text('Laporan Guru'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            LaporanGuru(onNewsAdded: (news) {})), // Pastikan halaman LaporanGuruPage tersedia
-                  );
-                },
-              ),
-              Divider(
-                thickness: 1,
-              ),
-              ListTile(
-                leading: Icon(Icons.settings),
-                title: Text('Settings'),
-                onTap: () {
-                  Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SettingsPage()), // Pastikan halaman SettingsPage tersedia
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.logout),
-                title: Text('Logout'),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text("Konfirmasi Logout"),
-                        content: Text("Apakah Anda yakin ingin logout?"),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context); // Tutup dialog
-                            },
-                            child: Text("Batal"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context); // Tutup dialog
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        LoginScreen()), // Ganti halaman dengan LogoutPage
-                              );
-                            },
-                            child: Text("Logout"),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
         body: PageView(
           controller: _pageController,
           physics: NeverScrollableScrollPhysics(), // Disable page swiping
@@ -300,8 +194,10 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
 
   AppBar _buildHomeAppBar() {
     return AppBar(
+      automaticallyImplyLeading: false,
       backgroundColor: Colors.blue[700],
       title: Row(
+        mainAxisAlignment: MainAxisAlignment.center, // Center the title
         children: [
           GestureDetector(
             onTap: () {

@@ -260,6 +260,25 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> {
                 ),
               ),
             ),
+          ] else ...[
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.info_outline, size: 50, color: Colors.grey),
+                    SizedBox(height: 10),
+                    Text(
+                      'No Data',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ],
       ),
