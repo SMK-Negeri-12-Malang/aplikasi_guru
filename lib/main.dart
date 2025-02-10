@@ -4,7 +4,7 @@ import 'package:aplikasi_ortu/PAGES/Laporan_guru/laporan_guru.dart';
 import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
 import 'package:aplikasi_ortu/PAGES/Home/Home_Guru.dart';
 import 'package:aplikasi_ortu/PAGES/Profil/profil.dart';
-import 'package:aplikasi_ortu/splashscreen.dart';
+import 'package:aplikasi_ortu/SPLASHSCREEN/splashscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -119,7 +119,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
       child: Scaffold(
         key: _scaffoldKey,
         appBar: _currentIndex == 2 ? null : AppBar(
-          backgroundColor: Colors.blue[700],
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           title: Text(_getAppBarTitle(), textAlign: TextAlign.center),
           centerTitle: true,
         ),
@@ -201,17 +201,17 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
   String _getAppBarTitle() {
     switch (_currentIndex) {
       case 0:
-        return 'Grade';
+        return '';
       case 1:
-        return 'Laporan Guru';
+        return '';
       case 2:
-        return 'Beranda';
+        return '';
       case 3:
-        return 'Absensi Kelas';
+        return '';
       case 4:
-        return 'Profil';
+        return '';
       default:
-        return 'Aplikasi Guru';
+        return '';
     }
   }
 }
