@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
 import 'package:aplikasi_ortu/PAGES/Laporan_guru/laporan_guru.dart';
 import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
@@ -37,7 +36,6 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
   late List<Animation<double>> _bounceAnimations;
   int _currentIndex = 2;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  File? _profileImage;
 
   final List<NavItem> _navItems = [
     NavItem(icon: Icons.note_add, label: 'Grade'),
@@ -78,7 +76,6 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
     String? imagePath = prefs.getString('profile_image');
     if (imagePath != null) {
       setState(() {
-        _profileImage = File(imagePath);
       });
     }
   }
@@ -118,7 +115,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
       },
       child: Scaffold(
         key: _scaffoldKey,
-        appBar: _currentIndex == 2 ? null : AppBar(
+        appBar: _currentIndex == 2 || _currentIndex == 4 || _currentIndex == 3 ? null : AppBar(
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           title: Text(_getAppBarTitle(), textAlign: TextAlign.center),
           centerTitle: true,
@@ -191,12 +188,6 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
     );
   }
 
-  AppBar _buildHomeAppBar() {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      backgroundColor: Colors.blue,
-    );
-  }
 
   String _getAppBarTitle() {
     switch (_currentIndex) {
