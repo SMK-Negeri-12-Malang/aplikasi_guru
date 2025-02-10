@@ -1,8 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aplikasi_ortu/LOGIN/login.dart';
+import 'edit_profil.dart';
+import 'dart:io';
 
-class ProfileDetailPage extends StatelessWidget {
+class ProfileDetailPage extends StatefulWidget {
+  @override
+  _ProfileDetailPageState createState() => _ProfileDetailPageState();
+}
+
+class _ProfileDetailPageState extends State<ProfileDetailPage> {
+  String? _profileImagePath;
+  String _name = 'Yoga Setyawan Purwanto';
+  String _email = 'yoga@example.com';
+  String _phone = '+62 812-3456-7890';
+  String _address = 'Jl. Baran Gribig, Malang';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileData();
+  }
+
+  Future<void> _loadProfileData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _profileImagePath = prefs.getString('profile_image_path');
+      _name = prefs.getString('profile_name') ?? _name;
+      _email = prefs.getString('profile_email') ?? _email;
+      _phone = prefs.getString('profile_phone') ?? _phone;
+      _address = prefs.getString('profile_address') ?? _address;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +70,9 @@ class ProfileDetailPage extends StatelessWidget {
                       ),
                       child: CircleAvatar(
                         radius: 50,
-                        backgroundImage: AssetImage('assets/profile_picture.png'),
+                        backgroundImage: _profileImagePath != null
+                            ? FileImage(File(_profileImagePath!))
+                            : AssetImage('assets/profile_picture.png') as ImageProvider,
                       ),
                     ),
                   ],
@@ -56,7 +88,7 @@ class ProfileDetailPage extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        'Yoga Setyawan Purwanto',
+                        _name,
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -65,7 +97,7 @@ class ProfileDetailPage extends StatelessWidget {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        'yoga@example.com',
+                        _email,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[600],
@@ -103,7 +135,7 @@ class ProfileDetailPage extends StatelessWidget {
                                 ),
                               ),
                               subtitle: Text(
-                                '+62 812-3456-7890',
+                                _phone,
                                 style: TextStyle(
                                   color: Colors.black87,
                                   fontSize: 16,
@@ -129,7 +161,7 @@ class ProfileDetailPage extends StatelessWidget {
                                 ),
                               ),
                               subtitle: Text(
-                                'Jl. Baran Gribig, Malang',
+                                _address,
                                 style: TextStyle(
                                   color: Colors.black87,
                                   fontSize: 16,
@@ -194,8 +226,22 @@ class ProfileDetailPage extends StatelessWidget {
     );
   }
 
-  void _editProfile(BuildContext context) {
-  
+  void _editProfile(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfilePage(
+          name: _name,
+          email: _email,
+          phone: _phone,
+          address: _address,
+          profileImagePath: _profileImagePath,
+        ),
+      ),
+    );
+    if (result == true) {
+      _loadProfileData();
+    }
   }
 
   void _showLogoutConfirmation(BuildContext context) {
