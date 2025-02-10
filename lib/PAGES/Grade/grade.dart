@@ -5,15 +5,17 @@ import 'dart:io';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 class GradePage extends StatefulWidget {
-  final List<Map<String, dynamic>> students;
+  final String className;
+  final List<String> students;
 
-  const GradePage({super.key, required this.students});
+  GradePage({required this.className, required this.students});
 
   @override
   _GradePageState createState() => _GradePageState();
 }
 
 class _GradePageState extends State<GradePage> {
+  final List<String> tables = [];
   late List<Map<String, dynamic>> students;
   bool isEditing = false;
   late List<List<TextEditingController>> controllers;
@@ -26,6 +28,17 @@ class _GradePageState extends State<GradePage> {
     students = List.from(widget.students);
     _initializeTaskNames();
     _initializeControllers();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final String? newTable = ModalRoute.of(context)?.settings.arguments as String?;
+    if (newTable != null && !tables.contains(newTable)) {
+      setState(() {
+        tables.add(newTable);
+      });
+    }
   }
 
   void _initializeControllers() {
@@ -193,11 +206,17 @@ class _GradePageState extends State<GradePage> {
     );
   }
 
+  void addTable(String tableName) {
+    setState(() {
+      tables.add(tableName);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Rekap Nilai Siswa'),
+        title: Text('Grade Page - ${widget.className}'),
         centerTitle: true,
         actions: [
           IconButton(
@@ -287,6 +306,28 @@ class _GradePageState extends State<GradePage> {
                   ),
                 ),
               ),
+            ),
+          ),
+          Divider(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: tables.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(tables[index]),
+                );
+              },
+            ),
+          ),
+          Divider(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: widget.students.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(widget.students[index]),
+                );
+              },
             ),
           ),
         ],
