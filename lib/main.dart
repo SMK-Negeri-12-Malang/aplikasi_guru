@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:aplikasi_ortu/LOGIN/login.dart';
 import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
 import 'package:aplikasi_ortu/PAGES/Laporan_guru/laporan_guru.dart';
 import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
@@ -119,7 +118,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
       },
       child: Scaffold(
         key: _scaffoldKey,
-        appBar: _currentIndex == 2 ? _buildHomeAppBar() : AppBar(
+        appBar: _currentIndex == 2 ? null : AppBar(
           backgroundColor: Colors.blue[700],
           title: Text(_getAppBarTitle(), textAlign: TextAlign.center),
           centerTitle: true,
@@ -195,37 +194,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
   AppBar _buildHomeAppBar() {
     return AppBar(
       automaticallyImplyLeading: false,
-      backgroundColor: Colors.blue[700],
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.center, // Center the title
-        children: [
-          GestureDetector(
-            onTap: () {
-              _scaffoldKey.currentState?.openDrawer();
-            },
-            child: CircleAvatar(
-              backgroundColor: Colors.white,
-              backgroundImage: _profileImage != null
-                  ? FileImage(_profileImage!)
-                  : AssetImage('assets/images/profile.jpg') as ImageProvider,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
-                'Selamat Datang',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-              ),
-              Text(
-                'Purwanto Hermawan S.KON',
-                style: TextStyle(fontSize: 12),
-              ),
-            ],
-          ),
-        ],
-      ),
+      backgroundColor: Colors.blue,
     );
   }
 
