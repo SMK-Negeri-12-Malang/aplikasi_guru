@@ -1,6 +1,10 @@
 import 'package:aplikasi_ortu/PAGES/Detail_Tugas_Kelas/taskpage.dart';
 import 'package:flutter/material.dart';
 import 'package:aplikasi_ortu/PAGES/Berita/News_page.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -11,6 +15,9 @@ class _DashboardPageState extends State<DashboardPage> {
   late PageController _pageController;
   late Future<void> _loadingFuture;
   List<Map<String, dynamic>> _newsList = [];
+  String _name = 'User';
+  String _email = 'Teknologi Informasi';
+  String? _profileImagePath;
 
   final Map<String, List<Map<String, String>>> _jadwalMengajar = {
     'Senin': [
@@ -38,9 +45,23 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
+    _loadProfileData();
     _pageController = PageController();
     // Simulate loading delay
-    _loadingFuture = Future.delayed(Duration(seconds: 2));
+    _loadingFuture = Future.delayed(Duration(seconds: 5));
+  }
+
+  Future<void> _loadProfileData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _name = prefs.getString('profile_name') ?? _name;
+      _email = prefs.getString('profile_email') ?? _email;
+      _profileImagePath = prefs.getString('profile_image_path');
+    });
+  }
+
+  Future<void> _reloadProfileData() async {
+    await _loadProfileData();
   }
 
   @override
@@ -90,241 +111,255 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  void _showNotification() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Tidak ada notifikasi baru')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      body: Column(
-        children: [
-          Stack(
-            children: [
-              ClipPath(
-                clipper: AppBarClipper(),
-                child: Container(
-                  color: Colors.blue,
-                  height: 230,
-                ),
-              ),
-              Column(
-                children: [
-                  Container(
-                    padding: EdgeInsets.only(top: 50, left: 20, right: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 25,
-                                  backgroundColor: Colors.white,
-                                  child: Icon(Icons.person, color: Colors.blue),
-                                ),
-                                SizedBox(width: 10),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'User',
-                                      style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                                    ),
-                                    Text(
-                                      'Teknologi Informasi',
-                                      style: TextStyle(color: Colors.white, fontSize: 16),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Icon(Icons.group, color: Colors.white),
-                                SizedBox(width: 10),
-                                Icon(Icons.notifications, color: Colors.white),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+      body: RefreshIndicator(
+        onRefresh: _reloadProfileData,
+        child: Column(
+          children: [
+            Stack(
+              children: [
+                ClipPath(
+                  clipper: AppBarClipper(),
+                  child: Container(
+                    color: Colors.blue,
+                    height: 230,
                   ),
-                  SizedBox(height: 20),
-                  Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    elevation: 4,
-                    margin: EdgeInsets.symmetric(horizontal: 16),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                ),
+                Column(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(top: 50, left: 20, right: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Column(
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Icon(Icons.attach_money, color: Colors.blue, size: 40),
-                              SizedBox(height: 5),
-                              Text('Payroll', style: TextStyle(fontSize: 16))
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Icon(Icons.money, color: Colors.blue),
-                              SizedBox(height: 5),
-                              Text('Reimbursement')
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Icon(Icons.wallet, color: Colors.blue),
-                              SizedBox(height: 5),
-                              Text('Kasbon')
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 25,
+                                    backgroundColor: Colors.white,
+                                    backgroundImage: _profileImagePath != null
+                                        ? FileImage(File(_profileImagePath!))
+                                        : AssetImage('assets/profile_picture.png') as ImageProvider,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _name,
+                                        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        _email,
+                                        style: TextStyle(color: Colors.white, fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.notifications, color: Colors.white),
+                                onPressed: _showNotification,
+                              ),
                             ],
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Berita',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.add),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => NewsPage(onNewsAdded: _addNews),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 15),
-                  FutureBuilder(
-                    future: _loadingFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Container(
-                          height: 155,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                CircularProgressIndicator(
-                                  color: Colors.blue[700],
-                                ),
-                                SizedBox(height: 10),
-                                Text('Memuat berita...',
-                                  style: TextStyle(
-                                    color: Colors.blue[700],
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-                      return _buildCardItem();
-                    },
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _showJadwalMengajar,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[700],
-                      minimumSize: Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                    SizedBox(height: 20),
+                    Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      elevation: 4,
+                      margin: EdgeInsets.symmetric(horizontal: 16),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildCircularIndicator('Matematika', 0.75),
+                            _buildCircularIndicator('Bahasa Indonesia', 0.50),
+                            _buildCircularIndicator('IPA', 0.30),
+                          ],
+                        ),
                       ),
                     ),
-                    child: Text(
-                      'Lihat Jadwal Mengajar',
-                      style: TextStyle(
-                        color: Colors.white, 
-                        fontSize: 16, 
-                        fontWeight: FontWeight.bold
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Text('Kelas', 
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 10),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    child: Column(
+                  ],
+                ),
+              ],
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildClassButton(
-                          'Kelas A',
-                          () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => tugaskelas(
-                                  roomName: 'Kelas A',
-                                  students: [], // Add appropriate list of students
-                                ),
-                              ),
-                            );
-                          },
+                        Text(
+                          'Berita',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
-                        SizedBox(height: 10),
-                        _buildClassButton(
-                          'Kelas B',
-                          () {
+                        IconButton(
+                          icon: Icon(Icons.add),
+                          onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => tugaskelas(
-                                  roomName: 'Kelas B',
-                                  students: [], // Add appropriate list of students
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        SizedBox(height: 10),
-                        _buildClassButton(
-                          'Kelas C',
-                          () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => tugaskelas(
-                                  roomName: 'Kelas C',
-                                  students: [], // Add appropriate list of students
-                                ),
+                                builder: (context) => NewsPage(onNewsAdded: _addNews),
                               ),
                             );
                           },
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    SizedBox(height: 15),
+                    FutureBuilder(
+                      future: _loadingFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Container(
+                            height: 155,
+                            child: Center(
+                              child: Shimmer.fromColors(
+                                baseColor: Colors.grey[300]!,
+                                highlightColor: Colors.grey[100]!,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 100,
+                                      height: 100,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(height: 10),
+                                    Container(
+                                      width: 100,
+                                      height: 20,
+                                      color: Colors.white,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                        return _buildCardItem();
+                      },
+                    ),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _showJadwalMengajar,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[700],
+                        minimumSize: Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Lihat Jadwal Mengajar',
+                        style: TextStyle(
+                          color: Colors.white, 
+                          fontSize: 16, 
+                          fontWeight: FontWeight.bold
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Text('Kelas', 
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 10),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      child: Column(
+                        children: [
+                          _buildClassButton(
+                            'Kelas A',
+                            () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => tugaskelas(
+                                    roomName: 'Kelas A',
+                                    students: [], // Add appropriate list of students
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          SizedBox(height: 10),
+                          _buildClassButton(
+                            'Kelas B',
+                            () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => tugaskelas(
+                                    roomName: 'Kelas B',
+                                    students: [], // Add appropriate list of students
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          SizedBox(height: 10),
+                          _buildClassButton(
+                            'Kelas C',
+                            () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => tugaskelas(
+                                    roomName: 'Kelas C',
+                                    students: [], // Add appropriate list of students
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildCircularIndicator(String label, double percentage) {
+    return Column(
+      children: [
+        CircularPercentIndicator(
+          radius: 50.0,
+          lineWidth: 10.0,
+          percent: percentage,
+          center: new Text("${(percentage * 100).toInt()}%"),
+          progressColor: Colors.blue,
+          backgroundColor: Colors.grey[200]!,
+          animation: true,
+          animationDuration: 1200,
+        ),
+        SizedBox(height: 5),
+        Text(label, style: TextStyle(fontSize: 16)),
+      ],
     );
   }
 
