@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'grade.dart';
+import 'table_page.dart';
 
 class ClassSelectionPage extends StatefulWidget {
   @override
@@ -62,9 +62,10 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => GradePage(
+                      builder: (context) => TablePage(
                         className: className,
-                        students: classStudents[className]!,
+                        tableName: tableController.text,
+                        students: classStudents[className]!.map((name) => {'name': name, 'grades': [0]}).toList(),
                       ),
                       settings: RouteSettings(
                         arguments: tableController.text,
@@ -111,12 +112,12 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _buildCategoryChip('Tugas', true),
-                _buildCategoryChip('Ulangan', false),
-                _buildCategoryChip('UTS', true),
-                _buildCategoryChip('UAS', false),
-                _buildCategoryChip('Ujian Sekolah', true),
-                _buildCategoryChip('Ujian Nasional', false),
+                _buildCategoryChip('Tugas', true, className),
+                _buildCategoryChip('Ulangan', true, className),
+                _buildCategoryChip('UTS', true, className),
+                _buildCategoryChip('UAS', true, className),
+                _buildCategoryChip('Ujian Sekolah', true, className),
+                _buildCategoryChip('Ujian Nasional', true, className),
               ],
             ),
           ],
@@ -131,10 +132,24 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
     );
   }
 
-  Widget _buildCategoryChip(String label, bool isActive) {
-    return Chip(
-      label: Text(label, style: TextStyle(fontSize: 12)),
-      backgroundColor: isActive ? Colors.green.shade100 : Colors.grey.shade300,
+  Widget _buildCategoryChip(String label, bool isActive, String className) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TablePage(
+              className: className,
+              tableName: label,
+              students: classStudents[className]!.map((name) => {'name': name, 'grades': [0]}).toList(),
+            ),
+          ),
+        );
+      },
+      child: Chip(
+        label: Text(label, style: TextStyle(fontSize: 12)),
+        backgroundColor: isActive ? Colors.green.shade100 : Colors.grey.shade300,
+      ),
     );
   }
 
@@ -238,12 +253,12 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                             spacing: 8,
                             runSpacing: 8,
                             children: [
-                              _buildCategoryChip('Tugas', true),
-                              _buildCategoryChip('Ulangan', false),
-                              _buildCategoryChip('UTS', true),
-                              _buildCategoryChip('UAS', false),
-                              _buildCategoryChip('Ujian Sekolah', true),
-                              _buildCategoryChip('Ujian Nasional', false),
+                              _buildCategoryChip('Tugas', true, className),
+                              _buildCategoryChip('Ulangan', true, className),
+                              _buildCategoryChip('UTS', true, className),
+                              _buildCategoryChip('UAS', true, className),
+                              _buildCategoryChip('Ujian Sekolah', true, className),
+                              _buildCategoryChip('Ujian Nasional', true, className),
                             ],
                           ),
                           Column(
