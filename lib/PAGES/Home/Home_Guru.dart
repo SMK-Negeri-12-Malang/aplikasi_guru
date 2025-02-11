@@ -5,6 +5,8 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -22,22 +24,27 @@ class _DashboardPageState extends State<DashboardPage> {
   final Map<String, List<Map<String, String>>> _jadwalMengajar = {
     'Senin': [
       {'jam': '07:00 - 09:00', 'mataPelajaran': 'Matematika'},
+      {'jam': '09:00 - 11:00', 'mataPelajaran': 'Fisika'},
       {'jam': '11:00 - 13:00', 'mataPelajaran': 'Bahasa Indonesia'},
     ],
     'Selasa': [
       {'jam': '08:00 - 10:00', 'mataPelajaran': 'IPA'},
+      {'jam': '10:00 - 12:00', 'mataPelajaran': 'Kimia'},
       {'jam': '12:00 - 14:00', 'mataPelajaran': 'IPS'},
     ],
     'Rabu': [
       {'jam': '07:00 - 09:00', 'mataPelajaran': 'Bahasa Inggris'},
+      {'jam': '09:00 - 11:00', 'mataPelajaran': 'Biologi'},
       {'jam': '11:00 - 13:00', 'mataPelajaran': 'Seni Budaya'},
     ],
     'Kamis': [
       {'jam': '08:00 - 10:00', 'mataPelajaran': 'Pendidikan Jasmani'},
+      {'jam': '10:00 - 12:00', 'mataPelajaran': 'Matematika'},
       {'jam': '12:00 - 14:00', 'mataPelajaran': 'Prakarya'},
     ],
     'Jumat': [
       {'jam': '07:00 - 09:00', 'mataPelajaran': 'Agama'},
+      {'jam': '09:00 - 11:00', 'mataPelajaran': 'Sejarah'},
       {'jam': '11:00 - 13:00', 'mataPelajaran': 'Pendidikan Kewarganegaraan'},
     ],
   };
@@ -45,7 +52,9 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    _loadProfileData();
+    initializeDateFormatting('id_ID', null).then((_) {
+      _loadProfileData();
+    });
     _pageController = PageController();
     // Simulate loading delay
     _loadingFuture = Future.delayed(Duration(seconds: 5));
@@ -111,14 +120,35 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  String _getHariBesok() {
+    DateTime now = DateTime.now();
+    DateTime tomorrow = now.add(Duration(days: 1));
+    return DateFormat('EEEE', 'id_ID').format(tomorrow);
+  }
+
+  List<Map<String, String>> _getJadwalMengajarBesok() {
+    String day = _getHariBesok();
+
+    if (_jadwalMengajar.containsKey(day)) {
+      return _jadwalMengajar[day]!;
+    } else {
+      return [];
+    }
+  }
+
   void _showNotification() {
+    List<Map<String, String>> jadwalBesok = _getJadwalMengajarBesok();
+    String jadwalText = jadwalBesok.isNotEmpty
+        ? jadwalBesok.map((item) => '${item['jam']} - ${item['mataPelajaran']}').join('\n')
+        : 'Tidak ada jadwal mengajar besok';
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Tidak ada notifikasi baru')),
+      SnackBar(content: Text(jadwalText)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    List<Map<String, String>> jadwalBesok = _getJadwalMengajarBesok();
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: RefreshIndicator(
@@ -185,13 +215,61 @@ class _DashboardPageState extends State<DashboardPage> {
                       margin: EdgeInsets.symmetric(horizontal: 16),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _buildCircularIndicator('Matematika', 0.75),
-                            _buildCircularIndicator('Bahasa Indonesia', 0.50),
-                            _buildCircularIndicator('IPA', 0.30),
-                          ],
+                        child: Container(
+                          height: 150, // Perbesar tinggi container
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Besok Hari ${_getHariBesok()}',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 10),
+                              Expanded(
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: jadwalBesok.length,
+                                  itemBuilder: (context, index) {
+                                    final jadwal = jadwalBesok[index];
+                                    return Container(
+                                      width: 120,
+                                      margin: EdgeInsets.only(right: 10),
+                                      padding: EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue[50],
+                                        borderRadius: BorderRadius.circular(10),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black26,
+                                            blurRadius: 4,
+                                            offset: Offset(2, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.book, color: Colors.blue, size: 30),
+                                          SizedBox(height: 5),
+                                          Text(
+                                            jadwal['mataPelajaran']!,
+                                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          SizedBox(height: 5),
+                                          Text(
+                                            jadwal['jam']!,
+                                            style: TextStyle(fontSize: 12),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -489,5 +567,7 @@ class AppBarClipper extends CustomClipper<Path> {
   }
 
   @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) {
+    return false;
+  }
 }
