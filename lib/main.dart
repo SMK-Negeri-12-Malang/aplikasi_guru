@@ -115,7 +115,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
       },
       child: Scaffold(
         key: _scaffoldKey,
-        appBar: _currentIndex == 2 || _currentIndex == 4 || _currentIndex == 3 ? null : AppBar(
+        appBar: _currentIndex == 2 || _currentIndex == 4 || _currentIndex == 3 || _currentIndex == 1 ? null : AppBar(
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           title: Text(_getAppBarTitle(), textAlign: TextAlign.center),
           centerTitle: true,

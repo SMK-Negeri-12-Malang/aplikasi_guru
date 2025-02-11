@@ -420,7 +420,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> with SingleTickerPr
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.save_rounded),
+                      Icon(Icons.save_rounded, color: Colors.white),
                       SizedBox(width: 8),
                       Text(
                         'Simpan Absensi',
@@ -443,7 +443,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage> with SingleTickerPr
                       Icon(
                         Icons.class_outlined,
                         size: 50,
-                        color: Colors.grey.shade700,
+                        color: const Color.fromARGB(255, 255, 255, 255),
                       ),
                       SizedBox(height: 16),
                       Text(

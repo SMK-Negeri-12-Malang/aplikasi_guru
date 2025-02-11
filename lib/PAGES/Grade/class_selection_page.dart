@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'grade.dart';
 
@@ -77,7 +76,7 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -91,7 +90,7 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                 child: Container(
                   padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [Colors.blue, Colors.lightBlueAccent]),
+                    gradient: LinearGradient(colors: [Colors.blue[400]!, Colors.blue[800]!]),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Column(

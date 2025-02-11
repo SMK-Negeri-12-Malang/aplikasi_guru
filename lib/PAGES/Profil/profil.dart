@@ -11,10 +11,10 @@ class ProfileDetailPage extends StatefulWidget {
 
 class _ProfileDetailPageState extends State<ProfileDetailPage> {
   String? _profileImagePath;
-  String _name = 'Yoga Setyawan Purwanto';
-  String _email = 'yoga@example.com';
-  String _phone = '+62 812-3456-7890';
-  String _address = 'Jl. Baran Gribig, Malang';
+  String _name = 'User';
+  String _email = 'User@example.com';
+  String _phone = '+62 ***-***-****';
+  String _address = 'Bumi';
 
   @override
   void initState() {
@@ -45,37 +45,40 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
             pinned: true,
             automaticallyImplyLeading: false,
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.blue[400]!, Colors.blue[800]!],
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 4),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 10.0,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundImage: _profileImagePath != null
-                            ? FileImage(File(_profileImagePath!))
-                            : AssetImage('assets/profile_picture.png') as ImageProvider,
-                      ),
+              background: ClipPath(
+                clipper: AppBarClipper(),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.blue[400]!, Colors.blue[800]!],
                     ),
-                  ],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 4),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 10.0,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundImage: _profileImagePath != null
+                              ? FileImage(File(_profileImagePath!))
+                              : AssetImage('assets/profile_picture.png') as ImageProvider,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -290,10 +293,35 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
 
+    setState(() {
+      _profileImagePath = null;
+      _name = 'User';
+      _email = '';
+      _phone = '';
+      _address = '';
+    });
+
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => LoginScreen()),
       (Route<dynamic> route) => false,
     );
+  }
+}
+
+class AppBarClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    path.lineTo(0, size.height - 30);
+    path.quadraticBezierTo(size.width / 2, size.height, size.width, size.height - 30);
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) {
+    return false;
   }
 }
