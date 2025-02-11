@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'grade.dart';
 
@@ -17,6 +18,12 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
     'Kelas XI A': ['Siswa A1', 'Siswa A2', 'Siswa A3'],
     'Kelas XI B': ['Siswa B1', 'Siswa B2', 'Siswa B3'],
     'Kelas XI C': ['Siswa C1', 'Siswa C2', 'Siswa C3'],
+  };
+
+  final Map<String, String> classSubjects = {
+    'Kelas XI A': 'Matematika',
+    'Kelas XI B': 'Biologi',
+    'Kelas XI C': 'Ekonomi',
   };
 
   void _addTable(String className) {
@@ -73,10 +80,68 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
     );
   }
 
+  void _showClassCard(String className) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: Row(
+          children: [
+            Icon(Icons.book, color: Colors.blue),
+            SizedBox(width: 8),
+            Text(
+              className,
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Mata Pelajaran: ${classSubjects[className]}'),
+            SizedBox(height: 16),
+            Divider(),
+            Text(
+              'Kategori Evaluasi',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildCategoryChip('Tugas', true),
+                _buildCategoryChip('Ulangan', false),
+                _buildCategoryChip('UTS', true),
+                _buildCategoryChip('UAS', false),
+                _buildCategoryChip('Ujian Sekolah', true),
+                _buildCategoryChip('Ujian Nasional', false),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Tutup'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryChip(String label, bool isActive) {
+    return Chip(
+      label: Text(label, style: TextStyle(fontSize: 12)),
+      backgroundColor: isActive ? Colors.green.shade100 : Colors.grey.shade300,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.grey[100],
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -90,7 +155,7 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                 child: Container(
                   padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [Colors.blue[400]!, Colors.blue[800]!]),
+                    gradient: LinearGradient(colors: [Colors.blue, Colors.lightBlueAccent]),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Column(
@@ -155,7 +220,7 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                                       ),
                                       SizedBox(height: 4),
                                       Text(
-                                        'Jumlah siswa: ${classStudents[className]!.length}',
+                                        'Mata Pelajaran: ${classSubjects[className]}',
                                         style: TextStyle(color: Colors.grey[600]),
                                       ),
                                     ],
@@ -169,6 +234,18 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                             ],
                           ),
                           Divider(height: 20, thickness: 1, color: Colors.grey[300]),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _buildCategoryChip('Tugas', true),
+                              _buildCategoryChip('Ulangan', false),
+                              _buildCategoryChip('UTS', true),
+                              _buildCategoryChip('UAS', false),
+                              _buildCategoryChip('Ujian Sekolah', true),
+                              _buildCategoryChip('Ujian Nasional', false),
+                            ],
+                          ),
                           Column(
                             children: classTables[className]!.map((table) {
                               return ListTile(
@@ -179,7 +256,7 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                                 ),
                                 trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
                                 onTap: () {
-                                  // Navigate to the table details
+                                  _showClassCard(className);
                                 },
                               );
                             }).toList(),
