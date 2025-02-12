@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'table_page.dart';
+import 'rekap_page.dart'; // Import halaman rekap
 
 class ClassSelectionPage extends StatefulWidget {
   @override
@@ -14,10 +15,22 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
     'Kelas XI C': [],
   };
 
-  final Map<String, List<String>> classStudents = {
-    'Kelas XI A': ['Siswa A1', 'Siswa A2', 'Siswa A3'],
-    'Kelas XI B': ['Siswa B1', 'Siswa B2', 'Siswa B3'],
-    'Kelas XI C': ['Siswa C1', 'Siswa C2', 'Siswa C3'],
+  final Map<String, List<Map<String, dynamic>>> classStudents = {
+    'Kelas XI A': [
+      {'name': 'Siswa A1', 'grades': {}},
+      {'name': 'Siswa A2', 'grades': {}},
+      {'name': 'Siswa A3', 'grades': {}},
+    ],
+    'Kelas XI B': [
+      {'name': 'Siswa B1', 'grades': {}},
+      {'name': 'Siswa B2', 'grades': {}},
+      {'name': 'Siswa B3', 'grades': {}},
+    ],
+    'Kelas XI C': [
+      {'name': 'Siswa C1', 'grades': {}},
+      {'name': 'Siswa C2', 'grades': {}},
+      {'name': 'Siswa C3', 'grades': {}},
+    ],
   };
 
   final Map<String, String> classSubjects = {
@@ -57,6 +70,9 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                 if (tableController.text.isNotEmpty) {
                   setState(() {
                     classTables[className]!.add(tableController.text);
+                    for (var student in classStudents[className]!) {
+                      student['grades'][tableController.text] = 0;
+                    }
                   });
                   Navigator.pop(context);
                   Navigator.push(
@@ -65,7 +81,8 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                       builder: (context) => TablePage(
                         className: className,
                         tableName: tableController.text,
-                        students: classStudents[className]!.map((name) => {'name': name, 'grades': [0]}).toList(),
+                        students: classStudents[className]!,
+                        onSave: _updateStudentGrades,
                       ),
                       settings: RouteSettings(
                         arguments: tableController.text,
@@ -79,6 +96,12 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
         );
       },
     );
+  }
+
+  void _updateStudentGrades(String className, String tableName, List<Map<String, dynamic>> updatedStudents) {
+    setState(() {
+      classStudents[className] = updatedStudents;
+    });
   }
 
   void _showClassCard(String className) {
@@ -112,12 +135,12 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _buildCategoryChip('Tugas', true, className),
-                _buildCategoryChip('Ulangan', true, className),
-                _buildCategoryChip('UTS', true, className),
-                _buildCategoryChip('UAS', true, className),
-                _buildCategoryChip('Ujian Sekolah', true, className),
-                _buildCategoryChip('Ujian Nasional', true, className),
+                _buildCategoryChip('Tugas', _isTableComplete(className, 'Tugas'), className),
+                _buildCategoryChip('Ulangan', _isTableComplete(className, 'Ulangan'), className),
+                _buildCategoryChip('UTS', _isTableComplete(className, 'UTS'), className),
+                _buildCategoryChip('UAS', _isTableComplete(className, 'UAS'), className),
+                _buildCategoryChip('Ujian Sekolah', _isTableComplete(className, 'Ujian Sekolah'), className),
+                _buildCategoryChip('Ujian Nasional', _isTableComplete(className, 'Ujian Nasional'), className),
               ],
             ),
           ],
@@ -132,7 +155,21 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
     );
   }
 
-  Widget _buildCategoryChip(String label, bool isActive, String className) {
+  bool _isTableComplete(String className, String tableName) {
+    final students = classStudents[className]!;
+    final table = classTables[className]!.contains(tableName);
+    if (!table) return false;
+
+    for (var student in students) {
+      final grades = student['grades'][tableName];
+      if (grades == null || grades == 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Widget _buildCategoryChip(String label, bool isComplete, String className) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -141,14 +178,15 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
             builder: (context) => TablePage(
               className: className,
               tableName: label,
-              students: classStudents[className]!.map((name) => {'name': name, 'grades': [0]}).toList(),
+              students: classStudents[className]!,
+              onSave: _updateStudentGrades,
             ),
           ),
         );
       },
       child: Chip(
         label: Text(label, style: TextStyle(fontSize: 12)),
-        backgroundColor: isActive ? Colors.green.shade100 : Colors.grey.shade300,
+        backgroundColor: isComplete ? Colors.green.shade100 : Colors.grey.shade300,
       ),
     );
   }
@@ -243,8 +281,19 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                                 ],
                               ),
                               IconButton(
-                                icon: Icon(Icons.add, color: Colors.blue),
-                                onPressed: () => _addTable(className),
+                                icon: Icon(Icons.assessment, color: Colors.blue),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => RekapPage(
+                                        className: className,
+                                        classStudents: classStudents[className]!,
+                                        classTables: classTables[className]!, onSave: (String tableName, List<Map<String, dynamic>> updatedStudents) { _updateStudentGrades(className, tableName, updatedStudents); },
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ],
                           ),
@@ -253,12 +302,12 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                             spacing: 8,
                             runSpacing: 8,
                             children: [
-                              _buildCategoryChip('Tugas', true, className),
-                              _buildCategoryChip('Ulangan', true, className),
-                              _buildCategoryChip('UTS', true, className),
-                              _buildCategoryChip('UAS', true, className),
-                              _buildCategoryChip('Ujian Sekolah', true, className),
-                              _buildCategoryChip('Ujian Nasional', true, className),
+                              _buildCategoryChip('Tugas', _isTableComplete(className, 'Tugas'), className),
+                              _buildCategoryChip('Ulangan', _isTableComplete(className, 'Ulangan'), className),
+                              _buildCategoryChip('UTS', _isTableComplete(className, 'UTS'), className),
+                              _buildCategoryChip('UAS', _isTableComplete(className, 'UAS'), className),
+                              _buildCategoryChip('Ujian Sekolah', _isTableComplete(className, 'Ujian Sekolah'), className),
+                              _buildCategoryChip('Ujian Nasional', _isTableComplete(className, 'Ujian Nasional'), className),
                             ],
                           ),
                           Column(

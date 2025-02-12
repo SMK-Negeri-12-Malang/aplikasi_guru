@@ -7,8 +7,9 @@ class TablePage extends StatefulWidget {
   final String className;
   final String tableName;
   final List<Map<String, dynamic>> students;
+  final Function(String, String, List<Map<String, dynamic>>) onSave;
 
-  TablePage({required this.className, required this.tableName, required this.students});
+  TablePage({required this.className, required this.tableName, required this.students, required this.onSave});
 
   @override
   _TablePageState createState() => _TablePageState();
@@ -23,23 +24,21 @@ class _TablePageState extends State<TablePage> {
   @override
   void initState() {
     super.initState();
-    filteredStudents = List.from(widget.students);
+    filteredStudents = widget.students;
     _initializeControllers();
   }
 
   void _initializeControllers() {
-    // Inisialisasi controller untuk setiap siswa menggunakan index asli sebagai key
+    controllers.clear();
     for (int i = 0; i < widget.students.length; i++) {
-      controllers[i] = TextEditingController(
-        text: widget.students[i]['grades'][0].toString()
-      );
+      var grade = widget.students[i]['grades'][widget.tableName] ?? 0;
+      controllers[i] = TextEditingController(text: grade.toString());
     }
   }
 
   @override
   void dispose() {
-    // Bersihkan semua controller saat widget di-dispose
-    controllers.values.forEach((controller) => controller.dispose());
+    controllers.forEach((key, controller) => controller.dispose());
     searchController.dispose();
     super.dispose();
   }
@@ -52,23 +51,17 @@ class _TablePageState extends State<TablePage> {
     });
   }
 
-  void _updateGrade(int originalIndex, String value) {
-    if (value.isEmpty) return;
-    
-    final grade = int.tryParse(value);
-    if (grade != null) {
-      setState(() {
-        widget.students[originalIndex]['grades'][0] = grade;
-      });
-    }
+  void _updateGrade(int studentIndex, String value) {
+    setState(() {
+      widget.students[studentIndex]['grades'][widget.tableName] = int.tryParse(value) ?? 0;
+    });
   }
 
   void _saveGrades() {
-    // Simpan nilai dari semua controller ke data siswa
     controllers.forEach((index, controller) {
-      final grade = int.tryParse(controller.text) ?? 0;
-      widget.students[index]['grades'][0] = grade;
+      widget.students[index]['grades'][widget.tableName] = int.tryParse(controller.text) ?? 0;
     });
+    widget.onSave(widget.className, widget.tableName, widget.students);
   }
 
   Future<void> _downloadCSV() async {
@@ -79,7 +72,8 @@ class _TablePageState extends State<TablePage> {
       List<dynamic> row = [];
       row.add(i + 1);
       row.add(filteredStudents[i]['name']);
-      row.add(filteredStudents[i]['grades'][0]);
+      var grade = filteredStudents[i]['grades'][widget.tableName] ?? 0;
+      row.add(grade);
       rows.add(row);
     }
 
@@ -107,8 +101,26 @@ class _TablePageState extends State<TablePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tabel Nilai - ${widget.className} (${widget.tableName})'),
+        title: Row(
+          children: [
+            Icon(Icons.table_chart, size: 30),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '    ${widget.className} (${widget.tableName})',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
         centerTitle: true,
+        backgroundColor: Colors.blue,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(15),
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -137,9 +149,7 @@ class _TablePageState extends State<TablePage> {
                     ],
                     rows: List.generate(filteredStudents.length, (index) {
                       final student = filteredStudents[index];
-                      // Dapatkan index asli dari data students
-                      final originalIndex = widget.students.indexOf(student);
-                      
+                      int studentIndex = widget.students.indexOf(student);
                       return DataRow(
                         cells: [
                           DataCell(Text((index + 1).toString())),
@@ -149,7 +159,7 @@ class _TablePageState extends State<TablePage> {
                               width: 100,
                               child: isEditing
                                   ? TextFormField(
-                                      controller: controllers[originalIndex],
+                                      controller: controllers[studentIndex],
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
                                         isDense: true,
@@ -158,9 +168,9 @@ class _TablePageState extends State<TablePage> {
                                           borderRadius: BorderRadius.circular(4),
                                         ),
                                       ),
-                                      onChanged: (value) => _updateGrade(originalIndex, value),
+                                      onChanged: (value) => _updateGrade(studentIndex, value),
                                     )
-                                  : Text(student['grades'][0].toString()),
+                                  : Text((student['grades'][widget.tableName] ?? 0).toString()),
                             ),
                           ),
                         ],
@@ -187,7 +197,7 @@ class _TablePageState extends State<TablePage> {
             heroTag: 'download',
             onPressed: _downloadCSV,
             child: Icon(Icons.download),
-            backgroundColor: Colors.blue,
+            backgroundColor: Colors.green,
           ),
         ],
       ),
