@@ -1,7 +1,10 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'table_page.dart';
 import 'rekap_page.dart'; // Import halaman rekap
+import 'package:shimmer/shimmer.dart';
 
 class ClassSelectionPage extends StatefulWidget {
   @override
@@ -9,35 +12,67 @@ class ClassSelectionPage extends StatefulWidget {
 }
 
 class _ClassSelectionPageState extends State<ClassSelectionPage> {
-  final Map<String, List<String>> classTables = {
-    'Kelas XI A': [],
-    'Kelas XI B': [],
-    'Kelas XI C': [],
-  };
+  final Map<String, List<String>> classTables = {};
+  final Map<String, List<Map<String, dynamic>>> classStudents = {};
+  final Map<String, String> classSubjects = {}; // Add this line
+  bool isLoading = true;
+  final List<String> gradeCategories = [
+    'Tugas',
+    'Ulangan',
+    'UTS',
+    'UAS',
+    'Ujian Sekolah',
+    'Ujian Nasional'
+  ];
 
-  final Map<String, List<Map<String, dynamic>>> classStudents = {
-    'Kelas XI A': [
-      {'name': 'Siswa A1', 'grades': {}},
-      {'name': 'Siswa A2', 'grades': {}},
-      {'name': 'Siswa A3', 'grades': {}},
-    ],
-    'Kelas XI B': [
-      {'name': 'Siswa B1', 'grades': {}},
-      {'name': 'Siswa B2', 'grades': {}},
-      {'name': 'Siswa B3', 'grades': {}},
-    ],
-    'Kelas XI C': [
-      {'name': 'Siswa C1', 'grades': {}},
-      {'name': 'Siswa C2', 'grades': {}},
-      {'name': 'Siswa C3', 'grades': {}},
-    ],
-  };
+  @override
+  void initState() {
+    super.initState();
+    _fetchStudents();
+  }
 
-  final Map<String, String> classSubjects = {
-    'Kelas XI A': 'Matematika',
-    'Kelas XI B': 'Biologi',
-    'Kelas XI C': 'Ekonomi',
-  };
+  Future<void> _fetchStudents() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://67ac42f05853dfff53d9e093.mockapi.io/siswa')
+      );
+      
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        
+        // Initialize empty maps for each unique class
+        Set<String> uniqueClasses = {};
+        for (var student in data) {
+          uniqueClasses.add(student['kelas'] ?? '');
+        }
+
+        setState(() {
+          // Initialize data structures for each class
+          for (String className in uniqueClasses) {
+            classTables[className] = [];
+            classStudents[className] = [];
+          }
+
+          // Populate students into their respective classes
+          for (var student in data) {
+            String className = student['kelas'] ?? '';
+            classStudents[className]?.add({
+              'id': student['id'],
+              'name': student['name'],
+              'class': className,
+              'grades': {} // Initialize empty grades
+            });
+          }
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching students: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   void _addTable(String className) {
     TextEditingController tableController = TextEditingController();
@@ -157,17 +192,9 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
 
   bool _isTableComplete(String className, String tableName) {
     final students = classStudents[className]!;
-    bool tableExists = false;
+    final table = classTables[className]!.contains(tableName);
+    if (!table) return false;
 
-    // Check if the table exists in classTables or is a predefined category
-    if (classTables[className]!.contains(tableName) || 
-        ['Tugas', 'Ulangan', 'UTS', 'UAS', 'Ujian Sekolah', 'Ujian Nasional'].contains(tableName)) {
-      tableExists = true;
-    }
-
-    if (!tableExists) return false;
-
-    // Check if all students have non-zero grades
     for (var student in students) {
       final grades = student['grades'][tableName];
       if (grades == null || grades == 0) {
@@ -193,15 +220,187 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
         );
       },
       child: Chip(
-        label: Text(
-          label, 
-          style: TextStyle(
-            fontSize: 12,
-            color: isComplete ? Colors.white : Colors.black87,
-          )
-        ),
-        backgroundColor: isComplete ? Colors.green : Colors.grey.shade300,
+        label: Text(label, style: TextStyle(fontSize: 12)),
+        backgroundColor: isComplete ? Colors.green.shade100 : Colors.grey.shade300,
       ),
+    );
+  }
+
+  Widget _buildClassCard(String className, List<Map<String, dynamic>> students) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.class_, size: 40, color: Colors.blue),
+                    SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          className,
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Jumlah Siswa: ${students.length}',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: Icon(Icons.assessment, color: Colors.blue),
+                  onPressed: () => _navigateToRekapPage(className),
+                ),
+              ],
+            ),
+            Divider(height: 20),
+            Text(
+              'Kategori Nilai:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: gradeCategories.map((category) {
+                return ActionChip(
+                  label: Text(category),
+                  onPressed: () => _navigateToTablePage(className, category),
+                  backgroundColor: Colors.grey[200],
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 16),
+            ExpansionTile(
+              title: Text('Daftar Siswa'),
+              children: [
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: students.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: CircleAvatar(
+                        child: Text('${index + 1}'),
+                        backgroundColor: Colors.blue[100],
+                      ),
+                      title: Text(students[index]['name']),
+                      dense: true,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _navigateToTablePage(String className, String category) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TablePage(
+          className: className,
+          tableName: category,
+          students: classStudents[className]!,
+          onSave: _updateStudentGrades,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToRekapPage(String className) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RekapPage(
+          className: className,
+          classStudents: classStudents[className]!,
+          classTables: gradeCategories,
+          onSave: (tableName, updatedStudents) {
+            _updateStudentGrades(className, tableName, updatedStudents);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerLoading() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.all(16),
+      itemCount: 3, // Show 3 shimmer items while loading
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: EdgeInsets.only(bottom: 16),
+          child: Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Container(
+                height: 200,
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 100,
+                              height: 20,
+                              color: Colors.white,
+                            ),
+                            SizedBox(height: 8),
+                            Container(
+                              width: 150,
+                              height: 15,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      height: 100,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -209,144 +408,61 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(height: 20),
-            // Header Card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                elevation: 4,
-                child: Container(
-                  padding: EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [Colors.blue, Colors.lightBlueAccent]),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.school, size: 50, color: Colors.white),
-                          SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              'Pilih Kelas Anda',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(height: 20),
+              // Header Card
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.blue, Colors.lightBlueAccent],
                       ),
-                    ],
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.school, size: 50, color: Colors.white),
+                        SizedBox(width: 16),
+                        Text(
+                          'Daftar Kelas',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 20),
-            // Class List
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              itemCount: classTables.keys.length,
-              itemBuilder: (context, index) {
-                String className = classTables.keys.elementAt(index);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    elevation: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(Icons.class_, size: 40, color: Colors.blue),
-                                  SizedBox(width: 16),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        className,
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        'Mata Pelajaran: ${classSubjects[className]}',
-                                        style: TextStyle(color: Colors.grey[600]),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.assessment, color: Colors.blue),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => RekapPage(
-                                        className: className,
-                                        classStudents: classStudents[className]!,
-                                        classTables: classTables[className]!, onSave: (String tableName, List<Map<String, dynamic>> updatedStudents) { _updateStudentGrades(className, tableName, updatedStudents); },
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+              isLoading
+                  ? _buildShimmerLoading()
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.all(16),
+                      itemCount: classStudents.length,
+                      itemBuilder: (context, index) {
+                        String className = classStudents.keys.elementAt(index);
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: 16),
+                          child: _buildClassCard(
+                            className,
+                            classStudents[className]!,
                           ),
-                          Divider(height: 20, thickness: 1, color: Colors.grey[300]),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              _buildCategoryChip('Tugas', _isTableComplete(className, 'Tugas'), className),
-                              _buildCategoryChip('Ulangan', _isTableComplete(className, 'Ulangan'), className),
-                              _buildCategoryChip('UTS', _isTableComplete(className, 'UTS'), className),
-                              _buildCategoryChip('UAS', _isTableComplete(className, 'UAS'), className),
-                              _buildCategoryChip('Ujian Sekolah', _isTableComplete(className, 'Ujian Sekolah'), className),
-                              _buildCategoryChip('Ujian Nasional', _isTableComplete(className, 'Ujian Nasional'), className),
-                            ],
-                          ),
-                          Column(
-                            children: classTables[className]!.map((table) {
-                              return ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(
-                                  table,
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                                ),
-                                trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                                onTap: () {
-                                  _showClassCard(className);
-                                },
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  ),
-                );
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
