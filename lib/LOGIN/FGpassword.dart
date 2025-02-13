@@ -1,4 +1,3 @@
-import 'package:aplikasi_ortu/LOGIN/VerificationCode.dart';
 import 'package:aplikasi_ortu/LOGIN/login.dart';
 import 'package:flutter/material.dart';
 
@@ -135,13 +134,7 @@ class Fgpassword extends StatelessWidget {
                             // Send Button
                             ElevatedButton(
                               onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const VerificationCodeScreen(),
-                                  ),
-                                );
+                               
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:

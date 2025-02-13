@@ -8,6 +8,8 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:async';
+import 'package:aplikasi_ortu/models/schedule_model.dart';
+import 'package:aplikasi_ortu/services/schedule_service.dart';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -22,38 +24,14 @@ class _DashboardPageState extends State<DashboardPage> {
   String _email = ''; 
   String? _profileImagePath;
   List<Map<String, dynamic>> _deadlineNotifications = [];
+  Map<String, List<Map<String, String>>> _jadwalMengajar = {};
   late Timer _scheduleTimer;
   int _currentScheduleIndex = 0;
   final NotificationService _notificationService = NotificationService();
   bool _showingDeadlines = false;
-
-  final Map<String, List<Map<String, String>>> _jadwalMengajar = {
-    'Senin': [
-      {'jam': '07:00 - 09:00', 'mataPelajaran': 'Matematika'},
-      {'jam': '09:00 - 11:00', 'mataPelajaran': 'Fisika'},
-      {'jam': '11:00 - 13:00', 'mataPelajaran': 'Bahasa Indonesia'},
-    ],
-    'Selasa': [
-      {'jam': '08:00 - 10:00', 'mataPelajaran': 'IPA'},
-      {'jam': '10:00 - 12:00', 'mataPelajaran': 'Kimia'},
-      {'jam': '12:00 - 14:00', 'mataPelajaran': 'IPS'},
-    ],
-    'Rabu': [
-      {'jam': '07:00 - 09:00', 'mataPelajaran': 'Bahasa Inggris'},
-      {'jam': '09:00 - 11:00', 'mataPelajaran': 'Biologi'},
-      {'jam': '11:00 - 13:00', 'mataPelajaran': 'Seni Budaya'},
-    ],
-    'Kamis': [
-      {'jam': '08:00 - 10:00', 'mataPelajaran': 'Pendidikan Jasmani'},
-      {'jam': '10:00 - 12:00', 'mataPelajaran': 'Matematika'},
-      {'jam': '12:00 - 14:00', 'mataPelajaran': 'Prakarya'},
-    ],
-    'Jumat': [
-      {'jam': '07:00 - 09:00', 'mataPelajaran': 'Agama'},
-      {'jam': '09:00 - 11:00', 'mataPelajaran': 'Sejarah'},
-      {'jam': '11:00 - 13:00', 'mataPelajaran': 'Pendidikan Kewarganegaraan'},
-    ],
-  };
+  final ScheduleService _scheduleService = ScheduleService();
+  List<Schedule> _schedules = [];
+  bool _isLoadingSchedules = true;
 
   @override
   void initState() {
@@ -75,6 +53,7 @@ class _DashboardPageState extends State<DashboardPage> {
         }
       });
     });
+    _loadSchedules();
   }
 
   Future<void> _loadProfileData() async {
@@ -112,6 +91,24 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
+  Future<void> _loadSchedules() async {
+    try {
+      setState(() {
+        _isLoadingSchedules = true;
+      });
+      final schedules = await _scheduleService.getSchedules();
+      setState(() {
+        _schedules = schedules;
+        _isLoadingSchedules = false;
+      });
+    } catch (e) {
+      print('Error loading schedules: $e');
+      setState(() {
+        _isLoadingSchedules = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _scheduleTimer.cancel();
@@ -133,19 +130,38 @@ class _DashboardPageState extends State<DashboardPage> {
         return DraggableScrollableSheet(
           expand: false,
           builder: (context, scrollController) {
+            if (_isLoadingSchedules) {
+              return Center(child: CircularProgressIndicator());
+            }
+            
+            // Group schedules by day
+            Map<String, List<Schedule>> schedulesByDay = {};
+            for (var schedule in _schedules) {
+              if (!schedulesByDay.containsKey(schedule.hari)) {
+                schedulesByDay[schedule.hari] = [];
+              }
+              schedulesByDay[schedule.hari]!.add(schedule);
+            }
+
             return Container(
               padding: EdgeInsets.all(16),
               child: ListView(
                 controller: scrollController,
-                children: _jadwalMengajar.entries.map((entry) {
+                children: schedulesByDay.entries.map((entry) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(entry.key, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                      ...entry.value.map((jadwal) {
+                      Text(
+                        entry.key,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18
+                        ),
+                      ),
+                      ...entry.value.map((schedule) {
                         return ListTile(
-                          title: Text(jadwal['mataPelajaran']!),
-                          subtitle: Text(jadwal['jam']!),
+                          title: Text(schedule.namaPelajaran),
+                          subtitle: Text(schedule.jam),
                         );
                       }).toList(),
                       Divider(),
@@ -180,13 +196,9 @@ class _DashboardPageState extends State<DashboardPage> {
     return DateFormat('EEEE', 'id_ID').format(DateTime.now());
   }
 
-  List<Map<String, String>> _getJadwalMengajarHariIni() {
-    String day = _getHariIni();
-    if (_jadwalMengajar.containsKey(day)) {
-      return _jadwalMengajar[day]!;
-    } else {
-      return [];
-    }
+  List<Schedule> _getJadwalMengajarHariIni() {
+    String today = _getHariIni();
+    return _schedules.where((schedule) => schedule.hari == today).toList();
   }
 
   void _showNotification() {
@@ -329,7 +341,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildScheduleCard() {
-    List<Map<String, String>> jadwalHariIni = _getJadwalMengajarHariIni();
+    List<Schedule> jadwalHariIni = _getJadwalMengajarHariIni();
     String hariIni = _getHariIni();
     
     return Card(
@@ -382,10 +394,14 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildScheduleList(List<Map<String, String>> jadwalBesok) {
-    return jadwalBesok.isEmpty
+  Widget _buildScheduleList(List<Schedule> jadwalHariIni) {
+    if (_isLoadingSchedules) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    return jadwalHariIni.isEmpty
         ? Center(
-            child: Text('Tidak ada jadwal untuk besok'),
+            child: Text('Tidak ada jadwal untuk hari ini'),
           )
         : AnimatedSwitcher(
             duration: Duration(milliseconds: 500),
@@ -425,7 +441,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          jadwalBesok[_currentScheduleIndex]['mataPelajaran']!,
+                          jadwalHariIni[_currentScheduleIndex].namaPelajaran,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -433,7 +449,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          jadwalBesok[_currentScheduleIndex]['jam']!,
+                          jadwalHariIni[_currentScheduleIndex].jam,
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.blue[700],
@@ -443,7 +459,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                   Text(
-                    '${_currentScheduleIndex + 1}/${jadwalBesok.length}',
+                    '${_currentScheduleIndex + 1}/${jadwalHariIni.length}',
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 14,

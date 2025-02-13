@@ -1,6 +1,6 @@
 import 'package:aplikasi_ortu/main.dart';
 import 'package:flutter/material.dart';
-import 'package:aplikasi_ortu/LOGIN/VerificationCode.dart';
+
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -36,12 +36,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 left: 16,
                 child: IconButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const VerificationCodeScreen(),
-                      ),
-                    );
+                   
                   },
                   icon: const Icon(
                     Icons.arrow_back,
