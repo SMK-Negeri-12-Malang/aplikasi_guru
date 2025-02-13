@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class AbsensiKelasPage extends StatefulWidget {
   const AbsensiKelasPage({super.key});
@@ -14,37 +16,16 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
   late AnimationController _controller;
   late Animation<double> _animation;
 
-  final List<String> kelasList = ['Kelas A', 'Kelas B', 'Kelas C', 'Kelas D'];
-  final Map<String, List<Map<String, dynamic>>> siswaData = {
-    'Kelas A': [
-      {'name': 'Paul Walker', 'absen': '01', 'checked': false},
-      {'name': 'John Doe', 'absen': '02', 'checked': false},
-    ],
-    'Kelas B': [
-      {'name': 'Jane Doe', 'absen': '01', 'checked': false},
-      {'name': 'Max Payne', 'absen': '02', 'checked': false},
-    ],
-    'Kelas C': [
-      {'name': 'Alice Brown', 'absen': '01', 'checked': false},
-      {'name': 'Bob Smith', 'absen': '02', 'checked': false},
-    ],
-    'Kelas D': [
-      {'name': 'Charlie Green', 'absen': '01', 'checked': false},
-      {'name': 'Emma White', 'absen': '02', 'checked': false},
-    ],
-  };
-
-  final Map<String, bool> attendanceSavedStatus = {
-    'Kelas A': false,
-    'Kelas B': false,
-    'Kelas C': false,
-    'Kelas D': false,
-  };
+  List<String> kelasList = [];
+  Map<String, List<Map<String, dynamic>>> siswaData = {};
+  Map<String, bool> attendanceSavedStatus = {};
+  bool isLoading = true;
 
   String? selectedClass;
   int checkedCount = 0;
   int? selectedIndex;
   List<Map<String, dynamic>> savedAttendance = [];
+  bool _isAttendanceSaved = false;
   bool _areAllChecked = false;
   bool _isEditing = false;
 
@@ -60,12 +41,71 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
       curve: Curves.easeInOut,
     );
     _controller.forward();
+    _fetchData();
   }
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchData() async {
+    setState(() => isLoading = true);
+    
+    try {
+      final response = await http.get(
+        Uri.parse('https://67ac42f05853dfff53d9e093.mockapi.io/siswa')
+      );
+      
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        
+        // Get unique class names
+        Set<String> classes = {};
+        for (var student in data) {
+          if (student['kelas'] != null) {
+            classes.add(student['kelas'].toString());
+          }
+        }
+        
+        // Initialize data structures
+        Map<String, List<Map<String, dynamic>>> groupedStudents = {};
+        Map<String, bool> savedStatus = {};
+        
+        // Group students by class
+        for (String className in classes) {
+          groupedStudents[className] = [];
+          savedStatus[className] = false;
+          
+          // Add students to their respective classes
+          for (var student in data) {
+            if (student['kelas'] == className) {
+              groupedStudents[className]!.add({
+                'name': student['name'],
+                'id': student['id'],
+                'absen': student['id'].toString().padLeft(2, '0'),
+                'checked': false,
+                'kelas': student['kelas'],
+              });
+            }
+          }
+        }
+        
+        setState(() {
+          kelasList = classes.toList()..sort();
+          siswaData = groupedStudents;
+          attendanceSavedStatus = savedStatus;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading data: $e')),
+      );
+    }
   }
 
   void _toggleCheck(int index) {
@@ -313,9 +353,12 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      body: FadeTransition(
-        opacity: _animation,
-        child: Column(
+      body: SafeArea(
+        child: isLoading
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
@@ -392,8 +435,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                     child: AnimatedContainer(
                       duration: Duration(milliseconds: 300),
                       width: MediaQuery.of(context).size.width * 0.7,
-                      margin:
-                          EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       padding: EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: isSelected ? Colors.white : Colors.blue.shade50,
@@ -450,9 +492,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                checkedCount ==
-                                        (siswaData[selectedClass]?.length ??
-                                            0)
+                                checkedCount == (siswaData[selectedClass]?.length ?? 0)
                                     ? 'Hadir Semua ✓'
                                     : 'Hadir: $checkedCount',
                                 style: TextStyle(
