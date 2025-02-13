@@ -1,18 +1,18 @@
-import 'package:aplikasi_ortu/LOGIN/login.dart';
-import 'package:aplikasi_ortu/MUSYRIF/home_musyrif.dart';
-import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
-import 'package:aplikasi_ortu/PAGES/Berita/News_page.dart';
-import 'package:aplikasi_ortu/PAGES/Chat/listchat_page.dart';
-import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Absen/absensi_page.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Grade/grade_page.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Home/home_musyrif.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Profil/profil.dart';
+import 'package:aplikasi_ortu/PAGES/Laporan_guru/laporan_guru.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
-class Mainmusrif extends StatefulWidget {
+class homemusryf extends StatefulWidget {
   @override
   _DashboardPageState createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<Mainmusrif> with SingleTickerProviderStateMixin {
+class _DashboardPageState extends State<homemusryf> with SingleTickerProviderStateMixin {
   late PageController _pageController;
   late AnimationController _animationController;
   late List<Animation<double>> _bounceAnimations;
@@ -20,11 +20,11 @@ class _DashboardPageState extends State<Mainmusrif> with SingleTickerProviderSta
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<NavItem> _navItems = [
-    NavItem(icon: Icons.newspaper, label: 'Berita'),
-    NavItem(icon: Icons.message, label: 'Chat'),
+    NavItem(icon: Icons.note_add, label: 'Grade'),
+    NavItem(icon: Icons.report, label: 'Laporan'),
     NavItem(icon: Icons.home, label: 'Home'),
     NavItem(icon: Icons.list, label: 'Absen'),
-    NavItem(icon: Icons.note_add, label: 'Grade'),
+    NavItem(icon: Icons.person, label: 'Profil'),
   ];
 
   @override
@@ -49,6 +49,17 @@ class _DashboardPageState extends State<Mainmusrif> with SingleTickerProviderSta
         ),
       ),
     );
+
+    _loadProfileImage();
+  }
+
+  Future<void> _loadProfileImage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? imagePath = prefs.getString('profile_image');
+    if (imagePath != null) {
+      setState(() {
+      });
+    }
   }
 
   @override
@@ -86,145 +97,25 @@ class _DashboardPageState extends State<Mainmusrif> with SingleTickerProviderSta
       },
       child: Scaffold(
         key: _scaffoldKey,
-        appBar: AppBar(
-          backgroundColor: Colors.blue[700],
-          title: Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  _scaffoldKey.currentState?.openDrawer();
-                },
-                child: const CircleAvatar(
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, color: Colors.blue),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    'Selamat Datang',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                  ),
-                  Text(
-                    'Purwanto Hermawan S.KON',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        appBar: _currentIndex == 2 || _currentIndex == 4 || _currentIndex == 3 || _currentIndex == 1 ? null : AppBar(
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+          title: Text(_getAppBarTitle(), textAlign: TextAlign.center),
+          centerTitle: true,
         ),
-        drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              //decoration: BoxDecoration(
-              //color: Colors.blue[300],
-              //),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: const Color.fromARGB(255, 115, 115, 115),
-                    child: Icon(Icons.person, color: Colors.blue, size: 40),
-                  ),
-                  SizedBox(height: 18),
-                  Text(
-                    'Purwanto Hermawan S.KON',
-                    style: TextStyle(
-                      //  color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'wantoherman123@gmail.com',
-                    //style: TextStyle(color: Colors.white, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Profile'),
-              onTap: () {
-             
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.message),
-              title: Text('Laporan Guru'),
-              onTap: () {
-              
-              },
-            ),
-            Divider(
-              thickness: 1,
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Settings'),
-              onTap: () {
-           
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Logout'),
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text("Konfirmasi Logout"),
-                      content: Text("Apakah Anda yakin ingin logout?"),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context); // Tutup dialog
-                          },
-                          child: Text("Batal"),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context); // Tutup dialog
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      LoginScreen()), // Ganti halaman dengan LogoutPage
-                            );
-                          },
-                          child: Text("Logout"),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
-          ],
-        ),
-      ),
         body: PageView(
           controller: _pageController,
+          physics: NeverScrollableScrollPhysics(), // Disable page swiping
           onPageChanged: (index) {
             setState(() {
               _currentIndex = index;
             });
           },
           children: [
-            NewsPage(onNewsAdded: (news) {
-              // Handle the news added event here
-            }),
-            ChatListPage(),
+            GradePage(),
+            LaporanGuru(onNewsAdded: (news) {}),
             DashboardMusyrifPage(),
-            AbsensiKelasPage(),
-            ClassSelectionPage(),
+            AbsensiPageKamar(),    
+            profilmusryf(),
           ],
         ),
         bottomNavigationBar: Container(
@@ -277,6 +168,24 @@ class _DashboardPageState extends State<Mainmusrif> with SingleTickerProviderSta
         ),
       ),
     );
+  }
+
+
+  String _getAppBarTitle() {
+    switch (_currentIndex) {
+      case 0:
+        return '';
+      case 1:
+        return '';
+      case 2:
+        return '';
+      case 3:
+        return '';
+      case 4:
+        return '';
+      default:
+        return '';
+    }
   }
 }
 

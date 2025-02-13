@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:excel/excel.dart';
+import 'package:open_file/open_file.dart';
 
 class TablePage extends StatefulWidget {
   final String className;
@@ -65,26 +67,39 @@ class _TablePageState extends State<TablePage> {
   }
 
   Future<void> _downloadCSV() async {
-    List<List<dynamic>> rows = [];
-    rows.add(['No. Absen', 'Nama Siswa', 'Nilai']);
+    var excel = Excel.createExcel();
+    Sheet sheetObject = excel['Sheet1'];
 
-    for (int i = 0; i < filteredStudents.length; i++) {
-      List<dynamic> row = [];
-      row.add(i + 1);
-      row.add(filteredStudents[i]['name']);
-      var grade = filteredStudents[i]['grades'][widget.tableName] ?? 0;
-      row.add(grade);
-      rows.add(row);
+    // Add headers
+    var headers = ['No. Absen', 'Nama Siswa', 'Nilai'];
+    for (var i = 0; i < headers.length; i++) {
+      sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0)).value = headers[i] as CellValue?;
     }
 
-    String csv = const ListToCsvConverter().convert(rows);
+    // Add data rows
+    for (var i = 0; i < filteredStudents.length; i++) {
+      var student = filteredStudents[i];
+      var row = [
+        i + 1,
+        student['name'],
+        student['grades'][widget.tableName] ?? 0,
+      ];
+
+      for (var j = 0; j < row.length; j++) {
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: j, rowIndex: i + 1)).value = row[j];
+      }
+    }
+
+    // Save and open file
     final directory = await getApplicationDocumentsDirectory();
-    final path = '${directory.path}/${widget.className}_${widget.tableName}.csv';
+    final path = '${directory.path}/${widget.className}_${widget.tableName}.xlsx';
     final file = File(path);
-    await file.writeAsString(csv);
+    await file.writeAsBytes(excel.encode()!);
+
+    await OpenFile.open(path);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('CSV berhasil diunduh di $path')),
+      SnackBar(content: Text('File Excel berhasil dibuat dan dibuka')),
     );
   }
 

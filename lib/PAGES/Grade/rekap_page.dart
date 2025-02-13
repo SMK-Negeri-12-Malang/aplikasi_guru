@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:excel/excel.dart';
+import 'package:open_file/open_file.dart';
 
 class RekapPage extends StatefulWidget {
   final String className;
@@ -74,29 +76,43 @@ class _RekapPageState extends State<RekapPage> {
   }
 
   Future<void> _downloadCSV() async {
-    List<List<dynamic>> rows = [];
-    rows.add(['Nama Siswa', 'Tugas', 'Ulangan', 'UTS', 'UAS', 'Ujian Sekolah', 'Ujian Nasional']);
+    var excel = Excel.createExcel();
+    Sheet sheetObject = excel['Sheet1'];
 
-    for (var student in filteredStudents) {
-      List<dynamic> row = [];
-      row.add(student['name']);
-      row.add(student['grades']['Tugas'] ?? 0);
-      row.add(student['grades']['Ulangan'] ?? 0);
-      row.add(student['grades']['UTS'] ?? 0);
-      row.add(student['grades']['UAS'] ?? 0);
-      row.add(student['grades']['Ujian Sekolah'] ?? 0);
-      row.add(student['grades']['Ujian Nasional'] ?? 0);
-      rows.add(row);
+    // Add headers
+    var headers = ['Nama Siswa', 'Tugas', 'Ulangan', 'UTS', 'UAS', 'Ujian Sekolah', 'Ujian Nasional'];
+    for (var i = 0; i < headers.length; i++) {
+      sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0)).value = headers[i] as CellValue?;
     }
 
-    String csv = const ListToCsvConverter().convert(rows);
+    // Add data rows
+    for (var i = 0; i < filteredStudents.length; i++) {
+      var student = filteredStudents[i];
+      var row = [
+        student['name'],
+        student['grades']['Tugas'] ?? 0,
+        student['grades']['Ulangan'] ?? 0,
+        student['grades']['UTS'] ?? 0,
+        student['grades']['UAS'] ?? 0,
+        student['grades']['Ujian Sekolah'] ?? 0,
+        student['grades']['Ujian Nasional'] ?? 0,
+      ];
+
+      for (var j = 0; j < row.length; j++) {
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: j, rowIndex: i + 1)).value = row[j];
+      }
+    }
+
+    // Save and open file
     final directory = await getApplicationDocumentsDirectory();
-    final path = '${directory.path}/${widget.className}_rekap.csv';
+    final path = '${directory.path}/${widget.className}_rekap.xlsx';
     final file = File(path);
-    await file.writeAsString(csv);
+    await file.writeAsBytes(excel.encode()!);
+
+    await OpenFile.open(path);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('CSV berhasil diunduh di $path')),
+      SnackBar(content: Text('File Excel berhasil dibuat dan dibuka')),
     );
   }
 

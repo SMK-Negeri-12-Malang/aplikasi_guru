@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart'; // Add this line
+import 'package:file_picker/file_picker.dart';
+import 'package:open_file/open_file.dart';  // Add this import
 
 class TaskDetailPage extends StatefulWidget {
   final Map<String, dynamic> task;
@@ -20,7 +21,6 @@ class TaskDetailPage extends StatefulWidget {
 }
 
 class _TaskDetailPageState extends State<TaskDetailPage> {
-  final ImagePicker _picker = ImagePicker();
 
   void _showFullImage() {
     Navigator.push(
@@ -250,37 +250,76 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                               Icon(Icons.file_present, color: Colors.blue),
                               SizedBox(width: 10),
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      widget.task['file'].name,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
+                                child: InkWell( // Wrap with InkWell
+                                  onTap: () async {
+                                    final file = widget.task['file'];
+                                    if (file != null) {
+                                      try {
+                                        final result = await OpenFile.open(file.path);
+                                        if (result.type != ResultType.done) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Tidak dapat membuka file: ${result.message}'),
+                                              behavior: SnackBarBehavior.floating,
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Error: Tidak dapat membuka file'),
+                                            behavior: SnackBarBehavior.floating,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        widget.task['file'].name,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      '${(widget.task['file'].size / 1024).toStringAsFixed(2)} KB',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 12,
+                                      Text(
+                                        '${(widget.task['file'].size / 1024).toStringAsFixed(2)} KB',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 12,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.download, color: Colors.blue),
-                                onPressed: () {
-                                  // Implement file download functionality here
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Mengunduh file...'),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
+                                icon: Icon(Icons.open_in_new, color: Colors.blue), // Changed from download icon
+                                onPressed: () async {
+                                  final file = widget.task['file'];
+                                  if (file != null) {
+                                    try {
+                                      final result = await OpenFile.open(file.path);
+                                      if (result.type != ResultType.done) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Tidak dapat membuka file: ${result.message}'),
+                                            behavior: SnackBarBehavior.floating,
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Error: Tidak dapat membuka file'),
+                                          behavior: SnackBarBehavior.floating,
+                                        ),
+                                      );
+                                    }
+                                  }
                                 },
                               ),
                             ],

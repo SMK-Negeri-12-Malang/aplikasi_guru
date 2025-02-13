@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:aplikasi_ortu/utils/task_storage.dart';
 
 class tugaskelas extends StatefulWidget {
   final Function(Map<String, dynamic>, String)? onTaskAdded;  // Add this line
@@ -35,7 +36,6 @@ class _AbsensiKelasPageState extends State<tugaskelas>
   String? selectedClass;
   int checkedCount = 0;
   int? selectedIndex;
-  final ImagePicker _picker = ImagePicker();
 
   // Add new controller for search
   TextEditingController searchController = TextEditingController();
@@ -54,6 +54,7 @@ class _AbsensiKelasPageState extends State<tugaskelas>
   @override
   void initState() {
     super.initState();
+    _loadSavedTasks();
     _controller = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
@@ -63,6 +64,13 @@ class _AbsensiKelasPageState extends State<tugaskelas>
       curve: Curves.easeInOut,
     );
     _controller.forward();
+  }
+
+  Future<void> _loadSavedTasks() async {
+    final savedTasks = await TaskStorage.loadTasks();
+    setState(() {
+      siswaData.addAll(savedTasks);
+    });
   }
 
   @override
@@ -81,167 +89,217 @@ class _AbsensiKelasPageState extends State<tugaskelas>
         checkedCount = siswaData[selectedClass]!
             .where((siswa) => siswa['checked'])
             .length;
+        
+        // Save tasks after toggling check
+        TaskStorage.saveTasks(siswaData);
       }
     });
   }
 
 
-  void _addNewTask() {
-    if (selectedClass != null) {
-      File? selectedImage;
-      PlatformFile? selectedFile;
-      
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          String taskName = '';
-          String deadline = '';
-          String description = '';
-          
-          return StatefulBuilder(
-            builder: (context, setState) {
-              return AlertDialog(
-                title: Text('Tambah Tugas Baru'),
-                content: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        height: 70, // Reduced height from 100
-                        width: double.infinity, // Ensure full width
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
+void _addNewTask() {
+  if (selectedClass != null) {
+    File? selectedImage;
+    PlatformFile? selectedFile;
+    DateTime? selectedDate;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String taskName = '';
+        String deadline = '';
+        String description = '';
+        
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Tambah Tugas Baru'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      height: 70,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.grey),
+                      ),
+                      child: InkWell(
+                        onTap: () async {
+                          FilePickerResult? result = await FilePicker.platform.pickFiles();
+                          if (result != null) {
+                            setState(() {
+                              selectedFile = result.files.first;
+                              selectedImage = null;
+                            });
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              selectedFile != null 
+                                  ? Icons.file_present
+                                  : Icons.upload_file,
+                              size: 30,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              selectedFile != null
+                                  ? (selectedFile!.name.length > 20
+                                      ? '${selectedFile!.name.substring(0, 20)}...'
+                                      : selectedFile!.name)
+                                  : 'Tambah File',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    TextField(
+                      decoration: InputDecoration(
+                        labelText: 'Nama Tugas',
+                        border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.grey),
                         ),
-                        child: InkWell(
-                          onTap: () async {
-                            FilePickerResult? result = await FilePicker.platform.pickFiles();
-                            if (result != null) {
-                              setState(() {
-                                selectedFile = result.files.first;
-                                selectedImage = null;
-                              });
-                            }
+                      ),
+                      onChanged: (value) => taskName = value,
+                    ),
+                    SizedBox(height: 10),
+                    // Replace TextField with DatePicker button
+                    InkWell(
+                      onTap: () async {
+                        final DateTime? date = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime(2030),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: ColorScheme.light(
+                                  primary: Colors.blue,
+                                  onPrimary: Colors.white,
+                                  onSurface: Colors.black,
+                                ),
+                              ),
+                              child: child!,
+                            );
                           },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                selectedFile != null 
-                                    ? Icons.file_present
-                                    : Icons.upload_file,
-                                size: 30,
-                                color: Colors.grey,
+                        );
+                        if (date != null) {
+                          setState(() {
+                            selectedDate = date;
+                            deadline = DateFormat('yyyy-MM-dd').format(date);
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.calendar_today, color: Colors.blue),
+                            SizedBox(width: 10),
+                            Text(
+                              deadline.isEmpty
+                                  ? 'Pilih Deadline'
+                                  : 'Deadline: $deadline',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: deadline.isEmpty
+                                    ? Colors.grey
+                                    : Colors.black,
                               ),
-                              SizedBox(width: 12),
-                              Text(
-                                selectedFile != null
-                                    ? (selectedFile!.name.length > 20
-                                        ? '${selectedFile!.name.substring(0, 20)}...'
-                                        : selectedFile!.name)
-                                    : 'Tambah File',
-                                style: TextStyle(fontSize: 14),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                      SizedBox(height: 10),
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Nama Tugas',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                    ),
+                    SizedBox(height: 10),
+                    TextField(
+                      decoration: InputDecoration(
+                        labelText: 'Deskripsi',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        onChanged: (value) => taskName = value,
                       ),
-                      SizedBox(height: 10),
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Deadline',
-                          hintText: 'YYYY-MM-DD',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        onChanged: (value) => deadline = value,
-                      ),
-                      SizedBox(height: 10),
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Deskripsi',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        maxLines: 3,
-                        onChanged: (value) => description = value,
-                      ),
-                    ],
-                  ),
+                      maxLines: 3,
+                      onChanged: (value) => description = value,
+                    ),
+                  ],
                 ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text('Batal'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (taskName.isNotEmpty && deadline.isNotEmpty) {
-                        this.setState(() {
-                          siswaData[selectedClass]!.add({
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Batal'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (taskName.isNotEmpty && deadline.isNotEmpty) {
+                      this.setState(() {
+                        siswaData[selectedClass]!.add({
+                          'name': taskName,
+                          'deadline': deadline,
+                          'description': description,
+                          'checked': false,
+                          'image': selectedImage,
+                          'file': selectedFile,
+                          'absen': (siswaData[selectedClass]!.length + 1).toString().padLeft(2, '0'),
+                        });
+                      });
+
+                      // Save tasks after adding new task
+                      TaskStorage.saveTasks(siswaData);
+
+                      // After adding the task to siswaData, notify parent
+                      if (widget.onTaskAdded != null) {
+                        widget.onTaskAdded!(
+                          {
                             'name': taskName,
                             'deadline': deadline,
                             'description': description,
                             'checked': false,
                             'image': selectedImage,
                             'file': selectedFile,
-                            'absen': (siswaData[selectedClass]!.length + 1).toString().padLeft(2, '0'),
-                          });
-                        });
-
-                        // After adding the task to siswaData, notify parent
-                        if (widget.onTaskAdded != null) {
-                          widget.onTaskAdded!(
-                            {
-                              'name': taskName,
-                              'deadline': deadline,
-                              'description': description,
-                              'checked': false,
-                              'image': selectedImage,
-                              'file': selectedFile,
-                            },
-                            selectedClass!,
-                          );
-                        }
-
-                        Navigator.pop(context);
-                        
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Tugas baru berhasil ditambahkan'),
-                            backgroundColor: Colors.green,
-                            behavior: SnackBarBehavior.floating,
-                          ),
+                          },
+                          selectedClass!,
                         );
                       }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: Text('Tambah'),
+
+                      Navigator.pop(context);
+                      
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Tugas baru berhasil ditambahkan'),
+                          backgroundColor: Colors.green,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
                   ),
-                ],
-              );
-            },
-          );
-        },
-      );
-    }
+                  child: Text('Tambah'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
+}
 
   void _onTaskUpdated(Map<String, dynamic> updatedTask) {
     setState(() {
@@ -249,6 +307,9 @@ class _AbsensiKelasPageState extends State<tugaskelas>
       final index = taskList.indexWhere((task) => task['absen'] == updatedTask['absen']);
       if (index != -1) {
         taskList[index] = updatedTask;
+        
+        // Save tasks after updating
+        TaskStorage.saveTasks(siswaData);
       }
     });
   }

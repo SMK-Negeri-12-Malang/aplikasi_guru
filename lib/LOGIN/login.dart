@@ -1,8 +1,10 @@
 import 'package:aplikasi_ortu/LOGIN/FGpassword.dart';
 import 'package:aplikasi_ortu/LOGIN/register.dart';
-import 'package:aplikasi_ortu/MUSYRIF/mainmusrif.dart';
 import 'package:aplikasi_ortu/main.dart';
+import 'package:aplikasi_ortu/utils/user_data_manager.dart';
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
+import 'package:aplikasi_ortu/MUSYRIF/mainmusrif.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,8 +14,61 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool _isPasswordVisible = false; // State untuk mengatur visibilitas password
-  String _selectedRole = 'Guru'; // Default role
+  bool _isPasswordVisible = false;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _authService = AuthService();
+  bool _isLoading = false;
+
+  Future<void> _handleLogin() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final (guru, musyrif) = await _authService.login(
+        _emailController.text,
+        _passwordController.text,
+      );
+
+      if (guru != null) {
+        // Login sebagai guru berhasil
+        await UserDataManager.saveUserData(
+          guru.name, // Use name from response
+          guru.email  // Use email from response
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => homeview()),
+        );
+      } else if (musyrif != null) {
+        // Login sebagai musyrif berhasil
+        await UserDataManager.saveUserData(
+          musyrif.name, // Use name from response
+          musyrif.email // Use email from response
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => homemusryf()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login gagal. Periksa email dan password')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Terjadi kesalahan. Silakan coba lagi')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,34 +142,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         const SizedBox(height: 20),
 
-                        // Role Selection
-                        DropdownButtonFormField<String>(
-                          value: _selectedRole,
-                          items: ['Guru', 'Musyrif'].map((String role) {
-                            return DropdownMenuItem<String>(
-                              value: role,
-                              child: Text(role),
-                            );
-                          }).toList(),
-                          onChanged: (newValue) {
-                            setState(() {
-                              _selectedRole = newValue!;
-                            });
-                          },
-                          decoration: InputDecoration(
-                            labelText: 'Login sebagai:',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 20),
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
                         // Email Input
                         TextField(
+                          controller: _emailController,
                           decoration: InputDecoration(
                             labelText: 'Email:',
                             border: OutlineInputBorder(
@@ -129,6 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         // Password Input
                         TextField(
+                          controller: _passwordController,
                           obscureText: !_isPasswordVisible, // Terkait visibilitas
                           decoration: InputDecoration(
                             labelText: 'Password:',
@@ -178,23 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         // Login Button
                         ElevatedButton(
-                          onPressed: () {
-                            if (_selectedRole == 'Guru') {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => homeview(),
-                                ),
-                              );
-                            } else if (_selectedRole == 'Musyrif') {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => Mainmusrif(),
-                                ),
-                              );
-                            }
-                          },
+                          onPressed: _isLoading ? null : _handleLogin,
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
                                 const Color.fromARGB(255, 0, 140, 255),
@@ -203,14 +218,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text(
-                            'Masuk',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: _isLoading
+                              ? const CircularProgressIndicator(color: Colors.white)
+                              : const Text(
+                                  'Masuk',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
 
                         const SizedBox(height: 20),

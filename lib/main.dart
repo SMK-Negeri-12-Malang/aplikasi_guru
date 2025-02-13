@@ -1,6 +1,6 @@
 import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
-import 'package:aplikasi_ortu/PAGES/Laporan_guru/laporan_guru.dart';
 import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
+import 'package:aplikasi_ortu/PAGES/Laporan_guru/laporan_guru.dart';
 import 'package:aplikasi_ortu/PAGES/Home/Home_Guru.dart';
 import 'package:aplikasi_ortu/PAGES/Profil/profil.dart';
 import 'package:aplikasi_ortu/SPLASHSCREEN/splashscreen.dart';
@@ -115,7 +115,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
       },
       child: Scaffold(
         key: _scaffoldKey,
-        appBar: _currentIndex == 2 || _currentIndex == 4 || _currentIndex == 3 || _currentIndex == 1 ? null : AppBar(
+        appBar: _currentIndex == 2 || _currentIndex == 4 || _currentIndex == 3 || _currentIndex == 1 || _currentIndex == 0 ? null : AppBar(
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           title: Text(_getAppBarTitle(), textAlign: TextAlign.center),
           centerTitle: true,

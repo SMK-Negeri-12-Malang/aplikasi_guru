@@ -1,12 +1,13 @@
 import 'package:aplikasi_ortu/PAGES/Detail_Tugas_Kelas/taskpage.dart';
+import 'package:aplikasi_ortu/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:aplikasi_ortu/PAGES/Berita/News_page.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'dart:async';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -17,9 +18,14 @@ class _DashboardPageState extends State<DashboardPage> {
   late PageController _pageController;
   late Future<void> _loadingFuture;
   List<Map<String, dynamic>> _newsList = [];
-  String _name = 'User';
-  String _email = 'Teknologi Informasi';
+  String _name = ''; 
+  String _email = ''; 
   String? _profileImagePath;
+  List<Map<String, dynamic>> _deadlineNotifications = [];
+  late Timer _scheduleTimer;
+  int _currentScheduleIndex = 0;
+  final NotificationService _notificationService = NotificationService();
+  bool _showingDeadlines = false;
 
   final Map<String, List<Map<String, String>>> _jadwalMengajar = {
     'Senin': [
@@ -55,26 +61,60 @@ class _DashboardPageState extends State<DashboardPage> {
     initializeDateFormatting('id_ID', null).then((_) {
       _loadProfileData();
     });
+    _loadNotifications();
     _pageController = PageController();
     // Simulate loading delay
-    _loadingFuture = Future.delayed(Duration(seconds: 5));
+    _loadingFuture = Future.delayed(Duration(seconds: 3));
+    
+    // Initialize timer for schedule sliding
+    _scheduleTimer = Timer.periodic(Duration(seconds: 8), (timer) {
+      setState(() {
+        List<Map<String, String>> jadwalBesok = _getJadwalMengajarBesok();
+        if (jadwalBesok.isNotEmpty) {
+          _currentScheduleIndex = (_currentScheduleIndex + 1) % jadwalBesok.length;
+        }
+      });
+    });
   }
 
   Future<void> _loadProfileData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _name = prefs.getString('profile_name') ?? _name;
-      _email = prefs.getString('profile_email') ?? _email;
-      _profileImagePath = prefs.getString('profile_image_path');
-    });
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      
+      // Get login data from SharedPreferences that was stored during API login
+      String? userName = prefs.getString('user_name');
+      String? userEmail = prefs.getString('user_email');
+      String? profileImagePath = prefs.getString('profile_image_path');
+
+      setState(() {
+        _name = userName ?? 'Loading...'; // Show loading if null
+        _email = userEmail ?? 'Loading...'; // Show loading if null
+        _profileImagePath = profileImagePath;
+      });
+
+    } catch (e) {
+      print('Error loading profile data: $e');
+      setState(() {
+        _name = 'Error loading data';
+        _email = 'Please try again';
+      });
+    }
   }
 
   Future<void> _reloadProfileData() async {
     await _loadProfileData();
   }
 
+  Future<void> _loadNotifications() async {
+    final notifications = await _notificationService.getNotifications();
+    setState(() {
+      _deadlineNotifications = notifications;
+    });
+  }
+
   @override
   void dispose() {
+    _scheduleTimer.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -136,19 +176,359 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  String _getHariIni() {
+    return DateFormat('EEEE', 'id_ID').format(DateTime.now());
+  }
+
+  List<Map<String, String>> _getJadwalMengajarHariIni() {
+    String day = _getHariIni();
+    if (_jadwalMengajar.containsKey(day)) {
+      return _jadwalMengajar[day]!;
+    } else {
+      return [];
+    }
+  }
+
   void _showNotification() {
-    List<Map<String, String>> jadwalBesok = _getJadwalMengajarBesok();
-    String jadwalText = jadwalBesok.isNotEmpty
-        ? jadwalBesok.map((item) => '${item['jam']} - ${item['mataPelajaran']}').join('\n')
-        : 'Tidak ada jadwal mengajar besok';
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(jadwalText)),
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.7,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 10),
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.notifications, color: Colors.blue, size: 24),
+                    SizedBox(width: 10),
+                    Text(
+                      'Notifikasi',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: _deadlineNotifications.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.notifications_none,
+                              size: 50,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              'Tidak ada notifikasi',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: _deadlineNotifications.length,
+                        itemBuilder: (context, index) {
+                          final notification = _deadlineNotifications[index];
+                          return Container(
+                            margin: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.blue,
+                                child: Icon(
+                                  Icons.assignment,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              title: Text(
+                                notification['taskName'],
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Kelas: ${notification['className']}'),
+                                  Text(
+                                    'Deadline: ${notification['deadline']}',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: Icon(Icons.close),
+                                onPressed: () async {
+                                  await _notificationService.removeNotification(index);
+                                  await _loadNotifications();
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
+  }
+
+  void updateDeadlineNotifications(Map<String, dynamic> task, String className) async {
+    final notification = {
+      'taskName': task['name'],
+      'className': className,
+      'deadline': task['deadline'],
+    };
+    
+    await _notificationService.addNotification(notification);
+    await _loadNotifications();
+  }
+
+  Widget _buildScheduleCard() {
+    List<Map<String, String>> jadwalHariIni = _getJadwalMengajarHariIni();
+    String hariIni = _getHariIni();
+    
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      elevation: 4,
+      margin: EdgeInsets.symmetric(horizontal: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Container(
+          height: 150,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      // Change text based on _showingDeadlines
+                      hariIni == 'Rabu' && _showingDeadlines
+                          ? 'Deadline Tugas'
+                          : 'Jadwal Hari ${_getHariIni()}',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  if (_deadlineNotifications.isNotEmpty)
+                    TextButton.icon(
+                      icon: Icon(Icons.warning_amber_rounded, color: Colors.red[700], size: 20),
+                      label: Text(
+                        _showingDeadlines ? 'Lihat Jadwal' : 'Lihat Deadline',
+                        style: TextStyle(color: Colors.red[700]),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showingDeadlines = !_showingDeadlines;
+                        });
+                      },
+                    ),
+                ],
+              ),
+              SizedBox(height: 10),
+              Expanded(
+                child: _showingDeadlines 
+                    ? _buildDeadlineList()
+                    : _buildScheduleList(jadwalHariIni),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScheduleList(List<Map<String, String>> jadwalBesok) {
+    return jadwalBesok.isEmpty
+        ? Center(
+            child: Text('Tidak ada jadwal untuk besok'),
+          )
+        : AnimatedSwitcher(
+            duration: Duration(milliseconds: 500),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: Offset(1.0, 0.0),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
+              );
+            },
+            child: Container(
+              key: ValueKey<int>(_currentScheduleIndex),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(2, 2),
+                  ),
+                ],
+              ),
+              padding: EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(Icons.book, color: Colors.blue, size: 40),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          jadwalBesok[_currentScheduleIndex]['mataPelajaran']!,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          jadwalBesok[_currentScheduleIndex]['jam']!,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.blue[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '${_currentScheduleIndex + 1}/${jadwalBesok.length}',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+  }
+
+  List<Map<String, dynamic>> _getUpcomingDeadlines() {
+    final now = DateTime.now();
+    return _deadlineNotifications.where((notification) {
+      try {
+        final deadline = DateTime.parse(notification['deadline']);
+        final difference = deadline.difference(now);
+        return difference.inDays >= 0 && difference.inDays <= 3;
+      } catch (e) {
+        return false;
+      }
+    }).toList();
+  }
+
+  Widget _buildDeadlineList() {
+    final upcomingDeadlines = _getUpcomingDeadlines();
+    
+    return upcomingDeadlines.isEmpty
+        ? Center(
+            child: Text('Tidak ada deadline dalam 3 hari ke depan'),
+          )
+        : ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: upcomingDeadlines.length,
+            itemBuilder: (context, index) {
+              final notification = upcomingDeadlines[index];
+              final deadline = DateTime.parse(notification['deadline']);
+              final daysLeft = deadline.difference(DateTime.now()).inDays;
+              
+              return Container(
+                width: 200,
+                margin: EdgeInsets.only(right: 10),
+                decoration: BoxDecoration(
+                  color: daysLeft == 0 ? Colors.red[200] : Colors.red[100],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      notification['taskName'],
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      'Kelas: ${notification['className']}',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    Text(
+                      daysLeft == 0 
+                          ? 'Deadline: Hari ini'
+                          : 'Deadline: ${daysLeft} hari lagi',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.red[700],
+                        fontWeight: daysLeft == 0 ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, String>> jadwalBesok = _getJadwalMengajarBesok();
+    _getJadwalMengajarBesok();
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: RefreshIndicator(
@@ -200,7 +580,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 ],
                               ),
                               IconButton(
-                                icon: Icon(Icons.notifications, color: Colors.white),
+                                icon: Icon(Icons.notifications, color: const Color.fromARGB(255, 255, 255, 255)),
                                 onPressed: _showNotification,
                               ),
                             ],
@@ -209,70 +589,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                      elevation: 4,
-                      margin: EdgeInsets.symmetric(horizontal: 16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Container(
-                          height: 150, // Perbesar tinggi container
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Besok Hari ${_getHariBesok()}',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(height: 10),
-                              Expanded(
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: jadwalBesok.length,
-                                  itemBuilder: (context, index) {
-                                    final jadwal = jadwalBesok[index];
-                                    return Container(
-                                      width: 120,
-                                      margin: EdgeInsets.only(right: 10),
-                                      padding: EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue[50],
-                                        borderRadius: BorderRadius.circular(10),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black26,
-                                            blurRadius: 4,
-                                            offset: Offset(2, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.book, color: Colors.blue, size: 30),
-                                          SizedBox(height: 5),
-                                          Text(
-                                            jadwal['mataPelajaran']!,
-                                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          SizedBox(height: 5),
-                                          Text(
-                                            jadwal['jam']!,
-                                            style: TextStyle(fontSize: 12),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                    _buildScheduleCard(),
                   ],
                 ),
               ],
@@ -351,14 +668,14 @@ class _DashboardPageState extends State<DashboardPage> {
                       child: Text(
                         'Lihat Jadwal Mengajar',
                         style: TextStyle(
-                          color: Colors.white, 
-                          fontSize: 16, 
+                          color: Colors.white,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold
                         ),
                       ),
                     ),
                     SizedBox(height: 20),
-                    Text('Kelas', 
+                    Text('Kelas',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 10),
                     Container(
@@ -372,8 +689,9 @@ class _DashboardPageState extends State<DashboardPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => tugaskelas(
-                                    roomName: 'Kelas A',
-                                    students: [], // Add appropriate list of students
+                                    onTaskAdded: (task, className) {
+                                      updateDeadlineNotifications(task, className);
+                                    },
                                   ),
                                 ),
                               );
@@ -387,8 +705,9 @@ class _DashboardPageState extends State<DashboardPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => tugaskelas(
-                                    roomName: 'Kelas B',
-                                    students: [], // Add appropriate list of students
+                                    onTaskAdded: (task, className) {
+                                      updateDeadlineNotifications(task, className);
+                                    },
                                   ),
                                 ),
                               );
@@ -402,8 +721,9 @@ class _DashboardPageState extends State<DashboardPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => tugaskelas(
-                                    roomName: 'Kelas C',
-                                    students: [], // Add appropriate list of students
+                                    onTaskAdded: (task, className) {
+                                      updateDeadlineNotifications(task, className);
+                                    },
                                   ),
                                 ),
                               );
@@ -422,25 +742,6 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildCircularIndicator(String label, double percentage) {
-    return Column(
-      children: [
-        CircularPercentIndicator(
-          radius: 50.0,
-          lineWidth: 10.0,
-          percent: percentage,
-          center: new Text("${(percentage * 100).toInt()}%"),
-          progressColor: Colors.blue,
-          backgroundColor: Colors.grey[200]!,
-          animation: true,
-          animationDuration: 1200,
-        ),
-        SizedBox(height: 5),
-        Text(label, style: TextStyle(fontSize: 16)),
-      ],
-    );
-  }
-
   Widget _buildClassButton(String title, VoidCallback onPressed) {
     return ElevatedButton(
       onPressed: onPressed,
@@ -454,8 +755,8 @@ class _DashboardPageState extends State<DashboardPage> {
       child: Text(
         title,
         style: TextStyle(
-          color: Colors.white, 
-          fontSize: 16, 
+          color: Colors.white,
+          fontSize: 16,
           fontWeight: FontWeight.bold
         ),
       ),
@@ -493,8 +794,7 @@ class _DashboardPageState extends State<DashboardPage> {
         itemBuilder: (context, index) {
           final news = _newsList[index];
           return GestureDetector(
-            onTap: () {
-            },
+            onTap: () {},
             child: Container(
               margin: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
@@ -522,27 +822,29 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                     ),
                   ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        news['judul'],
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16
-                        )
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        news['tanggal'],
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12
-                        )
-                      ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          news['judul'],
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16
+                          ),
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          news['tanggal'],
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -560,7 +862,7 @@ class AppBarClipper extends CustomClipper<Path> {
     Path path = Path();
     path.lineTo(0, size.height - 40);
     path.quadraticBezierTo(
-      size.width / 2, size.height, size.width, size.height - 40);
+        size.width / 2, size.height, size.width, size.height - 40);
     path.lineTo(size.width, 0);
     path.close();
     return path;

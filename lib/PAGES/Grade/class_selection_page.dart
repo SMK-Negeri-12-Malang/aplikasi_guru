@@ -157,9 +157,17 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
 
   bool _isTableComplete(String className, String tableName) {
     final students = classStudents[className]!;
-    final table = classTables[className]!.contains(tableName);
-    if (!table) return false;
+    bool tableExists = false;
 
+    // Check if the table exists in classTables or is a predefined category
+    if (classTables[className]!.contains(tableName) || 
+        ['Tugas', 'Ulangan', 'UTS', 'UAS', 'Ujian Sekolah', 'Ujian Nasional'].contains(tableName)) {
+      tableExists = true;
+    }
+
+    if (!tableExists) return false;
+
+    // Check if all students have non-zero grades
     for (var student in students) {
       final grades = student['grades'][tableName];
       if (grades == null || grades == 0) {
@@ -185,8 +193,14 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
         );
       },
       child: Chip(
-        label: Text(label, style: TextStyle(fontSize: 12)),
-        backgroundColor: isComplete ? Colors.green.shade100 : Colors.grey.shade300,
+        label: Text(
+          label, 
+          style: TextStyle(
+            fontSize: 12,
+            color: isComplete ? Colors.white : Colors.black87,
+          )
+        ),
+        backgroundColor: isComplete ? Colors.green : Colors.grey.shade300,
       ),
     );
   }

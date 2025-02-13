@@ -3,14 +3,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aplikasi_ortu/LOGIN/login.dart';
 import 'edit_profil.dart';
 import 'dart:io';
-import 'package:aplikasi_ortu/utils/user_data_manager.dart';
 
-class ProfileDetailPage extends StatefulWidget {
+class profilmusryf extends StatefulWidget {
   @override
-  _ProfileDetailPageState createState() => _ProfileDetailPageState();
+  _orofilState createState() => _orofilState();
 }
 
-class _ProfileDetailPageState extends State<ProfileDetailPage> {
+class _orofilState extends State<profilmusryf> {
   String? _profileImagePath;
   String _name = 'User';
   String _email = 'User@example.com';
@@ -24,13 +23,11 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
   }
 
   Future<void> _loadProfileData() async {
-    Map<String, String> userData = await UserDataManager.getUserData();
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    
     setState(() {
-      _name = userData['name'] ?? 'User';
-      _email = userData['email'] ?? 'user@example.com';
       _profileImagePath = prefs.getString('profile_image_path');
+      _name = prefs.getString('profile_name') ?? _name;
+      _email = prefs.getString('profile_email') ?? _email;
       _phone = prefs.getString('profile_phone') ?? _phone;
       _address = prefs.getString('profile_address') ?? _address;
     });

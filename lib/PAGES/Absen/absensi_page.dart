@@ -45,7 +45,6 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
   int checkedCount = 0;
   int? selectedIndex;
   List<Map<String, dynamic>> savedAttendance = [];
-  bool _isAttendanceSaved = false;
   bool _areAllChecked = false;
   bool _isEditing = false;
 

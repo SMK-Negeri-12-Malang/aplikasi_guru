@@ -171,33 +171,68 @@ class _LaporanGuruState extends State<LaporanGuru> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            _buildInputSection(
-              title: 'Nama',
-              child: Autocomplete<String>(
-                optionsBuilder: (TextEditingValue textEditingValue) {
-                  if (textEditingValue.text.isEmpty) {
-                    return const Iterable<String>.empty();
-                  }
-                  return (_namaSiswaPerKelas[_selectedKelas] ?? []).where((String option) {
-                    return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
-                  });
-                },
-                onSelected: (String selection) {
-                  setState(() {
-                    _selectedNama = selection;
-                  });
-                },
-                fieldViewBuilder: (BuildContext context, TextEditingController textEditingController, FocusNode focusNode, VoidCallback onFieldSubmitted) {
-                  return TextField(
-                    controller: textEditingController,
-                    focusNode: focusNode,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                _buildInputSection(
+                  title: 'Nama',
+                  child: Autocomplete<String>(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      if (textEditingValue.text.isEmpty) {
+                        return const Iterable<String>.empty();
+                      }
+                      return (_namaSiswaPerKelas[_selectedKelas] ?? []).where((String option) {
+                        return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+                      });
+                    },
+                    onSelected: (String selection) {
+                      setState(() {
+                        _selectedNama = selection;
+                      });
+                    },
+                    fieldViewBuilder: (BuildContext context, TextEditingController textEditingController, FocusNode focusNode, VoidCallback onFieldSubmitted) {
+                      return TextField(
+                        controller: textEditingController,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(
+                          hintText: 'Masukkan nama siswa',
+                          filled: true,
+                          fillColor: Colors.white,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.indigo[400]!, width: 1.5),
+                          ),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                
+                _buildInputSection(
+                  title: 'Kelas',
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedKelas,
+                    items: _kelasList.map((String kelas) {
+                      return DropdownMenuItem<String>(
+                        value: kelas,
+                        child: Text(kelas),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedKelas = newValue;
+                      });
+                    },
                     decoration: InputDecoration(
-                      hintText: 'Masukkan nama siswa',
                       filled: true,
                       fillColor: Colors.white,
                       enabledBorder: OutlineInputBorder(
@@ -210,167 +245,163 @@ class _LaporanGuruState extends State<LaporanGuru> {
                       ),
                       contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
-                  );
-                },
-              ),
-            ),
-            
-            _buildInputSection(
-              title: 'Kelas',
-              child: DropdownButtonFormField<String>(
-                value: _selectedKelas,
-                items: _kelasList.map((String kelas) {
-                  return DropdownMenuItem<String>(
-                    value: kelas,
-                    child: Text(kelas),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedKelas = newValue;
-                  });
-                },
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.indigo[400]!, width: 1.5),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
-              ),
-            ),
-            
-            _buildInputSection(
-              title: 'Deskripsi',
-              child: _buildTextField('Masukkan deskripsi', controller: _deskripsiController, maxLines: 4),
-            ),
-            
-            _buildInputSection(
-              title: 'Tanggal',
-              child: InkWell(
-                onTap: _pickDate,
-                child: IgnorePointer(
-                  child: _buildTextField('Pilih tanggal', controller: _tanggalController, maxLines: 1),
+                
+                _buildInputSection(
+                  title: 'Deskripsi',
+                  child: _buildTextField('Masukkan deskripsi', controller: _deskripsiController, maxLines: 4),
                 ),
-              ),
-            ),
-            
-            _buildInputSection(
-              title: 'Waktu',
-              child: InkWell(
-                onTap: _pickTime,
-                child: IgnorePointer(
-                  child: _buildTextField('Pilih waktu', controller: _waktuController, maxLines: 1),
-                ),
-              ),
-            ),
-            
-            _buildInputSection(
-              title: 'Poin Pelanggaran',
-              child: _buildTextField('Masukkan poin pelanggaran', controller: _poinController, maxLines: 1, keyboardType: TextInputType.number),
-            ),
-            
-            _buildInputSection(
-              title: 'Foto',
-              child: Column(
-                children: [
-                  InkWell(
-                    onTap: _pickImage,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      padding: EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Icon(Icons.photo_library_outlined, 
-                               color: Colors.grey[600]),
-                          SizedBox(width: 12),
-                          Text(
-                            'Pilih foto dari galeri',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
+                
+                _buildInputSection(
+                  title: 'Tanggal',
+                  child: InkWell(
+                    onTap: _pickDate,
+                    child: IgnorePointer(
+                      child: _buildTextField('Pilih tanggal', controller: _tanggalController, maxLines: 1),
                     ),
                   ),
-                  if (_selectedImage != null) ...[
-                    SizedBox(height: 16),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        _selectedImage!,
-                        width: double.infinity,
-                        height: 200,
-                        fit: BoxFit.cover,
+                ),
+                
+                _buildInputSection(
+                  title: 'Waktu',
+                  child: InkWell(
+                    onTap: _pickTime,
+                    child: IgnorePointer(
+                      child: _buildTextField('Pilih waktu', controller: _waktuController, maxLines: 1),
+                    ),
+                  ),
+                ),
+                
+                _buildInputSection(
+                  title: 'Poin Pelanggaran',
+                  child: _buildTextField('Masukkan poin pelanggaran', controller: _poinController, maxLines: 1, keyboardType: TextInputType.number),
+                ),
+                
+                _buildInputSection(
+                  title: 'Foto',
+                  child: Column(
+                    children: [
+                      InkWell(
+                        onTap: _pickImage,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          padding: EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Icon(Icons.photo_library_outlined, 
+                                   color: Colors.grey[600]),
+                              SizedBox(width: 12),
+                              Text(
+                                'Pilih foto dari galeri',
+                                style: TextStyle(color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (_selectedImage != null) ...[
+                        SizedBox(height: 16),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            _selectedImage!,
+                            width: double.infinity,
+                            height: 200,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: 32),
+                
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _submitNews,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo[600],
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                      ),
+                      child: Text(
+                        'Kirim Informasi',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: _showSavedReports,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[600],
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                      ),
+                      child: Text(
+                        'Lihat Laporan',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
-                ],
-              ),
-            ),
-
-            SizedBox(height: 32),
-            
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: _submitNews,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigo[600],
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                  ),
-                  child: Text(
-                    'Kirim Informasi',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: _showSavedReports,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[600],
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                  ),
-                  child: Text(
-                    'Lihat Laporan',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.center,
+              child: IgnorePointer(
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Transform.rotate(
+                      angle: -0.3,
+                      child: Text(
+                        'UNTUK\nMUSYRIF',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 120,
+                          height: 0.9,
+                          fontWeight: FontWeight.w800,
+                          // ignore: deprecated_member_use
+                          color: Colors.grey.withOpacity(0.15),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
