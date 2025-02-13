@@ -1,3 +1,4 @@
+import 'package:aplikasi_ortu/PAGES/Berita/NewsDetailPage.dart';
 import 'package:aplikasi_ortu/PAGES/Detail_Tugas_Kelas/taskpage.dart';
 import 'package:aplikasi_ortu/services/notification_service.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'dart:async';
 import 'package:aplikasi_ortu/models/schedule_model.dart';
 import 'package:aplikasi_ortu/services/schedule_service.dart';
+import 'dart:convert';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -54,6 +56,7 @@ class _DashboardPageState extends State<DashboardPage> {
       });
     });
     _loadSchedules();
+    _loadNews(); // Add this line to load saved news
   }
 
   Future<void> _loadProfileData() async {
@@ -109,6 +112,42 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  Future<void> _loadNews() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String>? newsJsonList = prefs.getStringList('news_list');
+      
+      if (newsJsonList != null) {
+        setState(() {
+          _newsList = newsJsonList.map((newsJson) {
+            Map<String, dynamic> newsMap = json.decode(newsJson);
+            // Convert the stored image path back to File
+            newsMap['image'] = File(newsMap['image']);
+            return newsMap;
+          }).toList();
+        });
+      }
+    } catch (e) {
+      print('Error loading news: $e');
+    }
+  }
+
+  Future<void> _saveNews() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String> newsJsonList = _newsList.map((news) {
+        // Convert File to path string for storage
+        Map<String, dynamic> newsMap = Map.from(news);
+        newsMap['image'] = (news['image'] as File).path;
+        return json.encode(newsMap);
+      }).toList();
+      
+      await prefs.setStringList('news_list', newsJsonList);
+    } catch (e) {
+      print('Error saving news: $e');
+    }
+  }
+
   @override
   void dispose() {
     _scheduleTimer.cancel();
@@ -119,6 +158,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void _addNews(Map<String, dynamic> news) {
     setState(() {
       _newsList.add(news);
+      _saveNews(); // Save news whenever a new item is added
     });
   }
 
@@ -160,7 +200,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                       ...entry.value.map((schedule) {
                         return ListTile(
-                          title: Text(schedule.namaPelajaran),
+                          title: Text(schedule.nama_jadwal),
                           subtitle: Text(schedule.jam),
                         );
                       }).toList(),
@@ -359,10 +399,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      // Change text based on _showingDeadlines
-                      hariIni == 'Rabu' && _showingDeadlines
-                          ? 'Deadline Tugas'
-                          : 'Jadwal Hari ${_getHariIni()}',
+                      _showingDeadlines ? 'Deadline Tugas' : 'Jadwal Hari $hariIni',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -441,7 +478,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          jadwalHariIni[_currentScheduleIndex].namaPelajaran,
+                          jadwalHariIni[_currentScheduleIndex].nama_jadwal,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -810,7 +847,14 @@ class _DashboardPageState extends State<DashboardPage> {
         itemBuilder: (context, index) {
           final news = _newsList[index];
           return GestureDetector(
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NewsDetailPage(news: news),
+                ),
+              );
+            },
             child: Container(
               margin: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
@@ -848,8 +892,10 @@ class _DashboardPageState extends State<DashboardPage> {
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 16
+                            fontSize: 20
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 5),
                         Text(
