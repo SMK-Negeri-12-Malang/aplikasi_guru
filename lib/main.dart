@@ -6,6 +6,8 @@ import 'package:aplikasi_ortu/PAGES/Profil/profil.dart';
 import 'package:aplikasi_ortu/SPLASHSCREEN/splashscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'utils/page_transitions.dart';
+import 'utils/animations.dart';
 
 void main() {
   runApp(MyApp());
@@ -15,12 +17,37 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Alhamroh Guru',
+      title: 'Aplikasi Guru',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        pageTransitionsTheme: PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: CustomPageTransitionBuilder(),
+            TargetPlatform.iOS: CustomPageTransitionBuilder(),
+          },
+        ),
+        splashFactory: InkRipple.splashFactory,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      onGenerateRoute: AppRoutes.generateRoute,
+      debugShowCheckedModeBanner: false,
       home: SplashScreen(),
+    );
+  }
+}
+
+class CustomPageTransitionBuilder extends PageTransitionsBuilder {
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return AppAnimations.fadeSlideIn(
+      animation: animation,
+      child: child,
     );
   }
 }
@@ -32,8 +59,8 @@ class homeview extends StatefulWidget {
 
 class _DashboardPageState extends State<homeview> with SingleTickerProviderStateMixin {
   late PageController _pageController;
-  late AnimationController _animationController;
-  late List<Animation<double>> _bounceAnimations;
+  late AnimationController _slideController;
+  late Animation<Offset> _slideAnimation;
   int _currentIndex = 2;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -49,24 +76,25 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 500),
+
+    // Initialize slide animation controller
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
 
-    _bounceAnimations = List.generate(
-      _navItems.length,
-      (index) => Tween<double>(begin: 1.0, end: 1.5).animate(
-        CurvedAnimation(
-          parent: _animationController,
-          curve: Interval(
-            0.0,
-            0.8,
-            curve: Curves.elasticOut,
-          ),
-        ),
-      ),
-    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOutQuart,
+    ));
+
+    // Start animation after frame is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _slideController.forward();
+    });
 
     _loadProfileImage();
   }
@@ -83,7 +111,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
   @override
   void dispose() {
     _pageController.dispose();
-    _animationController.dispose();
+    _slideController.dispose();
     super.dispose();
   }
 
@@ -96,8 +124,6 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
       duration: const Duration(milliseconds: 300),
       curve: Curves.ease,
     );
-    _animationController.reset();
-    _animationController.forward();
   }
 
   @override
@@ -136,58 +162,44 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
             ProfileDetailPage(),
           ],
         ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
-                spreadRadius: 1,
-                blurRadius: 5,
-                offset: const Offset(0, -1),
-              ),
-            ],
-          ),
-          child: BottomNavigationBar(
-            items: List.generate(_navItems.length, (index) {
-              return BottomNavigationBarItem(
-                icon: AnimatedBuilder(
-                  animation: _bounceAnimations[index],
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: index == _currentIndex 
-                          ? _bounceAnimations[index].value 
-                          : 1.0,
-                      child: Container(
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          //color: index == _currentIndex
-                            //  ? Colors.blue.withOpacity(0.2)
-                              //: Colors.transparent,
-                          //borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(_navItems[index].icon),
-                      ),
-                    );
-                  },
+        bottomNavigationBar: SlideTransition(
+          position: _slideAnimation,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  spreadRadius: 1,
+                  blurRadius: 5,
+                  offset: const Offset(0, -1),
                 ),
-                label: _navItems[index].label,
-              );
-            }),
-            currentIndex: _currentIndex,
-            selectedItemColor: Colors.blue[700],
-            unselectedItemColor: Colors.black54,
-            backgroundColor: Colors.white,
-            type: BottomNavigationBarType.fixed,
-            onTap: _onBottomNavTapped,
-            showSelectedLabels: true,
-            showUnselectedLabels: false,
+              ],
+            ),
+            child: BottomNavigationBar(
+              items: List.generate(_navItems.length, (index) {
+                return BottomNavigationBarItem(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(_navItems[index].icon),
+                  ),
+                  label: _navItems[index].label,
+                );
+              }),
+              currentIndex: _currentIndex,
+              selectedItemColor: Colors.blue[700],
+              unselectedItemColor: Colors.black54,
+              backgroundColor: Colors.white,
+              type: BottomNavigationBarType.fixed,
+              onTap: _onBottomNavTapped,
+              showSelectedLabels: true,
+              showUnselectedLabels: false,
+            ),
           ),
         ),
       ),
     );
   }
-
 
   String _getAppBarTitle() {
     switch (_currentIndex) {

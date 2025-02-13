@@ -4,23 +4,36 @@ import 'package:aplikasi_ortu/LOGIN/login.dart';
 import 'edit_profil.dart';
 import 'dart:io';
 import 'package:aplikasi_ortu/utils/user_data_manager.dart';
+import '../../utils/animations.dart';
 
 class ProfileDetailPage extends StatefulWidget {
   @override
   _ProfileDetailPageState createState() => _ProfileDetailPageState();
 }
 
-class _ProfileDetailPageState extends State<ProfileDetailPage> {
+class _ProfileDetailPageState extends State<ProfileDetailPage> with SingleTickerProviderStateMixin {
   String? _profileImagePath;
   String _name = 'User';
   String _email = 'User@example.com';
   String _phone = '+62 ***-***-****';
   String _address = 'Bumi';
+  late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      duration: Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _controller.forward();
     _loadProfileData();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> _loadProfileData() async {
@@ -93,132 +106,151 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> {
                   padding: EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      Text(
-                        _name,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        _email,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[600],
+                      AppAnimations.fadeSlideIn(
+                        animation: _controller,
+                        child: Column(
+                          children: [
+                            Text(
+                              _name,
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              _email,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       SizedBox(height: 24),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 5.0,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            ListTile(
-                              leading: Container(
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[50],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(Icons.phone, color: Colors.blue[700]),
+                      AppAnimations.listItemAnimation(
+                        index: 1,
+                        controller: _controller,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 5.0,
+                                offset: Offset(0, 2),
                               ),
-                              title: Text(
-                                'Nomor Telepon',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 14,
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              ListTile(
+                                leading: Container(
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue[50],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(Icons.phone, color: Colors.blue[700]),
                                 ),
-                              ),
-                              subtitle: Text(
-                                _phone,
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
+                                title: Text(
+                                  'Nomor Telepon',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
                                 ),
-                              ),
-                            ),
-                            Divider(height: 1),
-                            ListTile(
-                              leading: Container(
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[50],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(Icons.location_on, color: Colors.blue[700]),
-                              ),
-                              title: Text(
-                                'Alamat',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 14,
+                                subtitle: Text(
+                                  _phone,
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                              subtitle: Text(
-                                _address,
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
+                              Divider(height: 1),
+                              ListTile(
+                                leading: Container(
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue[50],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(Icons.location_on, color: Colors.blue[700]),
+                                ),
+                                title: Text(
+                                  'Alamat',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  _address,
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                       SizedBox(height: 32),
-                      ElevatedButton(
-                        onPressed: () {
-                          _editProfile(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[700],
-                          minimumSize: Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: Text(
-                          'Edit Profil',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      TextButton(
-                        onPressed: () {
-                          _showLogoutConfirmation(context);
-                        },
-                        style: TextButton.styleFrom(
-                          minimumSize: Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(color: Colors.red[700]!, width: 2),
-                          ),
-                        ),
-                        child: Text(
-                          'Logout',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red[700],
-                          ),
+                      AppAnimations.listItemAnimation(
+                        index: 2,
+                        controller: _controller,
+                        child: Column(
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                _editProfile(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue[700],
+                                minimumSize: Size(double.infinity, 50),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 2,
+                              ),
+                              child: Text(
+                                'Edit Profil',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            TextButton(
+                              onPressed: () {
+                                _showLogoutConfirmation(context);
+                              },
+                              style: TextButton.styleFrom(
+                                minimumSize: Size(double.infinity, 50),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(color: Colors.red[700]!, width: 2),
+                                ),
+                              ),
+                              child: Text(
+                                'Logout',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red[700],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
