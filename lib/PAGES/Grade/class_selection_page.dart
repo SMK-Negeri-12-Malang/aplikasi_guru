@@ -281,26 +281,6 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
               }).toList(),
             ),
             SizedBox(height: 16),
-            ExpansionTile(
-              title: Text('Daftar Siswa'),
-              children: [
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: students.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      leading: CircleAvatar(
-                        child: Text('${index + 1}'),
-                        backgroundColor: Colors.blue[100],
-                      ),
-                      title: Text(students[index]['name']),
-                      dense: true,
-                    );
-                  },
-                ),
-              ],
-            ),
           ],
         ),
       ),
