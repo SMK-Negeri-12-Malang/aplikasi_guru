@@ -84,130 +84,183 @@ class _NewsPageState extends State<NewsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        title: Text(
-          "Tambah Informasi",
-          style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            _buildInputSection(
-              title: 'Judul Informasi',
-              child: _buildTextField('Masukkan judul informasi', controller: _judulController, maxLines: 1),
-            ),
-            
-            _buildInputSection(
-              title: 'Tempat',
-              child: _buildTextField('Masukkan tempat', controller: _tempatController, maxLines: 3),
-            ),
-            
-            _buildInputSection(
-              title: 'Deskripsi',
-              child: _buildTextField('Masukkan deskripsi', controller: _deskripsiController, maxLines: 4),
-            ),
-            
-            _buildInputSection(
-              title: 'Tanggal',
-              child: InkWell(
-                onTap: _pickDate,
-                child: IgnorePointer(
-                  child: _buildTextField('Pilih tanggal', controller: _tanggalController, maxLines: 1),
-                ),
+      backgroundColor: Colors.grey[100],
+      body: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade900, Colors.blue.shade700],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
               ),
             ),
-            
-            _buildInputSection(
-              title: 'Waktu',
-              child: InkWell(
-                onTap: _pickTime,
-                child: IgnorePointer(
-                  child: _buildTextField('Pilih waktu', controller: _waktuController, maxLines: 1),
-                ),
-              ),
-            ),
-            
-            _buildInputSection(
-              title: 'Foto',
-              child: Column(
-                children: [
-                  InkWell(
-                    onTap: _pickImage,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      padding: EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Icon(Icons.photo_library_outlined, 
-                               color: Colors.grey[600]),
-                          SizedBox(width: 12),
-                          Text(
-                            'Pilih foto dari galeri',
-                            style: TextStyle(color: Colors.grey[600]),
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 24),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        Expanded(
+                          child: Text(
+                            "Tambah Informasi",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                        ],
-                      ),
+                        ),
+                        SizedBox(width: 40), // For symmetry
+                      ],
                     ),
-                  ),
-                  if (_selectedImage != null) ...[
                     SizedBox(height: 16),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        _selectedImage!,
-                        width: double.infinity,
-                        height: 200,
-                        fit: BoxFit.cover,
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Text(
+                        'Isi Informasi',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  _buildInputSection(
+                    title: 'Judul Informasi',
+                    child: _buildTextField('Masukkan judul informasi', controller: _judulController, maxLines: 1),
+                  ),
+                  
+                  _buildInputSection(
+                    title: 'Tempat',
+                    child: _buildTextField('Masukkan tempat', controller: _tempatController, maxLines: 3),
+                  ),
+                  
+                  _buildInputSection(
+                    title: 'Deskripsi',
+                    child: _buildTextField('Masukkan deskripsi', controller: _deskripsiController, maxLines: 4),
+                  ),
+                  
+                  _buildInputSection(
+                    title: 'Tanggal',
+                    child: InkWell(
+                      onTap: _pickDate,
+                      child: IgnorePointer(
+                        child: _buildTextField('Pilih tanggal', controller: _tanggalController, maxLines: 1),
+                      ),
+                    ),
+                  ),
+                  
+                  _buildInputSection(
+                    title: 'Waktu',
+                    child: InkWell(
+                      onTap: _pickTime,
+                      child: IgnorePointer(
+                        child: _buildTextField('Pilih waktu', controller: _waktuController, maxLines: 1),
+                      ),
+                    ),
+                  ),
+                  
+                  _buildInputSection(
+                    title: 'Foto',
+                    child: Column(
+                      children: [
+                        InkWell(
+                          onTap: _pickImage,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                            padding: EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Icon(Icons.photo_library_outlined, 
+                                     color: Colors.grey[600]),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Pilih foto dari galeri',
+                                  style: TextStyle(color: Colors.grey[600]),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (_selectedImage != null) ...[
+                          SizedBox(height: 16),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              _selectedImage!,
+                              width: double.infinity,
+                              // Remove height constraint and fit to show original aspect ratio
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: 32),
+                  
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: _submitNews,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo[600],
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 48,
+                          vertical: 16,
+                        ),
+                      ),
+                      child: Text(
+                        'Kirim Informasi',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-
-            SizedBox(height: 32),
-            
-            Center(
-              child: ElevatedButton(
-                onPressed: _submitNews,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo[600],
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 48,
-                    vertical: 16,
-                  ),
-                ),
-                child: Text(
-                  'Kirim Informasi',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -262,4 +315,4 @@ class _NewsPageState extends State<NewsPage> {
     );
   }
 }
-  
+
