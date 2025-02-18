@@ -1,4 +1,3 @@
-import 'package:aplikasi_ortu/PAGES/Berita/NewsDetailPage.dart';
 import 'package:aplikasi_ortu/PAGES/Detail_Tugas_Kelas/taskpage.dart';
 import 'package:aplikasi_ortu/services/notification_service.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +10,10 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'dart:async';
 import 'package:aplikasi_ortu/models/schedule_model.dart';
 import 'package:aplikasi_ortu/services/schedule_service.dart';
+import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../models/class_model.dart';
+import '../../services/class_service.dart';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -34,6 +36,9 @@ class _DashboardPageState extends State<DashboardPage> {
   final ScheduleService _scheduleService = ScheduleService();
   List<Schedule> _schedules = [];
   bool _isLoadingSchedules = true;
+  final ClassService _classService = ClassService();
+  List<ClassModel> _classList = [];
+  bool _isLoadingClasses = true;
 
   @override
   void initState() {
@@ -56,7 +61,7 @@ class _DashboardPageState extends State<DashboardPage> {
       });
     });
     _loadSchedules();
-    _loadNews(); // Add this line to load saved news
+    _fetchClasses();
   }
 
   Future<void> _loadProfileData() async {
@@ -112,39 +117,18 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  Future<void> _loadNews() async {
+  Future<void> _fetchClasses() async {
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      List<String>? newsJsonList = prefs.getStringList('news_list');
-      
-      if (newsJsonList != null) {
-        setState(() {
-          _newsList = newsJsonList.map((newsJson) {
-            Map<String, dynamic> newsMap = json.decode(newsJson);
-            // Convert the stored image path back to File
-            newsMap['image'] = File(newsMap['image']);
-            return newsMap;
-          }).toList();
-        });
-      }
+      final classes = await _classService.getClasses();
+      setState(() {
+        _classList = classes;
+        _isLoadingClasses = false;
+      });
     } catch (e) {
-      print('Error loading news: $e');
-    }
-  }
-
-  Future<void> _saveNews() async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      List<String> newsJsonList = _newsList.map((news) {
-        // Convert File to path string for storage
-        Map<String, dynamic> newsMap = Map.from(news);
-        newsMap['image'] = (news['image'] as File).path;
-        return json.encode(newsMap);
-      }).toList();
-      
-      await prefs.setStringList('news_list', newsJsonList);
-    } catch (e) {
-      print('Error saving news: $e');
+      print('Error fetching classes: $e');
+      setState(() {
+        _isLoadingClasses = false;
+      });
     }
   }
 
@@ -158,7 +142,6 @@ class _DashboardPageState extends State<DashboardPage> {
   void _addNews(Map<String, dynamic> news) {
     setState(() {
       _newsList.add(news);
-      _saveNews(); // Save news whenever a new item is added
     });
   }
 
@@ -200,7 +183,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                       ...entry.value.map((schedule) {
                         return ListTile(
-                          title: Text(schedule.nama_jadwal),
+                          title: Text(schedule.namaPelajaran),
                           subtitle: Text(schedule.jam),
                         );
                       }).toList(),
@@ -399,16 +382,19 @@ class _DashboardPageState extends State<DashboardPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      _showingDeadlines ? 'Deadline Tugas' : 'Jadwal Hari $hariIni',
+                      // Change text based on _showingDeadlines
+                      hariIni == 'Rabu' && _showingDeadlines
+                          ? 'Deadline Tugas'
+                          : 'Jadwal Hari ${_getHariIni()}',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                   if (_deadlineNotifications.isNotEmpty)
                     TextButton.icon(
-                      icon: Icon(Icons.warning_amber_rounded, color: Colors.red[700], size: 20),
+                      icon: Icon(Icons.warning_amber_rounded, color: const Color.fromARGB(255, 47, 211, 47), size: 20),
                       label: Text(
                         _showingDeadlines ? 'Lihat Jadwal' : 'Lihat Deadline',
-                        style: TextStyle(color: Colors.red[700]),
+                        style: TextStyle(color: const Color.fromARGB(255, 47, 211, 55)),
                       ),
                       onPressed: () {
                         setState(() {
@@ -478,7 +464,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          jadwalHariIni[_currentScheduleIndex].nama_jadwal,
+                          jadwalHariIni[_currentScheduleIndex].namaPelajaran,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -540,7 +526,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 width: 200,
                 margin: EdgeInsets.only(right: 10),
                 decoration: BoxDecoration(
-                  color: daysLeft == 0 ? Colors.red[200] : Colors.red[100],
+                  color: daysLeft == 0 ? const Color.fromARGB(255, 154, 239, 175) : const Color.fromARGB(255, 217, 255, 205),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 padding: EdgeInsets.all(12),
@@ -568,7 +554,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           : 'Deadline: ${daysLeft} hari lagi',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.red[700],
+                        color: const Color.fromARGB(255, 34, 185, 47),
                         fontWeight: daysLeft == 0 ? FontWeight.bold : FontWeight.normal,
                       ),
                     ),
@@ -593,7 +579,13 @@ class _DashboardPageState extends State<DashboardPage> {
                 ClipPath(
                   clipper: AppBarClipper(),
                   child: Container(
-                    color: Colors.blue,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.blue.shade900, Colors.blue.shade700],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
                     height: 230,
                   ),
                 ),
@@ -709,81 +701,40 @@ class _DashboardPageState extends State<DashboardPage> {
                       },
                     ),
                     SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _showJadwalMengajar,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[700],
-                        minimumSize: Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(
-                        'Lihat Jadwal Mengajar',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
                     Text('Kelas',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 10),
                     Container(
                       padding: EdgeInsets.all(10),
-                      child: Column(
-                        children: [
-                          _buildClassButton(
-                            'Kelas A',
-                            () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => tugaskelas(
-                                    onTaskAdded: (task, className) {
-                                      updateDeadlineNotifications(task, className);
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: 10),
-                          _buildClassButton(
-                            'Kelas B',
-                            () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => tugaskelas(
-                                    onTaskAdded: (task, className) {
-                                      updateDeadlineNotifications(task, className);
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: 10),
-                          _buildClassButton(
-                            'Kelas C',
-                            () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => tugaskelas(
-                                    onTaskAdded: (task, className) {
-                                      updateDeadlineNotifications(task, className);
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+                      child: _isLoadingClasses
+                          ? Center(child: CircularProgressIndicator())
+                          : Column(
+                              children: _classList.map((classData) {
+                                return Column(
+                                  children: [
+                                    _buildClassButton(
+                                      classData.kelas, // Changed from namaKelas to kelas
+                                      () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => tugaskelas(
+                                              onTaskAdded: (task, className) {
+                                                updateDeadlineNotifications(
+                                                  task, 
+                                                  classData.kelas // Changed from namaKelas to kelas
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    SizedBox(height: 10),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
                     ),
                   ],
                 ),
@@ -847,14 +798,7 @@ class _DashboardPageState extends State<DashboardPage> {
         itemBuilder: (context, index) {
           final news = _newsList[index];
           return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => NewsDetailPage(news: news),
-                ),
-              );
-            },
+            onTap: () {},
             child: Container(
               margin: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
@@ -892,10 +836,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 20
+                            fontSize: 16
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 5),
                         Text(

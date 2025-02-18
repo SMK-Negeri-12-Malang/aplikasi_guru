@@ -27,6 +27,7 @@ class _TablePageState extends State<TablePage> {
   Map<int, TextEditingController> controllers = {};
   bool isEditing = false;
   bool isLoadingData = true;
+  List<String> columns = ['Tugas 1']; // Add this for column management
 
   @override
   void initState() {
@@ -160,16 +161,39 @@ class _TablePageState extends State<TablePage> {
       }
 
       widget.onSave(widget.className, widget.tableName, widget.students);
-      setState(() {
-        isEditing = false;
-      });
 
+      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Nilai berhasil disimpan')),
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 8),
+              Text('Nilai berhasil disimpan'),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: EdgeInsets.all(16),
+        ),
       );
     } catch (e) {
+      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error menyimpan nilai: $e')),
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error, color: Colors.white),
+              SizedBox(width: 8),
+              Text('Error menyimpan nilai: $e'),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: EdgeInsets.all(16),
+        ),
       );
     }
   }
@@ -201,10 +225,146 @@ class _TablePageState extends State<TablePage> {
   void _editTask() {
     if (isEditing) {
       _saveGrades();
+      setState(() {
+        isEditing = false; // Set edit mode to false after saving
+      });
+    } else {
+      setState(() {
+        isEditing = true; // Enable edit mode
+      });
     }
-    setState(() {
-      isEditing = !isEditing;
-    });
+  }
+
+  void _addColumn() {
+    TextEditingController columnController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Tambah Kolom ${widget.tableName}'),
+        content: TextField(
+          controller: columnController,
+          decoration: InputDecoration(
+            labelText: 'Nama Kolom',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (columnController.text.isNotEmpty) {
+                setState(() {
+                  columns.add(columnController.text);
+                  // Initialize grades for new column
+                  for (var student in widget.students) {
+                    student['grades'] ??= {};
+                    student['grades'][columnController.text] = 0;
+                  }
+                });
+                Navigator.pop(context);
+              }
+            },
+            child: Text('Tambah'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _editColumnTitle(int columnIndex) {
+    final oldTitle = columns[columnIndex];
+    TextEditingController titleController = TextEditingController(text: oldTitle);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit Nama Kolom'),
+        content: TextField(
+          controller: titleController,
+          decoration: InputDecoration(
+            labelText: 'Nama Kolom',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              String newTitle = titleController.text;
+              if (newTitle.isNotEmpty) {
+                setState(() {
+                  columns[columnIndex] = newTitle;
+                  // Update grades with new column name
+                  for (var student in widget.students) {
+                    if (student['grades']?[oldTitle] != null) {
+                      student['grades'][newTitle] = student['grades'][oldTitle];
+                      student['grades'].remove(oldTitle);
+                    }
+                  }
+                });
+                Navigator.pop(context);
+              }
+            },
+            child: Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteColumn(int columnIndex) {
+    final columnTitle = columns[columnIndex];
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Hapus Kolom'),
+        content: Text('Apakah Anda yakin ingin menghapus kolom "${columnTitle}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            onPressed: () {
+              setState(() {
+                // Remove column from list
+                columns.removeAt(columnIndex);
+                // Remove grades for this column
+                for (var student in widget.students) {
+                  student['grades']?.remove(columnTitle);
+                }
+              });
+              Navigator.pop(context);
+              
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Kolom berhasil dihapus'),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                  margin: EdgeInsets.all(16),
+                ),
+              );
+            },
+            child: Text('Hapus'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildShimmerTable() {
@@ -241,7 +401,7 @@ class _TablePageState extends State<TablePage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Custom header instead of AppBar
+            // Custom header
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -298,7 +458,29 @@ class _TablePageState extends State<TablePage> {
                                   columns: [
                                     DataColumn(label: Text('No. Absen')),
                                     DataColumn(label: Text('Nama Siswa')),
-                                    DataColumn(label: Text('Nilai')),
+                                    ...columns.asMap().entries.map((entry) => 
+                                      DataColumn(
+                                        label: GestureDetector(
+                                          onTap: isEditing ? () => _editColumnTitle(entry.key) : null,
+                                          onLongPress: isEditing ? () => _deleteColumn(entry.key) : null,
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(entry.value),
+                                              if (isEditing) 
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    SizedBox(width: 4),
+                                                    Icon(Icons.edit, size: 16),
+                                                    Icon(Icons.delete, size: 16, color: Colors.red),
+                                                  ],
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                   rows: List.generate(filteredStudents.length, (index) {
                                     final student = filteredStudents[index];
@@ -307,23 +489,18 @@ class _TablePageState extends State<TablePage> {
                                       cells: [
                                         DataCell(Text((index + 1).toString())),
                                         DataCell(Text(student['name'])),
-                                        DataCell(
-                                          Container(
-                                            width: 100,
-                                            child: isEditing
+                                        ...columns.map((column) => 
+                                          DataCell(
+                                            isEditing
                                                 ? TextFormField(
-                                                    controller: controllers[studentIndex],
+                                                    initialValue: student['grades']?[column]?.toString() ?? '0',
                                                     keyboardType: TextInputType.number,
-                                                    decoration: InputDecoration(
-                                                      isDense: true,
-                                                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                                                      border: OutlineInputBorder(
-                                                        borderRadius: BorderRadius.circular(4),
-                                                      ),
-                                                    ),
-                                                    onChanged: (value) => _updateGrade(studentIndex, value),
+                                                    onChanged: (value) {
+                                                      student['grades'] ??= {};
+                                                      student['grades'][column] = int.tryParse(value) ?? 0;
+                                                    },
                                                   )
-                                                : Text((student['grades'][widget.tableName] ?? 0).toString()),
+                                                : Text(student['grades']?[column]?.toString() ?? '0'),
                                           ),
                                         ),
                                       ],
@@ -342,23 +519,51 @@ class _TablePageState extends State<TablePage> {
       ),
       floatingActionButton: isLoadingData
           ? null
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                FloatingActionButton(
-                  heroTag: 'edit',
-                  onPressed: _editTask,
-                  child: Icon(isEditing ? Icons.check : Icons.edit),
-                  backgroundColor: Colors.blue,
-                ),
-                SizedBox(height: 16),
-                FloatingActionButton(
-                  heroTag: 'download',
-                  onPressed: _downloadCSV,
-                  child: Icon(Icons.download),
-                  backgroundColor: Colors.green,
-                ),
-              ],
+          : Padding(
+              padding: EdgeInsets.only(bottom: 16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FloatingActionButton.small(
+                            heroTag: 'add_column',
+                            onPressed: _addColumn,
+                            child: Icon(Icons.add_box),
+                            backgroundColor: Colors.green,
+                            tooltip: 'Tambah Kolom',
+                          ),
+                          SizedBox(height: 8),
+                          FloatingActionButton.small(
+                            heroTag: 'edit',
+                            onPressed: _editTask,
+                            child: Icon(isEditing ? Icons.save : Icons.edit),
+                            backgroundColor: isEditing ? Colors.green : Colors.blue,
+                            tooltip: isEditing ? 'Simpan Nilai' : 'Edit Nilai',
+                          ),
+                          SizedBox(height: 8),
+                          FloatingActionButton.small(
+                            heroTag: 'download',
+                            onPressed: _downloadCSV,
+                            child: Icon(Icons.download),
+                            backgroundColor: Colors.orange,
+                            tooltip: 'Unduh CSV',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
     );
   }

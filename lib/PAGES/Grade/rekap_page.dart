@@ -141,6 +141,43 @@ class _RekapPageState extends State<RekapPage> {
     );
   }
 
+  Widget _buildGradeCell(dynamic value, {String? category}) {
+    final displayValue = value?.toString() ?? '0';
+    final isZero = value == 0 || value == null;
+
+    return Container(
+      padding: EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: isZero ? Colors.grey[200] : Colors.transparent,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        displayValue,
+        style: TextStyle(
+          color: isZero ? Colors.grey[600] : Colors.black,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  double _calculateAverage(Map<String, dynamic> grades) {
+    if (grades.isEmpty || widget.classTables.isEmpty) return 0.0;
+    
+    double total = 0;
+    int count = 0;
+    
+    for (var category in widget.classTables) {
+      var grade = grades[category];
+      if (grade != null) {
+        total += (grade as num).toDouble();
+        count++;
+      }
+    }
+    
+    return count > 0 ? total / count : 0.0;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -205,33 +242,34 @@ class _RekapPageState extends State<RekapPage> {
                                   DataColumn(label: Text('No')),
                                   DataColumn(label: Text('Nama Siswa')),
                                   ...widget.classTables.map((category) =>
-                                    DataColumn(label: Text(category)),
+                                    DataColumn(
+                                      label: Tooltip(
+                                        message: 'Nilai $category',
+                                        child: Text(
+                                          category,
+                                          style: TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
                                   ),
+                                  DataColumn(label: Text('Rata-rata')),
                                 ],
-                                rows: List.generate(
-                                  filteredStudents.length,
-                                  (index) {
-                                    var student = filteredStudents[index];
-                                    String studentId = student['id'].toString();
-                                    
-                                    return DataRow(
-                                      cells: [
-                                        DataCell(Text('${index + 1}')),
-                                        DataCell(Text(student['name'] ?? 'Tanpa Nama')),
-                                        ...widget.classTables.map((category) {
-                                          return DataCell(
-                                            Text(
-                                              (student['grades']?[category] ?? 0).toString(),
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          );
-                                        }),
-                                      ],
-                                    );
-                                  },
-                                ),
+                                rows: filteredStudents.asMap().entries.map((entry) {
+                                  var student = entry.value;
+                                  var grades = student['grades'] ?? {};
+                                  double average = _calculateAverage(grades);
+
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(Text('${entry.key + 1}')),
+                                      DataCell(Text(student['name'] ?? '')),
+                                      ...widget.classTables.map((category) =>
+                                        DataCell(_buildGradeCell(grades[category], category: category)),
+                                      ),
+                                      DataCell(_buildGradeCell(average.toStringAsFixed(1))),
+                                    ],
+                                  );
+                                }).toList(),
                               ),
                             ),
                           ),

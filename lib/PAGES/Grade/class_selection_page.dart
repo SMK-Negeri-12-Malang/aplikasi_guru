@@ -281,26 +281,6 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
               }).toList(),
             ),
             SizedBox(height: 16),
-            ExpansionTile(
-              title: Text('Daftar Siswa'),
-              children: [
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: students.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      leading: CircleAvatar(
-                        child: Text('${index + 1}'),
-                        backgroundColor: Colors.blue[100],
-                      ),
-                      title: Text(students[index]['name']),
-                      dense: true,
-                    );
-                  },
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -409,60 +389,83 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              SizedBox(height: 20),
-              // Header Card
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  child: Container(
-                    padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.blue, Colors.lightBlueAccent],
-                      ),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.school, size: 50, color: Colors.white),
-                        SizedBox(width: 16),
-                        Text(
-                          'Daftar Kelas',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 22),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue.shade900, Colors.blue.shade700],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.shade900.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Daftar Kelas',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
                         ),
-                      ],
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Pilih kelas untuk melihat nilai serta merekap nilai',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 16,
                     ),
                   ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    isLoading
+                        ? _buildShimmerLoading()
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            padding: EdgeInsets.all(16),
+                            itemCount: classStudents.length,
+                            itemBuilder: (context, index) {
+                              String className = classStudents.keys.elementAt(index);
+                              return Padding(
+                                padding: EdgeInsets.only(bottom: 16),
+                                child: _buildClassCard(
+                                  className,
+                                  classStudents[className]!,
+                                ),
+                              );
+                            },
+                          ),
+                  ],
                 ),
               ),
-              isLoading
-                  ? _buildShimmerLoading()
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.all(16),
-                      itemCount: classStudents.length,
-                      itemBuilder: (context, index) {
-                        String className = classStudents.keys.elementAt(index);
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: 16),
-                          child: _buildClassCard(
-                            className,
-                            classStudents[className]!,
-                          ),
-                        );
-                      },
-                    ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
