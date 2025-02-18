@@ -2,7 +2,6 @@ import 'package:aplikasi_ortu/MUSYRIF/Absen/absensi_page.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Grade/grade_page.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/home_musyrif.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Profil/profil.dart';
-import 'package:aplikasi_ortu/PAGES/Laporan_guru/laporan_guru.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -112,7 +111,7 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
           },
           children: [
             GradePage(),
-            LaporanGuru(onNewsAdded: (news) {}),
+            //pilihan(),
             DashboardMusyrifPage(),
             AbsensiPageKamar(),    
             profilmusryf(),

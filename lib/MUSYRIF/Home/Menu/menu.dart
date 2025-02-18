@@ -1,7 +1,8 @@
+
+import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/pilih_kelas.dart';
 import 'package:flutter/material.dart';
 import 'keuangan.dart';
 import 'perizinan.dart';
-import 'kesehatan.dart';
 
 class MenuPage extends StatelessWidget {
   final List<Map<String, dynamic>> items;
@@ -19,7 +20,7 @@ class MenuPage extends StatelessWidget {
         targetPage = PerizinanPage();
         break;
       case "Kesehatan":
-        targetPage = KesehatanPage();
+        targetPage = PilihKelasPage();
         break;
       default:
         targetPage = null;

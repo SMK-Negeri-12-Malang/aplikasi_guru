@@ -1,9 +1,10 @@
+
+import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/laporan.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Menu/keuangan.dart';  // Mengimpor halaman lainnya
 import 'Menu/perizinan.dart';
-import 'Menu/kesehatan.dart';
-import 'Menu/guru_siswa.dart';
 import 'Menu/notifikasi.dart';
 import 'Menu/pengaturan.dart';
 
@@ -46,10 +47,10 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
         Navigator.push(context, MaterialPageRoute(builder: (context) => PerizinanPage()));
         break;
       case 'Kesehatan':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => KesehatanPage()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Kesehatan()));
         break;
-      case 'Guru & Siswa':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => GuruSiswa()));
+      case 'Laporan':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => laporan(onNewsAdded: (news) {})));
         break;
       case 'Notifikasi':
         Navigator.push(context, MaterialPageRoute(builder: (context) => NotifikasiPage()));
