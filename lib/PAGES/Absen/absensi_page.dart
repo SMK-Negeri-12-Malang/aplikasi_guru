@@ -201,146 +201,107 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
   }
 
   void _showCheckedStudents() {
-    if (savedAttendance.isNotEmpty || selectedClass != null) {
-      List<Map<String, dynamic>> checkedStudents = savedAttendance;
-      List<Map<String, dynamic>> uncheckedStudents = siswaData[selectedClass]!
-          .where((siswa) => !siswa['checked'])
-          .toList();
+  if (savedAttendance.isNotEmpty || selectedClass != null) {
+    // Get unchecked students first
+    List<Map<String, dynamic>> uncheckedStudents = siswaData[selectedClass]!
+        .where((siswa) => !siswa['checked'])
+        .toList();
 
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
-            children: [
-              Icon(Icons.people, color: Colors.blue.shade800),
-              SizedBox(width: 8),
-              Text('Siswa yang telah absen'),
-            ],
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.green),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Hadir',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
-                      ListView.separated(
-                        shrinkWrap: true,
-                        itemCount: checkedStudents.length,
-                        separatorBuilder: (context, index) => Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.blue.shade100,
-                              child: Text(
-                                '${index + 1}',  // Changed to show sequential number
-                                style: TextStyle(color: Colors.blue.shade800),
-                              ),
-                            ),
-                            title: Text(
-                              checkedStudents[index]['name'],
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Absen: ${checkedStudents[index]['absen']} - ${checkedStudents[index]['date']}',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                if (checkedStudents[index]['note'] != null)
-                                  Text(
-                                    'Keterangan: ${checkedStudents[index]['note']}',
-                                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                  ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.red),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Tidak Hadir',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                        ),
-                      ),
-                      ListView.separated(
-                        shrinkWrap: true,
-                        itemCount: uncheckedStudents.length,
-                        separatorBuilder: (context, index) => Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.grey.shade100,
-                              child: Text(
-                                '${index + 1}',  // Changed to show sequential number
-                                style: TextStyle(color: Colors.grey.shade700),
-                              ),
-                            ),
-                            title: Text(
-                              uncheckedStudents[index]['name'],
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Absen: ${uncheckedStudents[index]['absen']}',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                if (uncheckedStudents[index]['note'] != null)
-                                  Text(
-                                    'Keterangan: ${uncheckedStudents[index]['note']}',
-                                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                  ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton.icon(
-              icon: Icon(Icons.close),
-              label: Text('Tutup'),
-              onPressed: () => Navigator.pop(context),
-            ),
+    // Get checked students
+    List<Map<String, dynamic>> checkedStudents = savedAttendance;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Text('Daftar Kehadiran Siswa'),
           ],
         ),
-      );
-    }
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: ListView(
+            children: [
+              // Show unchecked students first
+              if (uncheckedStudents.isNotEmpty)
+                _buildStudentSection('Siswa Tidak Hadir', uncheckedStudents, Colors.red),
+              SizedBox(height: 16),
+              // Then show checked students
+              if (checkedStudents.isNotEmpty)
+                _buildStudentSection('Siswa Hadir', checkedStudents, Colors.green),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton.icon(
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(Icons.close),
+            label: Text('Tutup'),
+          ),
+        ],
+      ),
+    );
   }
+}
+
+Widget _buildStudentSection(String title, List<Map<String, dynamic>> students, Color color) {
+  return Container(
+    decoration: BoxDecoration(
+      border: Border.all(color: color),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            title,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+          ),
+        ),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: students.length,
+          separatorBuilder: (context, index) => Divider(height: 1),
+          itemBuilder: (context, index) {
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundColor: color.withOpacity(0.2),
+                child: Text(
+                  '${index + 1}',
+                  style: TextStyle(color: color.shade800),
+                ),
+              ),
+              title: Text(
+                students[index]['name'],
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Absen: ${students[index]['absen']}${students[index]['date'] != null ? ' - ${students[index]['date']}' : ''}',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  if (students[index]['note'] != null)
+                    Text(
+                      'Keterangan: ${students[index]['note']}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+  );
+}
+
 
   void _toggleEditing() {
     setState(() {
@@ -703,7 +664,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                               ),
                               elevation: 5,
                               shadowColor: Colors.orange.shade200,
-                            ),
+                            ),//coba git branch
                             child: Row(
                               children: [
                                 Icon(Icons.edit, color: Colors.white),
@@ -755,4 +716,8 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
       ),
     );
   }
+}
+
+extension on Color {
+  get shade800 => null;
 }
