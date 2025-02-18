@@ -399,18 +399,40 @@ class _DashboardPageState extends State<DashboardPage> {
                         Icon(Icons.calendar_today, color: Colors.blue[700], size: 20),
                         SizedBox(width: 8),
                         Text(
-                          'Jadwal Hari ${_getHariIni()}',
+                          _showingDeadlines ? 'Deadline Tugas' : 'Jadwal Hari ${_getHariIni()}',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                   ),
-                  if (jadwalHariIni.isNotEmpty)
-                    Text(
-                      '${_currentScheduleIndex + 1}/${jadwalHariIni.length}',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
+                  if (_deadlineNotifications.isNotEmpty)
+                    TextButton.icon(
+                      icon: Icon(
+                        Icons.warning_amber_rounded,
+                        color: const Color.fromARGB(255, 47, 211, 47),
+                        size: 20
+                      ),
+                      label: Text(
+                        _showingDeadlines ? 'Lihat Jadwal' : 'Lihat Deadline',
+                        style: TextStyle(
+                          color: const Color.fromARGB(255, 47, 211, 55)
+                        ),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showingDeadlines = !_showingDeadlines;
+                        });
+                      },
+                    ),
+                  if (!_showingDeadlines && jadwalHariIni.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Text(
+                        '${_currentScheduleIndex + 1}/${jadwalHariIni.length}',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                 ],
