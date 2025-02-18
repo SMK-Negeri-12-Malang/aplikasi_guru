@@ -701,7 +701,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       },
                     ),
                     SizedBox(height: 20),
-                    Text('Kelas',
+                    Text('Penugasan Kelas',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 10),
                     Container(

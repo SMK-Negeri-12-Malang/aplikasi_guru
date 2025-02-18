@@ -1,6 +1,6 @@
 import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
 import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
-import 'package:aplikasi_ortu/PAGES/Laporan_guru/laporan_guru.dart';
+import 'package:aplikasi_ortu/PAGES/Jadwal/jadwal_page.dart';
 import 'package:aplikasi_ortu/PAGES/Home/Home_Guru.dart';
 import 'package:aplikasi_ortu/PAGES/Profil/profil.dart';
 import 'package:aplikasi_ortu/SPLASHSCREEN/splashscreen.dart';
@@ -65,8 +65,8 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<NavItem> _navItems = [
-    NavItem(icon: Icons.note_add, label: 'Grade'),
-    NavItem(icon: Icons.report, label: 'Laporan'),
+    NavItem(icon: Icons.note_add, label: 'Nilai'),
+    NavItem(icon: Icons.calendar_today, label: 'Jadwal'), // Changed icon and label
     NavItem(icon: Icons.home, label: 'Home'),
     NavItem(icon: Icons.list, label: 'Absen'),
     NavItem(icon: Icons.person, label: 'Profil'),
@@ -156,7 +156,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
           },
           children: [
             ClassSelectionPage(),
-            LaporanGuru(onNewsAdded: (news) {}),
+            JadwalPage(), // Replace empty Container with JadwalPage
             DashboardPage(),
             AbsensiKelasPage(),    
             ProfileDetailPage(),
