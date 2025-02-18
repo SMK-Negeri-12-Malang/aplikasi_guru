@@ -405,10 +405,16 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   if (_deadlineNotifications.isNotEmpty)
                     TextButton.icon(
-                      icon: Icon(Icons.warning_amber_rounded, color: Colors.red[700], size: 20),
+                      icon: Icon(
+                        Icons.warning_amber_rounded, 
+                        color: _showingDeadlines ? Colors.green[700] : Colors.red[700], 
+                        size: 20
+                      ),
                       label: Text(
                         _showingDeadlines ? 'Lihat Jadwal' : 'Lihat Deadline',
-                        style: TextStyle(color: Colors.red[700]),
+                        style: TextStyle(
+                          color: _showingDeadlines ? Colors.green[700] : Colors.red[700]
+                        ),
                       ),
                       onPressed: () {
                         setState(() {
@@ -510,7 +516,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   List<Map<String, dynamic>> _getUpcomingDeadlines() {
     final now = DateTime.now();
-    return _deadlineNotifications.where((notification) {
+    var deadlines = _deadlineNotifications.where((notification) {
       try {
         final deadline = DateTime.parse(notification['deadline']);
         final difference = deadline.difference(now);
@@ -519,6 +525,15 @@ class _DashboardPageState extends State<DashboardPage> {
         return false;
       }
     }).toList();
+
+    // Sort deadlines by proximity
+    deadlines.sort((a, b) {
+      final deadlineA = DateTime.parse(a['deadline']);
+      final deadlineB = DateTime.parse(b['deadline']);
+      return deadlineA.compareTo(deadlineB);
+    });
+
+    return deadlines;
   }
 
   Widget _buildDeadlineList() {
