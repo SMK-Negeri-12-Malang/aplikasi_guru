@@ -200,8 +200,10 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
   }
 
   void _showCheckedStudents() {
-    if (savedAttendance.isNotEmpty || selectedClass != null) {
-      List<Map<String, dynamic>> checkedStudents = savedAttendance;
+    if (selectedClass != null) {
+      List<Map<String, dynamic>> checkedStudents = siswaData[selectedClass]!
+          .where((siswa) => siswa['checked'])
+          .toList();
       List<Map<String, dynamic>> uncheckedStudents = siswaData[selectedClass]!
           .where((siswa) => !siswa['checked'])
           .toList();
@@ -214,126 +216,191 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
             children: [
               Icon(Icons.people, color: Colors.blue.shade800),
               SizedBox(width: 8),
-              Text('Siswa yang telah absen'),
+              Text('Daftar Kehadiran'),
             ],
           ),
-          content: SizedBox(
+          content: Container(
             width: double.maxFinite,
-            child: Column(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.green),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Hadir',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (checkedStudents.isNotEmpty) ...[
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        border: Border.all(color: Colors.green.shade200),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      ListView.separated(
-                        shrinkWrap: true,
-                        itemCount: checkedStudents.length,
-                        separatorBuilder: (context, index) => Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.blue.shade100,
-                              child: Text(
-                                checkedStudents[index]['name'][0],
-                                style: TextStyle(color: Colors.blue.shade800),
-                              ),
-                            ),
-                            title: Text(
-                              checkedStudents[index]['name'],
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Absen: ${checkedStudents[index]['absen']} - ${checkedStudents[index]['date']}',
-                                  style: TextStyle(fontSize: 12),
+                      padding: EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.check_circle, color: Colors.green),
+                              SizedBox(width: 8),
+                              Text(
+                                'Hadir (${checkedStudents.length})',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
                                 ),
-                                if (checkedStudents[index]['note'] != null)
-                                  Text(
-                                    'Keterangan: ${checkedStudents[index]['note']}',
-                                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                  ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.red),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Tidak Hadir',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                        ),
-                      ),
-                      ListView.separated(
-                        shrinkWrap: true,
-                        itemCount: uncheckedStudents.length,
-                        separatorBuilder: (context, index) => Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.grey.shade100,
-                              child: Text(
-                                uncheckedStudents[index]['name'][0],
-                                style: TextStyle(color: Colors.grey.shade700),
                               ),
-                            ),
-                            title: Text(
-                              uncheckedStudents[index]['name'],
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Absen: ${uncheckedStudents[index]['absen']}',
-                                  style: TextStyle(fontSize: 12),
+                            ],
+                          ),
+                          Divider(),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: checkedStudents.length,
+                            itemBuilder: (context, index) {
+                              final student = checkedStudents[index];
+                              return Container(
+                                margin: EdgeInsets.symmetric(vertical: 4),
+                                padding: EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                if (uncheckedStudents[index]['note'] != null)
-                                  Text(
-                                    'Keterangan: ${uncheckedStudents[index]['note']}',
-                                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                  ),
-                              ],
-                            ),
-                          );
-                        },
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: Colors.green.shade100,
+                                      radius: 20,
+                                      child: Text(
+                                        student['name'][0],
+                                        style: TextStyle(
+                                          color: Colors.green.shade700,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            student['name'],
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          if (student['note'] != null && student['note'].isNotEmpty)
+                                            Text(
+                                              'Ket: ${student['note']}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                  if (uncheckedStudents.isNotEmpty) ...[
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        border: Border.all(color: Colors.red.shade200),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.cancel, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text(
+                                'Tidak Hadir (${uncheckedStudents.length})',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Divider(),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: uncheckedStudents.length,
+                            itemBuilder: (context, index) {
+                              final student = uncheckedStudents[index];
+                              return Container(
+                                margin: EdgeInsets.symmetric(vertical: 4),
+                                padding: EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: Colors.red.shade100,
+                                      radius: 20,
+                                      child: Text(
+                                        student['name'][0],
+                                        style: TextStyle(
+                                          color: Colors.red.shade700,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            student['name'],
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          if (student['note'] != null && student['note'].isNotEmpty)
+                                            Text(
+                                              'Ket: ${student['note']}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
           actions: [
-            TextButton.icon(
-              icon: Icon(Icons.close),
-              label: Text('Tutup'),
+            TextButton(
               onPressed: () => Navigator.pop(context),
+              child: Text('Tutup'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue.shade700,
+              ),
             ),
           ],
         ),
