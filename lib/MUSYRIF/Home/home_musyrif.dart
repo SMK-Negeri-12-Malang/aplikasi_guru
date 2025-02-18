@@ -1,11 +1,11 @@
-import 'package:aplikasi_ortu/MUSYRIF/Detail_Kamar/taskpage.dart';
 import 'package:flutter/material.dart';
-import 'package:aplikasi_ortu/PAGES/Berita/News_page.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
-import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'Menu/keuangan.dart';  // Mengimpor halaman lainnya
+import 'Menu/perizinan.dart';
+import 'Menu/kesehatan.dart';
+import 'Menu/guru_siswa.dart';
+import 'Menu/notifikasi.dart';
+import 'Menu/pengaturan.dart';
 
 class DashboardMusyrifPage extends StatefulWidget {
   @override
@@ -13,570 +13,281 @@ class DashboardMusyrifPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardMusyrifPage> {
-  late PageController _pageController;
-  late Future<void> _loadingFuture;
-  List<Map<String, dynamic>> _newsList = [];
   String _name = 'User';
   String _email = 'Teknologi Informasi';
   String? _profileImagePath;
-  bool _isFirstLoad = true; // Add this line
+  final List<String> _galleryImages = [];
 
-  final Map<String, List<Map<String, String>>> _jadwalMengajar = {
-    'Senin': [
-      {'jam': '07:00 - 09:00', 'mataPelajaran': 'Matematika'},
-      {'jam': '09:00 - 11:00', 'mataPelajaran': 'Fisika'},
-      {'jam': '11:00 - 13:00', 'mataPelajaran': 'Bahasa Indonesia'},
-    ],
-    'Selasa': [
-      {'jam': '08:00 - 10:00', 'mataPelajaran': 'IPA'},
-      {'jam': '10:00 - 12:00', 'mataPelajaran': 'Kimia'},
-      {'jam': '12:00 - 14:00', 'mataPelajaran': 'IPS'},
-    ],
-    'Rabu': [
-      {'jam': '07:00 - 09:00', 'mataPelajaran': 'Bahasa Inggris'},
-      {'jam': '09:00 - 11:00', 'mataPelajaran': 'Biologi'},
-      {'jam': '11:00 - 13:00', 'mataPelajaran': 'Seni Budaya'},
-    ],
-    'Kamis': [
-      {'jam': '08:00 - 10:00', 'mataPelajaran': 'Pendidikan Jasmani'},
-      {'jam': '10:00 - 12:00', 'mataPelajaran': 'Matematika'},
-      {'jam': '12:00 - 14:00', 'mataPelajaran': 'Prakarya'},
-    ],
-    'Jumat': [
-      {'jam': '07:00 - 09:00', 'mataPelajaran': 'Agama'},
-      {'jam': '09:00 - 11:00', 'mataPelajaran': 'Sejarah'},
-      {'jam': '11:00 - 13:00', 'mataPelajaran': 'Pendidikan Kewarganegaraan'},
-    ],
-  };
+  final TextEditingController _urlController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    initializeDateFormatting('id_ID', null).then((_) {
-      _loadProfileData();
-    });
-    _loadUserRole(); // Add this line
-    _pageController = PageController();
-    // Simulate loading delay only on first load
-    if (_isFirstLoad) {
-      _loadingFuture = Future.delayed(Duration(seconds: 5));
-    } else {
-      _loadingFuture = Future.value();
-    }
+    _loadProfileData();
   }
 
   Future<void> _loadProfileData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _name = prefs.getString('profile_name') ?? _name;
-      _email = prefs.getString('profile_email') ?? _email;
-      _profileImagePath = prefs.getString('profile_image_path');
+      _name = prefs.getString('name') ?? 'User';
+      _email = prefs.getString('email') ?? 'Teknologi Informasi';
+      _profileImagePath = prefs.getString('profileImagePath');
     });
   }
 
-  Future<void> _loadUserRole() async {
-    setState(() {
-    });
-  }
-
-  Future<void> _reloadProfileData() async {
-    await _loadProfileData();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  void _addNews(Map<String, dynamic> news) {
-    setState(() {
-      _newsList.add(news);
-    });
-  }
-
-  void _showJadwalMengajar() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return DraggableScrollableSheet(
-          expand: false,
-          builder: (context, scrollController) {
-            return Container(
-              padding: EdgeInsets.all(16),
-              child: ListView(
-                controller: scrollController,
-                children: _jadwalMengajar.entries.map((entry) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(entry.key, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                      ...entry.value.map((jadwal) {
-                        return ListTile(
-                          title: Text(jadwal['mataPelajaran']!),
-                          subtitle: Text(jadwal['jam']!),
-                        );
-                      }).toList(),
-                      Divider(),
-                    ],
-                  );
-                }).toList(),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  String _getHariBesok() {
-    DateTime now = DateTime.now();
-    DateTime tomorrow = now.add(Duration(days: 1));
-    return DateFormat('EEEE', 'id_ID').format(tomorrow);
-  }
-
-  List<Map<String, String>> _getJadwalMengajarBesok() {
-    String day = _getHariBesok();
-
-    if (_jadwalMengajar.containsKey(day)) {
-      return _jadwalMengajar[day]!;
-    } else {
-      return [];
+  // Fungsi untuk pindah halaman berdasarkan nama button
+  void _onButtonPressed(String buttonType) {
+    print("Button pressed: $buttonType");
+    switch (buttonType) {
+      case 'Keuangan':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => KeuanganPage()));
+        break;
+      case 'Perizinan':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => PerizinanPage()));
+        break;
+      case 'Kesehatan':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => KesehatanPage()));
+        break;
+      case 'Guru & Siswa':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => GuruSiswa()));
+        break;
+      case 'Notifikasi':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => NotifikasiPage()));
+        break;
+      case 'Pengaturan':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => PengaturanPage()));
+        break;
+      default:
+        print('Unknown button type');
     }
   }
 
-  void _showNotification() {
-    List<Map<String, String>> jadwalBesok = _getJadwalMengajarBesok();
-    String jadwalText = jadwalBesok.isNotEmpty
-        ? jadwalBesok.map((item) => '${item['jam']} - ${item['mataPelajaran']}').join('\n')
-        : 'Tidak ada jadwal mengajar besok';
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(jadwalText)),
+  // Menambahkan gambar ke gallery
+  void _addGalleryImageUrl() {
+    setState(() {
+      _galleryImages.add(_urlController.text);
+      _urlController.clear();
+    });
+    Navigator.of(context).pop();
+  }
+
+  void _showAddImageDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add Image URL'),
+          content: TextField(
+            controller: _urlController,
+            decoration: const InputDecoration(
+              labelText: 'Enter Image URL',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: _addGalleryImageUrl,
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, String>> jadwalBesok = _getJadwalMengajarBesok();
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      body: RefreshIndicator(
-        onRefresh: _reloadProfileData,
-        child: Column(
-          children: [
-            Stack(
-              children: [
-                ClipPath(
-                  clipper: AppBarClipper(),
-                  child: Container(
-                    color: Colors.blue,
-                    height: 230,
-                  ),
-                ),
-                Column(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.only(top: 50, left: 20, right: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 25,
-                                    backgroundColor: Colors.white,
-                                    backgroundImage: _profileImagePath != null
-                                        ? FileImage(File(_profileImagePath!))
-                                        : AssetImage('assets/profile_picture.png') as ImageProvider,
-                                  ),
-                                  SizedBox(width: 10),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _name,
-                                        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                                      ),
-                                      Text(
-                                        _email,
-                                        style: TextStyle(color: Colors.white, fontSize: 16),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.notifications, color: Colors.white),
-                                onPressed: _showNotification,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                      elevation: 4,
-                      margin: EdgeInsets.symmetric(horizontal: 16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Container(
-                          height: 150, // Perbesar tinggi container
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Jadwal Hari ${_getHariBesok()}',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(height: 10),
-                              Expanded(
-                                child: _isFirstLoad // Add this condition
-                                    ? FutureBuilder(
-                                        future: _loadingFuture,
-                                        builder: (context, snapshot) {
-                                          if (snapshot.connectionState == ConnectionState.waiting) {
-                                            return Center(
-                                              child: CircularProgressIndicator(), // Add loading animation
-                                            );
-                                          }
-                                          _isFirstLoad = false; // Set to false after first load
-                                          return _buildJadwalList(jadwalBesok);
-                                        },
-                                      )
-                                    : _buildJadwalList(jadwalBesok),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(120.0),
+        child: AppBar(
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade900, Colors.blue.shade700],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
             ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(16),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 22),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 20),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Berita',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundImage: _profileImagePath != null
+                              ? NetworkImage(_profileImagePath!)
+                              : AssetImage('assets/default_profile.png') as ImageProvider,
                         ),
-                        IconButton(
-                          icon: Icon(Icons.add),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => NewsPage(onNewsAdded: _addNews),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 15),
-                    FutureBuilder(
-                      future: _loadingFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Container(
-                            height: 155,
-                            child: Center(
-                              child: Shimmer.fromColors(
-                                baseColor: Colors.grey[300]!,
-                                highlightColor: Colors.grey[100]!,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 100,
-                                      height: 100,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(height: 10),
-                                    Container(
-                                      width: 100,
-                                      height: 20,
-                                      color: Colors.white,
-                                    ),
-                                  ],
-                                ),
+                        const SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          );
-                        }
-                        return _buildCardItem();
-                      },
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _showJadwalMengajar,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[700],
-                        minimumSize: Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                            Text(
+                              _email,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      child: Text(
-                        'Lihat Jadwal Mengajar',
-                        style: TextStyle(
-                          color: Colors.white, 
-                          fontSize: 16, 
-                          fontWeight: FontWeight.bold
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    Text('Kamar', 
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 10),
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      child: Column(
-                        children: [
-                          _buildClassButton(
-                            'Kamar A',
-                            () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => TaskPage(
-                                    roomName: 'Kamar A',
-                                    students: [], // Add appropriate list of students
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: 10),
-                          _buildClassButton(
-                            'Kamar B',
-                            () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => TaskPage(
-                                    roomName: 'Kamar B',
-                                    students: [], // Add appropriate list of students
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: 10),
-                          _buildClassButton(
-                            'Kamar C',
-                            () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => TaskPage(
-                                    roomName: 'Kamar C',
-                                    students: [], // Add appropriate list of students
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: 10),
-                        ],
-                      ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildJadwalList(List<Map<String, String>> jadwalBesok) {
-    return ListView.builder(
-      scrollDirection: Axis.horizontal,
-      itemCount: jadwalBesok.length,
-      itemBuilder: (context, index) {
-        final jadwal = jadwalBesok[index];
-        return Container(
-          width: 120,
-          margin: EdgeInsets.only(right: 10),
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.blue[50],
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 4,
-                offset: Offset(2, 2),
-              ),
-            ],
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.book, color: Colors.blue, size: 30),
-              SizedBox(height: 5),
-              Text(
-                jadwal['mataPelajaran']!,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 5),
-              Text(
-                jadwal['jam']!,
-                style: TextStyle(fontSize: 12),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildClassButton(String title, VoidCallback onPressed) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue[700],
-        minimumSize: Size(double.infinity, 50),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          centerTitle: true,
+          elevation: 10.0,
         ),
       ),
-      child: Text(
-        title,
-        style: TextStyle(
-          color: Colors.white, 
-          fontSize: 16, 
-          fontWeight: FontWeight.bold
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCardItem() {
-    if (_newsList.isEmpty) {
-      return Container(
-        height: 155,
-        child: Center(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.info_outline, size: 50, color: Colors.grey),
-              SizedBox(height: 10),
-              Text(
-                'Tidak ada berita',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 16,
+              // Icon Buttons
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.shade200,
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 3, // 3 columns
+                  crossAxisSpacing: 16.0,
+                  mainAxisSpacing: 16.0,
+                  childAspectRatio: 1.0,
+                  children: [
+                    _buildIconButton(Icons.account_balance_wallet, 'Keuangan'),
+                    _buildIconButton(Icons.card_travel, 'Perizinan'),
+                    _buildIconButton(Icons.healing, 'Kesehatan'),
+                    _buildIconButton(Icons.group, 'Guru & Siswa'),
+                    _buildIconButton(Icons.notifications, 'Notifikasi'),
+                    _buildIconButton(Icons.settings, 'Pengaturan'),
+                  ],
                 ),
               ),
+
+              const SizedBox(height: 20),
+
+              // Gallery Title with Add Button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Gallery',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade900,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: _showAddImageDialog,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Display Gallery Images
+              Column(
+                children: _galleryImages.map((url) {
+                  return Container(
+                    width: double.infinity,
+                    height: 200,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          blurRadius: 6,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        url,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Text(
+                              'Failed to load image',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             ],
           ),
         ),
-      );
-    }
-
-    return SizedBox(
-      height: 155,
-      child: PageView.builder(
-        controller: _pageController,
-        itemCount: _newsList.length,
-        itemBuilder: (context, index) {
-          final news = _newsList[index];
-          return GestureDetector(
-            onTap: () {
-            },
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(
-                color: Colors.blue[700],
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(2, 2)
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(
-                        news['image'],
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        news['judul'],
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16
-                        )
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        news['tanggal'],
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12
-                        )
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
       ),
     );
   }
-}
 
-class AppBarClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    Path path = Path();
-    path.lineTo(0, size.height - 40);
-    path.quadraticBezierTo(
-      size.width / 2, size.height, size.width, size.height - 40);
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) {
-    return false;
+  Widget _buildIconButton(IconData icon, String label) {
+    return GestureDetector(
+      onTap: () => _onButtonPressed(label),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.blue.shade100,
+            child: Icon(icon, size: 30, color: Colors.blue.shade700),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue.shade700,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
