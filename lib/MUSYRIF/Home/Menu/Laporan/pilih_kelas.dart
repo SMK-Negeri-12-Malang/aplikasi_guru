@@ -24,7 +24,7 @@ class PilihKelasPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => laporan(onNewsAdded: (report) {
+                    builder: (context) => Laporan(onNewsAdded: (report) {
                       Provider.of<ReportProvider>(context, listen: false).addReport(report);
                     }),
                   ),

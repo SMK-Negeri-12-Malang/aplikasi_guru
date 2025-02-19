@@ -111,7 +111,7 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
           },
           children: [
             GradePage(),
-            //pilihan(),
+            GradePage(),
             DashboardMusyrifPage(),
             AbsensiPageKamar(),    
             profilmusryf(),

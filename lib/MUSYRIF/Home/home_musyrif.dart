@@ -3,7 +3,6 @@ import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/laporan.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'Menu/keuangan.dart';  // Mengimpor halaman lainnya
 import 'Menu/perizinan.dart';
 import 'Menu/notifikasi.dart';
 import 'Menu/pengaturan.dart';
@@ -40,8 +39,10 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
   void _onButtonPressed(String buttonType) {
     print("Button pressed: $buttonType");
     switch (buttonType) {
-      case 'Keuangan':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => KeuanganPage()));
+      case 'Laporan':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Laporan(onNewsAdded: (news) {
+          // Handle the news added event
+        })));
         break;
       case 'Perizinan':
         Navigator.push(context, MaterialPageRoute(builder: (context) => PerizinanPage()));
@@ -50,7 +51,7 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
         Navigator.push(context, MaterialPageRoute(builder: (context) => Kesehatan()));
         break;
       case 'Laporan':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => laporan(onNewsAdded: (news) {})));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Laporan(onNewsAdded: (news) {})));
         break;
       case 'Notifikasi':
         Navigator.push(context, MaterialPageRoute(builder: (context) => NotifikasiPage()));
@@ -194,7 +195,7 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
                   mainAxisSpacing: 16.0,
                   childAspectRatio: 1.0,
                   children: [
-                    _buildIconButton(Icons.account_balance_wallet, 'Keuangan'),
+                    _buildIconButton(Icons.report, 'Laporan'),
                     _buildIconButton(Icons.card_travel, 'Perizinan'),
                     _buildIconButton(Icons.healing, 'Kesehatan'),
                     _buildIconButton(Icons.group, 'Guru & Siswa'),

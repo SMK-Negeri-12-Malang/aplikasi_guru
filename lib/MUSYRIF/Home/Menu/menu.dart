@@ -1,7 +1,7 @@
 
+import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/laporan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/pilih_kelas.dart';
 import 'package:flutter/material.dart';
-import 'keuangan.dart';
 import 'perizinan.dart';
 
 class MenuPage extends StatelessWidget {
@@ -14,7 +14,9 @@ class MenuPage extends StatelessWidget {
 
     switch (buttonType) {
       case "Keuangan":
-        targetPage = KeuanganPage();
+        targetPage = Laporan(onNewsAdded: (news) {
+          // Handle the news added event
+        });
         break;
       case "Perizinan":
         targetPage = PerizinanPage();
