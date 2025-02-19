@@ -26,8 +26,8 @@ class _orofilState extends State<profilmusryf> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _profileImagePath = prefs.getString('profile_image_path');
-      _name = prefs.getString('profile_name') ?? _name;
-      _email = prefs.getString('profile_email') ?? _email;
+      _name = prefs.getString('user_name') ?? 'User';
+      _email = prefs.getString('user_email') ?? 'user@example.com';
       _phone = prefs.getString('profile_phone') ?? _phone;
       _address = prefs.getString('profile_address') ?? _address;
     });

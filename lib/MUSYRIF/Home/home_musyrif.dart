@@ -1,8 +1,8 @@
+import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/laporan.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'Menu/keuangan.dart';  // Mengimpor halaman lainnya
 import 'Menu/perizinan.dart';
-import 'Menu/kesehatan.dart';
 import 'Menu/guru_siswa.dart';
 import 'Menu/notifikasi.dart';
 import 'Menu/pengaturan.dart';
@@ -29,9 +29,9 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
   Future<void> _loadProfileData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _name = prefs.getString('name') ?? 'User';
-      _email = prefs.getString('email') ?? 'Teknologi Informasi';
-      _profileImagePath = prefs.getString('profileImagePath');
+      _name = prefs.getString('user_name') ?? 'User';  // changed key to user_name
+      _email = prefs.getString('user_email') ?? 'Teknologi Informasi';  // changed key to user_email
+      _profileImagePath = prefs.getString('profile_image_path');
     });
   }
 
@@ -39,14 +39,16 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
   void _onButtonPressed(String buttonType) {
     print("Button pressed: $buttonType");
     switch (buttonType) {
-      case 'Keuangan':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => KeuanganPage()));
+      case 'Laporan':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Laporan(onNewsAdded: (news) {
+          // Handle the news added
+        })));
         break;
       case 'Perizinan':
         Navigator.push(context, MaterialPageRoute(builder: (context) => PerizinanPage()));
         break;
       case 'Kesehatan':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => KesehatanPage()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Kesehatan()));
         break;
       case 'Guru & Siswa':
         Navigator.push(context, MaterialPageRoute(builder: (context) => GuruSiswa()));
@@ -193,7 +195,7 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
                   mainAxisSpacing: 16.0,
                   childAspectRatio: 1.0,
                   children: [
-                    _buildIconButton(Icons.account_balance_wallet, 'Keuangan'),
+                    _buildIconButton(Icons.report, 'Laporan'),
                     _buildIconButton(Icons.card_travel, 'Perizinan'),
                     _buildIconButton(Icons.healing, 'Kesehatan'),
                     _buildIconButton(Icons.group, 'Guru & Siswa'),

@@ -1,7 +1,8 @@
+import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/laporan.dart';
 import 'package:flutter/material.dart';
-import 'keuangan.dart';
 import 'perizinan.dart';
-import 'kesehatan.dart';
+
 
 class MenuPage extends StatelessWidget {
   final List<Map<String, dynamic>> items;
@@ -12,14 +13,16 @@ class MenuPage extends StatelessWidget {
     Widget? targetPage;
 
     switch (buttonType) {
-      case "Keuangan":
-        targetPage = KeuanganPage();
+      case "Laporan":
+        targetPage = Laporan(onNewsAdded: (news) {
+          // Handle the news added event
+        });
         break;
       case "Perizinan":
         targetPage = PerizinanPage();
         break;
       case "Kesehatan":
-        targetPage = KesehatanPage();
+        targetPage = Kesehatan();
         break;
       default:
         targetPage = null;
