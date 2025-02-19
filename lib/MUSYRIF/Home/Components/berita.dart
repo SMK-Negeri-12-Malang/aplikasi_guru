@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class GallerySection extends StatelessWidget {
+class berita extends StatelessWidget {
   final List<String> galleryImages;
   final VoidCallback onAddImage;
 
-  const GallerySection({
+  const berita({
     Key? key,
     required this.galleryImages,
     required this.onAddImage,

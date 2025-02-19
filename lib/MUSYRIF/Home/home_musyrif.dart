@@ -1,11 +1,12 @@
+import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Gallery/gallery_list.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/laporan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Perijinan/perijinan.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Home/Models/gallery_item.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Menu/pengaturan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Models/news_item.dart';
-import 'Components/gallery_section.dart';
 
 class DashboardMusyrifPage extends StatefulWidget {
   @override
@@ -16,9 +17,7 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
   String _name = 'User';
   String _email = 'Teknologi Informasi';
   String? _profileImagePath;
-  final List<String> _galleryImages = [];
 
-  final TextEditingController _urlController = TextEditingController();
   final PageController _pageController = PageController();
   int _currentPage = 0;
   final List<NewsItem> _newsItems = [
@@ -36,6 +35,27 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
       title: "Berita 3",
       imageUrl: "https://picsum.photos/800/402",
       description: "Deskripsi berita 3",
+    ),
+  ];
+
+  final List<GalleryItem> _galleryItems = [
+    GalleryItem(
+      imageUrl: "https://picsum.photos/800/400",
+      title: "Kegiatan Santri",
+      description: "Dokumentasi kegiatan santri di pondok",
+      date: "2024-01-20",
+    ),
+    GalleryItem(
+      imageUrl: "https://picsum.photos/800/401",
+      title: "Acara Pondok",
+      description: "Dokumentasi acara pondok pesantren",
+      date: "2024-01-19",
+    ),
+    GalleryItem(
+      imageUrl: "https://picsum.photos/800/402",
+      title: "Pembelajaran",
+      description: "Aktivitas pembelajaran santri",
+      date: "2024-01-18",
     ),
   ];
 
@@ -90,45 +110,6 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
       default:
         print('Unknown button type');
     }
-  }
-
-  // Menambahkan gambar ke gallery
-  void _addGalleryImageUrl() {
-    setState(() {
-      _galleryImages.add(_urlController.text);
-      _urlController.clear();
-    });
-    Navigator.of(context).pop();
-  }
-
-  void _showAddImageDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Add Image URL'),
-          content: TextField(
-            controller: _urlController,
-            decoration: const InputDecoration(
-              labelText: 'Enter Image URL',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: _addGalleryImageUrl,
-              child: const Text('Add'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Widget _buildNewsCarousel() {
@@ -223,9 +204,89 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
     );
   }
 
+  Widget _buildGallerySection() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 255, 255, 255), // Add grey background
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Galeri',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => GalleryListPage(
+                          galleryItems: _galleryItems,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'Lihat Semua',
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 120,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _galleryItems.length,
+              itemBuilder: (context, index) {
+                return Container(
+                  width: 120,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        spreadRadius: 1,
+                        blurRadius: 3,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      _galleryItems[index].imageUrl,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 233, 233, 233),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(120.0),
         child: AppBar(
@@ -321,13 +382,10 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 20),
+                  _buildGallerySection(), // Add this line
                 ],
               ),
-            ),
-            const SizedBox(height: 10),
-            GallerySection(
-              galleryImages: _galleryImages,
-              onAddImage: _showAddImageDialog,
             ),
             const SizedBox(height: 20),
           ],
