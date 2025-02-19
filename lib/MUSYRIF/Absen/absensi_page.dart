@@ -1,4 +1,4 @@
-import 'package:aplikasi_ortu/MUSYRIF/Absen/absen_detail_page.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Absen/detail.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
