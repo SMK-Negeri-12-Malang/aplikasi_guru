@@ -8,12 +8,13 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:async';
-import 'package:aplikasi_ortu/models/schedule_model.dart';
-import 'package:aplikasi_ortu/services/schedule_service.dart';
+import 'package:aplikasi_ortu/models/jadwal_home.dart';
+import 'package:aplikasi_ortu/services/jadwal_dihome.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../models/class_model.dart';
 import '../../services/class_service.dart';
+import '../Berita/NewsDetailPage.dart';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -48,14 +49,6 @@ class _DashboardPageState extends State<DashboardPage> {
     });
     _loadNotifications();
     _pageController = PageController();
-    _pageController.addListener(() {
-      int next = _pageController.page!.round();
-      if (_currentNewsIndex != next) {
-        setState(() {
-          _currentNewsIndex = next;
-        });
-      }
-    });
     // Simulate loading delay
     _loadingFuture = Future.delayed(Duration(seconds: 3));
     
@@ -70,6 +63,18 @@ class _DashboardPageState extends State<DashboardPage> {
     });
     _loadSchedules();
     _fetchClasses();
+    
+    // Update timer to use actual schedules
+    _scheduleTimer = Timer.periodic(Duration(seconds: 5), (timer) {
+      if (mounted) {
+        setState(() {
+          List<Schedule> jadwalHariIni = _getJadwalMengajarHariIni();
+          if (jadwalHariIni.isNotEmpty) {
+            _currentScheduleIndex = (_currentScheduleIndex + 1) % jadwalHariIni.length;
+          }
+        });
+      }
+    });
   }
 
   Future<void> _loadProfileData() async {
@@ -124,6 +129,7 @@ class _DashboardPageState extends State<DashboardPage> {
       });
     }
   }
+//tes push
   Future<void> _fetchClasses() async {
     try {
       final classes = await _classService.getClasses();
@@ -388,20 +394,29 @@ class _DashboardPageState extends State<DashboardPage> {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      // Change text based on _showingDeadlines
-                      hariIni == 'Rabu' && _showingDeadlines
-                          ? 'Deadline Tugas'
-                          : 'Jadwal Hari ${_getHariIni()}',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    child: Row(
+                      children: [
+                        Icon(Icons.calendar_today, color: Colors.blue[700], size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          _showingDeadlines ? 'Deadline Tugas' : 'Jadwal Hari ${_getHariIni()}',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                   ),
                   if (_deadlineNotifications.isNotEmpty)
                     TextButton.icon(
-                      icon: Icon(Icons.warning_amber_rounded, color: const Color.fromARGB(255, 47, 211, 47), size: 20),
+                      icon: Icon(
+                        Icons.warning_amber_rounded,
+                        color: const Color.fromARGB(255, 47, 211, 47),
+                        size: 20
+                      ),
                       label: Text(
                         _showingDeadlines ? 'Lihat Jadwal' : 'Lihat Deadline',
-                        style: TextStyle(color: const Color.fromARGB(255, 47, 211, 55)),
+                        style: TextStyle(
+                          color: const Color.fromARGB(255, 47, 211, 55)
+                        ),
                       ),
                       onPressed: () {
                         setState(() {
@@ -739,7 +754,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       },
                     ),
                     SizedBox(height: 20),
-                    Text('Kelas',
+                    Text('Penugasan Kelas',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 10),
                     Container(
@@ -836,7 +851,14 @@ class _DashboardPageState extends State<DashboardPage> {
         itemBuilder: (context, index) {
           final news = _newsList[index];
           return GestureDetector(
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NewsDetailPage(news: news),
+                ),
+              );
+            },
             child: Container(
               margin: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
@@ -860,7 +882,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         news['image'],
                         width: 100,
                         height: 100,
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain, // Changed to contain
                       ),
                     ),
                   ),

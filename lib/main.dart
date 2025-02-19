@@ -1,5 +1,6 @@
 import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
 import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
+import 'package:aplikasi_ortu/PAGES/Jadwal/jadwal_page.dart';
 import 'package:aplikasi_ortu/PAGES/Home/Home_Guru.dart';
 import 'package:aplikasi_ortu/PAGES/Profil/profil.dart';
 import 'package:aplikasi_ortu/SPLASHSCREEN/splashscreen.dart';
@@ -155,7 +156,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
           },
           children: [
             ClassSelectionPage(),
-            //LaporanGuru(onNewsAdded: (news) {}),
+            JadwalPage(), // Replace empty Container with JadwalPage
             DashboardPage(),
             AbsensiKelasPage(),    
             ProfileDetailPage(),

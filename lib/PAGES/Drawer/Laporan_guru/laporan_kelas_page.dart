@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 
 class LaporanKelasPage extends StatelessWidget {
@@ -121,7 +122,6 @@ class _DetailPelanggaranPageState extends State<DetailPelanggaranPage> {
     List<String> deskripsiList = widget.report['deskripsi'].split('\n');
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text('Detail Pelanggaran'),
         backgroundColor: Colors.blue[700],
