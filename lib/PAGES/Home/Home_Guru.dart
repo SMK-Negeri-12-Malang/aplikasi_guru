@@ -40,6 +40,7 @@ class _DashboardPageState extends State<DashboardPage> {
   final ClassService _classService = ClassService();
   List<ClassModel> _classList = [];
   bool _isLoadingClasses = true;
+  int _currentNewsIndex = 0; // Add this line
 
   @override
   void initState() {
@@ -49,6 +50,14 @@ class _DashboardPageState extends State<DashboardPage> {
     });
     _loadNotifications();
     _pageController = PageController();
+    _pageController.addListener(() {
+      int next = _pageController.page!.round();
+      if (_currentNewsIndex != next) {
+        setState(() {
+          _currentNewsIndex = next;
+        });
+      }
+    });
     // Simulate loading delay
     _loadingFuture = Future.delayed(Duration(seconds: 3));
     
@@ -843,79 +852,136 @@ class _DashboardPageState extends State<DashboardPage> {
       );
     }
 
-    return SizedBox(
-      height: 155,
-      child: PageView.builder(
-        controller: _pageController,
-        itemCount: _newsList.length,
-        itemBuilder: (context, index) {
-          final news = _newsList[index];
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => NewsDetailPage(news: news),
+    return Column(
+      children: [
+        SizedBox(
+          height: 155,
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: _newsList.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentNewsIndex = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              final news = _newsList[index];
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NewsDetailPage(news: news),
+                    ),
+                  );
+                },
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[700],
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 4,
+                        offset: Offset(2, 2)
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 120, // Fixed width
+                        height: 120, // Same as width to make it square
+                        margin: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              spreadRadius: 1,
+                              blurRadius: 3,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            news['image'],
+                            fit: BoxFit.cover, // Changed to cover to crop the image
+                            width: 120,
+                            height: 120,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                news['judul'],
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18, // Increased font size
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              SizedBox(height: 8),
+                              Expanded(
+                                child: Text(
+                                  news['deskripsi'],
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14, // Increased font size
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                news['tanggal'],
+                                style: TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 12
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(
-                color: Colors.blue[700],
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(2, 2)
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(
-                        news['image'],
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.contain, // Changed to contain
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          news['judul'],
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16
-                          ),
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          news['tanggal'],
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+          ),
+        ),
+        if (_newsList.length > 1) ...[
+          SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(_newsList.length, (index) {
+              return Container(
+                margin: EdgeInsets.symmetric(horizontal: 4),
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _currentNewsIndex == index
+                      ? Colors.blue[700]
+                      : Colors.grey[300],
+                ),
+              );
+            }),
+          ),
+        ],
+      ],
     );
   }
 }
