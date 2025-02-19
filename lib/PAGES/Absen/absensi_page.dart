@@ -200,213 +200,107 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
   }
 
   void _showCheckedStudents() {
-    if (selectedClass != null) {
-      List<Map<String, dynamic>> checkedStudents = siswaData[selectedClass]!
-          .where((siswa) => siswa['checked'])
-          .toList();
-      List<Map<String, dynamic>> uncheckedStudents = siswaData[selectedClass]!
-          .where((siswa) => !siswa['checked'])
-          .toList();
+  if (savedAttendance.isNotEmpty || selectedClass != null) {
+    // Get unchecked students first
+    List<Map<String, dynamic>> uncheckedStudents = siswaData[selectedClass]!
+        .where((siswa) => !siswa['checked'])
+        .toList();
 
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
-            children: [
-              Icon(Icons.people, color: Colors.blue.shade800),
-              SizedBox(width: 8),
-              Text('Daftar Kehadiran'),
-            ],
-          ),
-          content: Container(
-            width: double.maxFinite,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (checkedStudents.isNotEmpty) ...[
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        border: Border.all(color: Colors.green.shade200),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.check_circle, color: Colors.green),
-                              SizedBox(width: 8),
-                              Text(
-                                'Hadir (${checkedStudents.length})',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Divider(),
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: checkedStudents.length,
-                            itemBuilder: (context, index) {
-                              final student = checkedStudents[index];
-                              return Container(
-                                margin: EdgeInsets.symmetric(vertical: 4),
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      backgroundColor: Colors.green.shade100,
-                                      radius: 20,
-                                      child: Text(
-                                        student['name'][0],
-                                        style: TextStyle(
-                                          color: Colors.green.shade700,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            student['name'],
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          if (student['note'] != null && student['note'].isNotEmpty)
-                                            Text(
-                                              'Ket: ${student['note']}',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey.shade600,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                  ],
-                  if (uncheckedStudents.isNotEmpty) ...[
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        border: Border.all(color: Colors.red.shade200),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.cancel, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text(
-                                'Tidak Hadir (${uncheckedStudents.length})',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.red,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Divider(),
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: uncheckedStudents.length,
-                            itemBuilder: (context, index) {
-                              final student = uncheckedStudents[index];
-                              return Container(
-                                margin: EdgeInsets.symmetric(vertical: 4),
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      backgroundColor: Colors.red.shade100,
-                                      radius: 20,
-                                      child: Text(
-                                        student['name'][0],
-                                        style: TextStyle(
-                                          color: Colors.red.shade700,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            student['name'],
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          if (student['note'] != null && student['note'].isNotEmpty)
-                                            Text(
-                                              'Ket: ${student['note']}',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey.shade600,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Tutup'),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.blue.shade700,
-              ),
-            ),
+    // Get checked students
+    List<Map<String, dynamic>> checkedStudents = savedAttendance;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Text('Daftar Kehadiran Siswa'),
           ],
         ),
-      );
-    }
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: ListView(
+            children: [
+              // Show unchecked students first
+              if (uncheckedStudents.isNotEmpty)
+                _buildStudentSection('Siswa Tidak Hadir', uncheckedStudents, Colors.red),
+              SizedBox(height: 16),
+              // Then show checked students
+              if (checkedStudents.isNotEmpty)
+                _buildStudentSection('Siswa Hadir', checkedStudents, Colors.green),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton.icon(
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(Icons.close),
+            label: Text('Tutup'),
+          ),
+        ],
+      ),
+    );
   }
+}
+
+Widget _buildStudentSection(String title, List<Map<String, dynamic>> students, Color color) {
+  return Container(
+    decoration: BoxDecoration(
+      border: Border.all(color: color),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            title,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+          ),
+        ),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: students.length,
+          separatorBuilder: (context, index) => Divider(height: 1),
+          itemBuilder: (context, index) {
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundColor: color.withOpacity(0.2),
+                child: Text(
+                  '${index + 1}',
+                  style: TextStyle(color: color.shade800),
+                ),
+              ),
+              title: Text(
+                students[index]['name'],
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Absen: ${students[index]['absen']}${students[index]['date'] != null ? ' - ${students[index]['date']}' : ''}',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  if (students[index]['note'] != null)
+                    Text(
+                      'Keterangan: ${students[index]['note']}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+  );
+}
+
 
   void _toggleEditing() {
     setState(() {
@@ -781,7 +675,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                               ),
                               elevation: 5,
                               shadowColor: Colors.orange.shade200,
-                            ),
+                            ),//coba git branch
                             child: Row(
                               children: [
                                 Icon(Icons.edit, color: Colors.white),
@@ -833,4 +727,8 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
       ),
     );
   }
+}
+
+extension on Color {
+  get shade800 => null;
 }

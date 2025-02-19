@@ -3,7 +3,6 @@ import 'package:aplikasi_ortu/MUSYRIF/Grade/grade_page.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/coba.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/home_musyrif.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Profil/profil.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Laporan_musyrif/laporan_musyrif.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -113,7 +112,7 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
           },
           children: [
             GradePage(),
-            coba(),
+            GradePage(),
             DashboardMusyrifPage(),
             AbsensiPageKamar(),    
             profilmusryf(),

@@ -15,8 +15,9 @@ class Laporan extends StatefulWidget {
 class _LaporanGuruState extends State<Laporan> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
-  String? _selectedViolation;
+  final TextEditingController _deskripsiController = TextEditingController();
   final TextEditingController _tanggalController = TextEditingController();
+  final TextEditingController _waktuController = TextEditingController();
   final TextEditingController _poinController = TextEditingController();
 
   final Map<String, List<String>> _namaSiswaPerKelas = {
@@ -26,15 +27,6 @@ class _LaporanGuruState extends State<Laporan> {
     'Kelas 4': ['Dewi', 'Dian', 'Dodi'],
     'Kelas 5': ['Eko', 'Eka', 'Endang'],
     'Kelas 6': ['Fajar', 'Fani', 'Fauzi'],
-  };
-
-  final Map<String, int> _violations = {
-    'Terlambat': 5,
-    'Tidak mengerjakan PR': 10,
-    'Membolos': 15,
-    'Berkelahi': 20,
-    'Tidak berpakaian rapi': 5,
-    'Menggunakan handphone saat pembelajaran': 10,
   };
 
   String? _selectedNama;
@@ -64,6 +56,18 @@ class _LaporanGuruState extends State<Laporan> {
     }
   }
 
+  Future<void> _pickTime() async {
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (pickedTime != null) {
+      setState(() {
+        _waktuController.text = pickedTime.format(context);
+      });
+    }
+  }
+
   void _onNamaSelected(String? nama) {
     if (nama != null) {
       setState(() {
@@ -79,16 +83,19 @@ class _LaporanGuruState extends State<Laporan> {
   void _submitNews() {
     if (_selectedNama != null &&
         _selectedKelas != null &&
-        _selectedViolation != null &&
+        _deskripsiController.text.isNotEmpty &&
         _selectedImage != null &&
-        _tanggalController.text.isNotEmpty) {
+        _tanggalController.text.isNotEmpty &&
+        _waktuController.text.isNotEmpty &&
+        _poinController.text.isNotEmpty) {
       final news = {
         'Nama': _selectedNama,
         'Kelas': _selectedKelas,
-        'Pelanggaran': _selectedViolation,
+        'Deskripsi': _deskripsiController.text,
         'Image': _selectedImage,
         'Tanggal': _tanggalController.text,
-        'Poin': _violations[_selectedViolation],
+        'Waktu': _waktuController.text,
+        'Poin': int.parse(_poinController.text),
       };
       widget.onNewsAdded(news);
       Navigator.pop(context);
@@ -96,12 +103,6 @@ class _LaporanGuruState extends State<Laporan> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Harap isi semua field')));
     }
-  }
-
-  String _getSeverity(int points) {
-    if (points <= 5) return 'Ringan';
-    if (points <= 15) return 'Sedang';
-    return 'Berat';
   }
 
   @override
@@ -148,29 +149,16 @@ class _LaporanGuruState extends State<Laporan> {
               readOnly: true,
             ),
             SizedBox(height: 10),
-            DropdownButtonFormField<String>(
+            TextField(
+              controller: _deskripsiController,
               decoration: InputDecoration(
-                labelText: 'Jenis Pelanggaran',
+                labelText: 'Deskripsi',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
                 contentPadding: EdgeInsets.all(10),
               ),
-              value: _selectedViolation,
-              items: _violations.keys.map((String violation) {
-                return DropdownMenuItem<String>(
-                  value: violation,
-                  child: Text(violation),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedViolation = newValue;
-                  if (newValue != null) {
-                    _poinController.text = _violations[newValue]!.toString();
-                  }
-                });
-              },
+              maxLines: 3,
             ),
             SizedBox(height: 10),
             TextField(
@@ -187,6 +175,19 @@ class _LaporanGuruState extends State<Laporan> {
             ),
             SizedBox(height: 10),
             TextField(
+              controller: _waktuController,
+              decoration: InputDecoration(
+                labelText: 'Waktu',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: EdgeInsets.all(10),
+              ),
+              readOnly: true,
+              onTap: _pickTime,
+            ),
+            SizedBox(height: 10),
+            TextField(
               controller: _poinController,
               decoration: InputDecoration(
                 labelText: 'Poin Pelanggaran',
@@ -195,33 +196,8 @@ class _LaporanGuruState extends State<Laporan> {
                 ),
                 contentPadding: EdgeInsets.all(10),
               ),
-              readOnly: true,
+              keyboardType: TextInputType.number,
             ),
-            SizedBox(height: 10),
-            if (_selectedViolation != null)
-              Container(
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Text('Tingkat Pelanggaran: '),
-                    Text(
-                      _getSeverity(_violations[_selectedViolation]!),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: _getSeverity(_violations[_selectedViolation]!) == 'Ringan'
-                            ? Colors.green
-                            : _getSeverity(_violations[_selectedViolation]!) == 'Sedang'
-                                ? Colors.orange
-                                : Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             SizedBox(height: 20),
             if (_selectedImage != null)
               Container(

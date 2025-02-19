@@ -8,13 +8,12 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:async';
-import 'package:aplikasi_ortu/models/jadwal_home.dart';
-import 'package:aplikasi_ortu/services/jadwal_dihome.dart';
+import 'package:aplikasi_ortu/models/schedule_model.dart';
+import 'package:aplikasi_ortu/services/schedule_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../models/class_model.dart';
 import '../../services/class_service.dart';
-import '../Berita/NewsDetailPage.dart';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -40,7 +39,6 @@ class _DashboardPageState extends State<DashboardPage> {
   final ClassService _classService = ClassService();
   List<ClassModel> _classList = [];
   bool _isLoadingClasses = true;
-  int _currentNewsIndex = 0; // Add this line
 
   @override
   void initState() {
@@ -72,18 +70,6 @@ class _DashboardPageState extends State<DashboardPage> {
     });
     _loadSchedules();
     _fetchClasses();
-    
-    // Update timer to use actual schedules
-    _scheduleTimer = Timer.periodic(Duration(seconds: 5), (timer) {
-      if (mounted) {
-        setState(() {
-          List<Schedule> jadwalHariIni = _getJadwalMengajarHariIni();
-          if (jadwalHariIni.isNotEmpty) {
-            _currentScheduleIndex = (_currentScheduleIndex + 1) % jadwalHariIni.length;
-          }
-        });
-      }
-    });
   }
 
   Future<void> _loadProfileData() async {
@@ -138,7 +124,6 @@ class _DashboardPageState extends State<DashboardPage> {
       });
     }
   }
-//tes push
   Future<void> _fetchClasses() async {
     try {
       final classes = await _classService.getClasses();
@@ -403,29 +388,20 @@ class _DashboardPageState extends State<DashboardPage> {
               Row(
                 children: [
                   Expanded(
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_today, color: Colors.blue[700], size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          _showingDeadlines ? 'Deadline Tugas' : 'Jadwal Hari ${_getHariIni()}',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    child: Text(
+                      // Change text based on _showingDeadlines
+                      hariIni == 'Rabu' && _showingDeadlines
+                          ? 'Deadline Tugas'
+                          : 'Jadwal Hari ${_getHariIni()}',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                   if (_deadlineNotifications.isNotEmpty)
                     TextButton.icon(
-                      icon: Icon(
-                        Icons.warning_amber_rounded,
-                        color: const Color.fromARGB(255, 47, 211, 47),
-                        size: 20
-                      ),
+                      icon: Icon(Icons.warning_amber_rounded, color: const Color.fromARGB(255, 47, 211, 47), size: 20),
                       label: Text(
                         _showingDeadlines ? 'Lihat Jadwal' : 'Lihat Deadline',
-                        style: TextStyle(
-                          color: const Color.fromARGB(255, 47, 211, 55)
-                        ),
+                        style: TextStyle(color: const Color.fromARGB(255, 47, 211, 55)),
                       ),
                       onPressed: () {
                         setState(() {
@@ -763,7 +739,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       },
                     ),
                     SizedBox(height: 20),
-                    Text('Penugasan Kelas',
+                    Text('Kelas',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 10),
                     Container(
@@ -852,136 +828,72 @@ class _DashboardPageState extends State<DashboardPage> {
       );
     }
 
-    return Column(
-      children: [
-        SizedBox(
-          height: 155,
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: _newsList.length,
-            onPageChanged: (index) {
-              setState(() {
-                _currentNewsIndex = index;
-              });
-            },
-            itemBuilder: (context, index) {
-              final news = _newsList[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NewsDetailPage(news: news),
+    return SizedBox(
+      height: 155,
+      child: PageView.builder(
+        controller: _pageController,
+        itemCount: _newsList.length,
+        itemBuilder: (context, index) {
+          final news = _newsList[index];
+          return GestureDetector(
+            onTap: () {},
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: Colors.blue[700],
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(2, 2)
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.file(
+                        news['image'],
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                  );
-                },
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[700],
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 4,
-                        offset: Offset(2, 2)
-                      ),
-                    ],
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 120, // Fixed width
-                        height: 120, // Same as width to make it square
-                        margin: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              spreadRadius: 1,
-                              blurRadius: 3,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.file(
-                            news['image'],
-                            fit: BoxFit.cover, // Changed to cover to crop the image
-                            width: 120,
-                            height: 120,
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          news['judul'],
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16
                           ),
                         ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                news['judul'],
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18, // Increased font size
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: 8),
-                              Expanded(
-                                child: Text(
-                                  news['deskripsi'],
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14, // Increased font size
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Text(
-                                news['tanggal'],
-                                style: TextStyle(
-                                  color: Colors.white60,
-                                  fontSize: 12
-                                ),
-                              ),
-                            ],
+                        SizedBox(height: 5),
+                        Text(
+                          news['tanggal'],
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
-        ),
-        if (_newsList.length > 1) ...[
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(_newsList.length, (index) {
-              return Container(
-                margin: EdgeInsets.symmetric(horizontal: 4),
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _currentNewsIndex == index
-                      ? Colors.blue[700]
-                      : Colors.grey[300],
-                ),
-              );
-            }),
-          ),
-        ],
-      ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
