@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 
-<<<<<<<< HEAD:lib/MUSYRIF/Laporan_musyrif/laporan_kelas_page.dart
+
 class LaporanKelasPage extends StatelessWidget {
   final String kelas;
   final List<Map<String, dynamic>> reports;
 
   LaporanKelasPage({required this.kelas, required this.reports});
-========
+  
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    throw UnimplementedError();
+  }
+}
 class Detaillaporan extends StatelessWidget {
-  final String kelas;
-  final List<Map<String, dynamic>> reports;
+  late final String kelas;
+  late final List<Map<String, dynamic>> reports;
 
-  Detaillaporan({required this.kelas, required this.reports});
->>>>>>>> 0d2f37fcc5fc20534c11877f8104af8636d017b7:lib/MUSYRIF/Home/Menu/Laporan/detaillaporan.dart
+
 
   @override
   Widget build(BuildContext context) {

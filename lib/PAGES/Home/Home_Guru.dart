@@ -15,7 +15,7 @@ import 'dart:convert';
 import '../../models/class_model.dart';
 import '../../services/class_service.dart';
 import '../Berita/NewsDetailPage.dart';
-import 'dart:ui';  
+import 'dart:ui';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -26,8 +26,8 @@ class _DashboardPageState extends State<DashboardPage> {
   late PageController _pageController;
   late Future<void> _loadingFuture;
   List<Map<String, dynamic>> _newsList = [];
-  String _name = ''; 
-  String _email = ''; 
+  String _name = '';
+  String _email = '';
   String? _profileImagePath;
   List<Map<String, dynamic>> _deadlineNotifications = [];
   Map<String, List<Map<String, String>>> _jadwalMengajar = {};
@@ -42,6 +42,8 @@ class _DashboardPageState extends State<DashboardPage> {
   List<ClassModel> _classList = [];
   bool _isLoadingClasses = true;
 
+  get news => null;
+
   @override
   void initState() {
     super.initState();
@@ -52,26 +54,28 @@ class _DashboardPageState extends State<DashboardPage> {
     _pageController = PageController();
     // Simulate loading delay
     _loadingFuture = Future.delayed(Duration(seconds: 3));
-    
+
     // Initialize timer for schedule sliding
     _scheduleTimer = Timer.periodic(Duration(seconds: 8), (timer) {
-       setState(() {
+      setState(() {
         List<Map<String, String>> jadwalBesok = _getJadwalMengajarBesok();
         if (jadwalBesok.isNotEmpty) {
-          _currentScheduleIndex = (_currentScheduleIndex + 1) % jadwalBesok.length;
+          _currentScheduleIndex =
+              (_currentScheduleIndex + 1) % jadwalBesok.length;
         }
       });
     });
     _loadSchedules();
     _fetchClasses();
-    
+
     // Update timer to use actual schedules
     _scheduleTimer = Timer.periodic(Duration(seconds: 5), (timer) {
       if (mounted) {
         setState(() {
           List<Schedule> jadwalHariIni = _getJadwalMengajarHariIni();
           if (jadwalHariIni.isNotEmpty) {
-            _currentScheduleIndex = (_currentScheduleIndex + 1) % jadwalHariIni.length;
+            _currentScheduleIndex =
+                (_currentScheduleIndex + 1) % jadwalHariIni.length;
           }
         });
       }
@@ -81,7 +85,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> _loadProfileData() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      
+
       // Get login data from SharedPreferences that was stored during API login
       String? userName = prefs.getString('user_name');
       String? userEmail = prefs.getString('user_email');
@@ -92,7 +96,6 @@ class _DashboardPageState extends State<DashboardPage> {
         _email = userEmail ?? 'Loading...'; // Show loading if null
         _profileImagePath = profileImagePath;
       });
-
     } catch (e) {
       print('Error loading profile data: $e');
       setState(() {
@@ -130,6 +133,7 @@ class _DashboardPageState extends State<DashboardPage> {
       });
     }
   }
+
 //tes push
   Future<void> _fetchClasses() async {
     try {
@@ -170,7 +174,7 @@ class _DashboardPageState extends State<DashboardPage> {
             if (_isLoadingSchedules) {
               return Center(child: CircularProgressIndicator());
             }
-            
+
             // Group schedules by day
             Map<String, List<Schedule>> schedulesByDay = {};
             for (var schedule in _schedules) {
@@ -191,9 +195,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       Text(
                         entry.key,
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18
-                        ),
+                            fontWeight: FontWeight.bold, fontSize: 18),
                       ),
                       ...entry.value.map((schedule) {
                         return ListTile(
@@ -350,7 +352,8 @@ class _DashboardPageState extends State<DashboardPage> {
                               trailing: IconButton(
                                 icon: Icon(Icons.close),
                                 onPressed: () async {
-                                  await _notificationService.removeNotification(index);
+                                  await _notificationService
+                                      .removeNotification(index);
                                   await _loadNotifications();
                                 },
                               ),
@@ -366,13 +369,14 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  void updateDeadlineNotifications(Map<String, dynamic> task, String className) async {
+  void updateDeadlineNotifications(
+      Map<String, dynamic> task, String className) async {
     final notification = {
       'taskName': task['name'],
       'className': className,
       'deadline': task['deadline'],
     };
-    
+
     await _notificationService.addNotification(notification);
     await _loadNotifications();
   }
@@ -380,7 +384,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildScheduleCard() {
     List<Schedule> jadwalHariIni = _getJadwalMengajarHariIni();
     String hariIni = _getHariIni();
-    
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16),
       child: ClipRRect(
@@ -397,13 +401,15 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.1),
+                  color:
+                      const Color.fromARGB(255, 255, 255, 255).withOpacity(0.1),
                   blurRadius: 15,
                   offset: Offset(5, 5), // Right and bottom shadow
                   spreadRadius: -2,
                 ),
                 BoxShadow(
-                  color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.2),
+                  color:
+                      const Color.fromARGB(255, 255, 255, 255).withOpacity(0.2),
                   blurRadius: 15,
                   offset: Offset(-5, -5), // Left and top highlight
                   spreadRadius: -2,
@@ -422,27 +428,33 @@ class _DashboardPageState extends State<DashboardPage> {
                         Expanded(
                           child: Row(
                             children: [
-                              Icon(Icons.calendar_today, color: const Color.fromARGB(255, 223, 234, 245), size: 20),
+                              Icon(Icons.calendar_today,
+                                  color:
+                                      const Color.fromARGB(255, 223, 234, 245),
+                                  size: 20),
                               SizedBox(width: 8),
                               Text(
-                                _showingDeadlines ? 'Deadline Tugas' : 'Jadwal Hari ${_getHariIni()}',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                _showingDeadlines
+                                    ? 'Deadline Tugas'
+                                    : 'Jadwal Hari ${_getHariIni()}',
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
                         ),
                         if (_deadlineNotifications.isNotEmpty)
                           TextButton.icon(
-                            icon: Icon(
-                              Icons.warning_amber_rounded,
-                              color: const Color.fromARGB(255, 181, 211, 47),
-                              size: 20
-                            ),
+                            icon: Icon(Icons.warning_amber_rounded,
+                                color: const Color.fromARGB(255, 181, 211, 47),
+                                size: 20),
                             label: Text(
-                              _showingDeadlines ? 'Lihat Jadwal' : 'Lihat Deadline',
+                              _showingDeadlines
+                                  ? 'Lihat Jadwal'
+                                  : 'Lihat Deadline',
                               style: TextStyle(
-                                color: const Color.fromARGB(255, 186, 211, 47)
-                              ),
+                                  color:
+                                      const Color.fromARGB(255, 186, 211, 47)),
                             ),
                             onPressed: () {
                               setState(() {
@@ -465,7 +477,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     SizedBox(height: 20), // Increased spacing
                     Expanded(
-                      child: _showingDeadlines 
+                      child: _showingDeadlines
                           ? _buildDeadlineList()
                           : _buildScheduleList(jadwalHariIni),
                     ),
@@ -555,7 +567,8 @@ class _DashboardPageState extends State<DashboardPage> {
               child: Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(12), // Reduced padding from 16 to 12
+                    padding:
+                        EdgeInsets.all(12), // Reduced padding from 16 to 12
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
@@ -605,7 +618,8 @@ class _DashboardPageState extends State<DashboardPage> {
                         ),
                         SizedBox(height: 4), // Reduced spacing from 6 to 4
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Reduced padding
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4), // Reduced padding
                           decoration: BoxDecoration(
                             color: Colors.blue[700]!.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(6),
@@ -635,14 +649,12 @@ class _DashboardPageState extends State<DashboardPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: IconButton(
-                      icon: Icon(Icons.arrow_forward_ios, 
-                        size: 18, 
-                        color: Colors.white
-                      ),
+                      icon: Icon(Icons.arrow_forward_ios,
+                          size: 18, color: Colors.white),
                       onPressed: () {
                         setState(() {
-                          _currentScheduleIndex = 
-                            (_currentScheduleIndex + 1) % jadwalHariIni.length;
+                          _currentScheduleIndex = (_currentScheduleIndex + 1) %
+                              jadwalHariIni.length;
                         });
                       },
                     ),
@@ -668,7 +680,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildDeadlineList() {
     final upcomingDeadlines = _getUpcomingDeadlines();
-    
+
     return upcomingDeadlines.isEmpty
         ? Center(
             child: Text('Tidak ada deadline dalam 3 hari ke depan'),
@@ -680,12 +692,14 @@ class _DashboardPageState extends State<DashboardPage> {
               final notification = upcomingDeadlines[index];
               final deadline = DateTime.parse(notification['deadline']);
               final daysLeft = deadline.difference(DateTime.now()).inDays;
-              
+
               return Container(
                 width: 200,
                 margin: EdgeInsets.only(right: 10),
                 decoration: BoxDecoration(
-                  color: daysLeft == 0 ? const Color.fromARGB(255, 226, 238, 121) : const Color.fromARGB(255, 246, 255, 205),
+                  color: daysLeft == 0
+                      ? const Color.fromARGB(255, 226, 238, 121)
+                      : const Color.fromARGB(255, 246, 255, 205),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 padding: EdgeInsets.all(12),
@@ -708,13 +722,14 @@ class _DashboardPageState extends State<DashboardPage> {
                       style: TextStyle(fontSize: 12),
                     ),
                     Text(
-                      daysLeft == 0 
+                      daysLeft == 0
                           ? 'Deadline: Hari ini'
                           : 'Deadline: ${daysLeft} hari lagi',
                       style: TextStyle(
                         fontSize: 12,
                         color: const Color.fromARGB(255, 77, 185, 34),
-                        fontWeight: daysLeft == 0 ? FontWeight.bold : FontWeight.normal,
+                        fontWeight:
+                            daysLeft == 0 ? FontWeight.bold : FontWeight.normal,
                       ),
                     ),
                   ],
@@ -728,13 +743,17 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     _getJadwalMengajarBesok();
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 233, 233, 233), // Changed to custom light gray
-      body: SafeArea( // Add SafeArea
+      backgroundColor:
+          Color.fromARGB(255, 233, 233, 233), // Changed to custom light gray
+      body: SafeArea(
+        // Add SafeArea
         child: RefreshIndicator(
           onRefresh: _reloadProfileData,
-          child: LayoutBuilder( // Add LayoutBuilder
+          child: LayoutBuilder(
+            // Add LayoutBuilder
             builder: (context, constraints) {
-              return SingleChildScrollView( // Wrap everything in SingleChildScrollView
+              return SingleChildScrollView(
+                // Wrap everything in SingleChildScrollView
                 physics: AlwaysScrollableScrollPhysics(),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
@@ -749,7 +768,10 @@ class _DashboardPageState extends State<DashboardPage> {
                             child: Container(
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [Colors.blue.shade900, Colors.blue.shade700],
+                                  colors: [
+                                    Colors.blue.shade900,
+                                    Colors.blue.shade700
+                                  ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -760,40 +782,55 @@ class _DashboardPageState extends State<DashboardPage> {
                           Column(
                             children: [
                               Container(
-                                padding: EdgeInsets.only(top: 50, left: 20, right: 20),
+                                padding: EdgeInsets.only(
+                                    top: 50, left: 20, right: 20),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Row(
                                           children: [
                                             CircleAvatar(
                                               radius: 25,
                                               backgroundColor: Colors.white,
-                                              backgroundImage: _profileImagePath != null
-                                                  ? FileImage(File(_profileImagePath!))
-                                                  : AssetImage('assets/profile_picture.png') as ImageProvider,
+                                              backgroundImage: _profileImagePath !=
+                                                      null
+                                                  ? FileImage(
+                                                      File(_profileImagePath!))
+                                                  : AssetImage(
+                                                          'assets/profile_picture.png')
+                                                      as ImageProvider,
                                             ),
                                             SizedBox(width: 10),
                                             Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   _name,
-                                                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold),
                                                 ),
                                                 Text(
                                                   _email,
-                                                  style: TextStyle(color: Colors.white, fontSize: 16),
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 16),
                                                 ),
                                               ],
                                             ),
                                           ],
                                         ),
                                         IconButton(
-                                          icon: Icon(Icons.notifications, color: const Color.fromARGB(255, 255, 255, 255)),
+                                          icon: Icon(Icons.notifications,
+                                              color: const Color.fromARGB(
+                                                  255, 255, 255, 255)),
                                           onPressed: _showNotification,
                                         ),
                                       ],
@@ -819,7 +856,9 @@ class _DashboardPageState extends State<DashboardPage> {
                               children: [
                                 Text(
                                   'Berita',
-                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.add),
@@ -827,7 +866,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => NewsPage(onNewsAdded: _addNews),
+                                        builder: (context) =>
+                                            NewsPage(onNewsAdded: _addNews),
                                       ),
                                     );
                                   },
@@ -839,7 +879,8 @@ class _DashboardPageState extends State<DashboardPage> {
                             FutureBuilder(
                               future: _loadingFuture,
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
                                   return _buildLoadingShimmer();
                                 }
                                 return _buildCardItem();
@@ -848,7 +889,8 @@ class _DashboardPageState extends State<DashboardPage> {
                             SizedBox(height: 20),
                             // Class assignments section
                             Text('Penugasan Kelas',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
                             SizedBox(height: 10),
                             _isLoadingClasses
                                 ? Center(child: CircularProgressIndicator())
@@ -866,9 +908,12 @@ class _DashboardPageState extends State<DashboardPage> {
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
-                                                builder: (context) => tugaskelas(
-                                                  onTaskAdded: (task, className) {
-                                                    updateDeadlineNotifications(task, classData.kelas);
+                                                builder: (context) =>
+                                                    tugaskelas(
+                                                  onTaskAdded:
+                                                      (task, className) {
+                                                    updateDeadlineNotifications(
+                                                        task, classData.kelas);
                                                   },
                                                 ),
                                               ),
@@ -1007,128 +1052,98 @@ class _DashboardPageState extends State<DashboardPage> {
             child: Container(
               margin: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
-                color: Colors.blue[700],
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.blue[700]!.withOpacity(0.95),
+                    Colors.blue[900]!.withOpacity(0.95),
+                  ],
+                ),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(2, 2)
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 15,
+                    offset: Offset(0, 10),
+                    spreadRadius: -5,
                   ),
                 ],
               ),
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(
-                        news['image'],
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.contain, // Changed to contain
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
+                        margin: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              spreadRadius: 1,
+                              blurRadius: 3,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            news['image'],
+                            fit: BoxFit.cover,
+                            width: 120,
+                            height: 120,
+                          ),
+                        ),
                       ),
-                    ),
-                  );
-                },
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.blue[700]!.withOpacity(0.95),
-                        Colors.blue[900]!.withOpacity(0.95),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 15,
-                        offset: Offset(0, 10),
-                        spreadRadius: -5,
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                news['judul'],
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              SizedBox(height: 8),
+                              Expanded(
+                                child: Text(
+                                  news['deskripsi'],
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                news['tanggal'],
+                                style: TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 120, // Fixed width
-                            height: 120, // Same as width to make it square
-                            margin: EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  spreadRadius: 1,
-                                  blurRadius: 3,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.file(
-                                news['image'],
-                                fit: BoxFit.cover, // Changed to cover to crop the image
-                                width: 120,
-                                height: 120,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    news['judul'],
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18, // Increased font size
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  SizedBox(height: 8),
-                                  Expanded(
-                                    child: Text(
-                                      news['deskripsi'],
-                                      style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 14, // Increased font size
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  Text(
-                                    news['tanggal'],
-                                    style: TextStyle(
-                                      color: Colors.white60,
-                                      fontSize: 12
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           );

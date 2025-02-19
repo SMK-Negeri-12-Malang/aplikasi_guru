@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Menu/pengaturan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Models/news_item.dart';
+import 'Models/activity_item.dart';
 
 class DashboardMusyrifPage extends StatefulWidget {
   @override
@@ -56,6 +57,30 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
       title: "Pembelajaran",
       description: "Aktivitas pembelajaran santri",
       date: "2024-01-18",
+    ),
+  ];
+
+  final List<ActivityItem> _activityItems = [
+    ActivityItem(
+      title: "Kegiatan Pagi",
+      description: "Membaca Al-Quran bersama",
+      date: "2024-01-20",
+      status: "Selesai",
+      imageUrl: "https://picsum.photos/800/400",
+    ),
+    ActivityItem(
+      title: "Kegiatan Siang",
+      description: "Pembelajaran Kitab Kuning",
+      date: "2024-01-20",
+      status: "Berlangsung",
+      imageUrl: "https://picsum.photos/800/401",
+    ),
+    ActivityItem(
+      title: "Kegiatan Malam",
+      description: "Belajar bersama",
+      date: "2024-01-20",
+      status: "Mendatang",
+      imageUrl: "https://picsum.photos/800/402",
     ),
   ];
 
@@ -283,6 +308,166 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
     );
   }
 
+  Widget _buildActivitySection() {
+    return Container(
+      margin: const EdgeInsets.only(top: 16.0),
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Aktivitas Terkini',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Navigate to activity list page
+                  },
+                  child: Text(
+                    'Lihat Semua',
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _activityItems.length > 3 ? 3 : _activityItems.length,
+            itemBuilder: (context, index) {
+              final activity = _activityItems[index];
+              return Container(
+                height: 120,
+                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 1,
+                      blurRadius: 3,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Row(
+                    children: [
+                      // Image section
+                      SizedBox(
+                        width: 120,
+                        child: Image.network(
+                          activity.imageUrl,
+                          fit: BoxFit.cover,
+                          height: double.infinity,
+                        ),
+                      ),
+                      // Content section
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          color: Colors.white,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    activity.title,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    activity.description,
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 14,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    activity.date,
+                                    style: TextStyle(
+                                      color: Colors.grey.shade500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _getStatusColor(activity.status),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      activity.status,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'selesai':
+        return Colors.green;
+      case 'berlangsung':
+        return Colors.blue;
+      case 'mendatang':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -384,6 +569,7 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
                   ),
                   const SizedBox(height: 20),
                   _buildGallerySection(), // Add this line
+                  _buildActivitySection(), // Add this line
                 ],
               ),
             ),

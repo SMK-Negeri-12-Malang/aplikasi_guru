@@ -62,12 +62,7 @@ class PilihKelasPage extends StatelessWidget {
                       ),
                       trailing: Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Detaillaporan(kelas: kelas, reports: reportProvider.reportsPerKelas[kelas] ?? []),
-                          ),
-                        );
+                      
                       },
                     ),
                   );
