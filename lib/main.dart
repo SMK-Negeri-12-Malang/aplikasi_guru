@@ -21,6 +21,7 @@ class MyApp extends StatelessWidget {
       title: 'Aplikasi Guru',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Color(0xFFF5F5F7), // Add this line
         pageTransitionsTheme: PageTransitionsTheme(
           builders: {
             TargetPlatform.android: CustomPageTransitionBuilder(),
