@@ -54,7 +54,7 @@ class _DashboardPageState extends State<DashboardPage> {
     
     // Initialize timer for schedule sliding
     _scheduleTimer = Timer.periodic(Duration(seconds: 8), (timer) {
-      setState(() {
+       setState(() {
         List<Map<String, String>> jadwalBesok = _getJadwalMengajarBesok();
         if (jadwalBesok.isNotEmpty) {
           _currentScheduleIndex = (_currentScheduleIndex + 1) % jadwalBesok.length;
