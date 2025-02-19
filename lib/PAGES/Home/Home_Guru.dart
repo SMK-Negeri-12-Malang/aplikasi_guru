@@ -41,7 +41,6 @@ class _DashboardPageState extends State<DashboardPage> {
   final ClassService _classService = ClassService();
   List<ClassModel> _classList = [];
   bool _isLoadingClasses = true;
-  int _currentNewsIndex = 0; // Add this line
 
   @override
   void initState() {
@@ -51,14 +50,6 @@ class _DashboardPageState extends State<DashboardPage> {
     });
     _loadNotifications();
     _pageController = PageController();
-    _pageController.addListener(() {
-      int next = _pageController.page!.round();
-      if (_currentNewsIndex != next) {
-        setState(() {
-          _currentNewsIndex = next;
-        });
-      }
-    });
     // Simulate loading delay
     _loadingFuture = Future.delayed(Duration(seconds: 3));
     
@@ -997,26 +988,47 @@ class _DashboardPageState extends State<DashboardPage> {
       );
     }
 
-    return Column(
-      children: [
-        SizedBox(
-          height: 155,
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: _newsList.length,
-            onPageChanged: (index) {
-              setState(() {
-                _currentNewsIndex = index;
-              });
+    return SizedBox(
+      height: 155,
+      child: PageView.builder(
+        controller: _pageController,
+        itemCount: _newsList.length,
+        itemBuilder: (context, index) {
+          final news = _newsList[index];
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NewsDetailPage(news: news),
+                ),
+              );
             },
-            itemBuilder: (context, index) {
-              final news = _newsList[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NewsDetailPage(news: news),
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: Colors.blue[700],
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(2, 2)
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.file(
+                        news['image'],
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.contain, // Changed to contain
+                      ),
                     ),
                   );
                 },
@@ -1116,31 +1128,12 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-        ),
-        if (_newsList.length > 1) ...[
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(_newsList.length, (index) {
-              return Container(
-                margin: EdgeInsets.symmetric(horizontal: 4),
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _currentNewsIndex == index
-                      ? Colors.blue[700]
-                      : Colors.grey[300],
-                ),
-              );
-            }),
-          ),
-        ],
-      ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
