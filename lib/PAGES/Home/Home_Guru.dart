@@ -15,6 +15,7 @@ import 'dart:convert';
 import '../../models/class_model.dart';
 import '../../services/class_service.dart';
 import '../Berita/NewsDetailPage.dart';
+import 'dart:ui';  
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -389,70 +390,98 @@ class _DashboardPageState extends State<DashboardPage> {
     List<Schedule> jadwalHariIni = _getJadwalMengajarHariIni();
     String hariIni = _getHariIni();
     
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      elevation: 4,
+    return Container(
       margin: EdgeInsets.symmetric(horizontal: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Container(
-          height: 150,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Row(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.1),
+                  blurRadius: 15,
+                  offset: Offset(5, 5), // Right and bottom shadow
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.2),
+                  blurRadius: 15,
+                  offset: Offset(-5, -5), // Left and top highlight
+                  spreadRadius: -2,
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0), // Increased padding
+              child: Container(
+                height: 200, // Increased height from 180 to 200
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Icon(Icons.calendar_today, color: Colors.blue[700], size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          _showingDeadlines ? 'Deadline Tugas' : 'Jadwal Hari ${_getHariIni()}',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(Icons.calendar_today, color: const Color.fromARGB(255, 223, 234, 245), size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                _showingDeadlines ? 'Deadline Tugas' : 'Jadwal Hari ${_getHariIni()}',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
                         ),
+                        if (_deadlineNotifications.isNotEmpty)
+                          TextButton.icon(
+                            icon: Icon(
+                              Icons.warning_amber_rounded,
+                              color: const Color.fromARGB(255, 181, 211, 47),
+                              size: 20
+                            ),
+                            label: Text(
+                              _showingDeadlines ? 'Lihat Jadwal' : 'Lihat Deadline',
+                              style: TextStyle(
+                                color: const Color.fromARGB(255, 186, 211, 47)
+                              ),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _showingDeadlines = !_showingDeadlines;
+                              });
+                            },
+                          ),
+                        if (!_showingDeadlines && jadwalHariIni.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Text(
+                              '${_currentScheduleIndex + 1}/${jadwalHariIni.length}',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
-                  ),
-                  if (_deadlineNotifications.isNotEmpty)
-                    TextButton.icon(
-                      icon: Icon(
-                        Icons.warning_amber_rounded,
-                        color: const Color.fromARGB(255, 47, 211, 47),
-                        size: 20
-                      ),
-                      label: Text(
-                        _showingDeadlines ? 'Lihat Jadwal' : 'Lihat Deadline',
-                        style: TextStyle(
-                          color: const Color.fromARGB(255, 47, 211, 55)
-                        ),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _showingDeadlines = !_showingDeadlines;
-                        });
-                      },
+                    SizedBox(height: 20), // Increased spacing
+                    Expanded(
+                      child: _showingDeadlines 
+                          ? _buildDeadlineList()
+                          : _buildScheduleList(jadwalHariIni),
                     ),
-                  if (!_showingDeadlines && jadwalHariIni.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Text(
-                        '${_currentScheduleIndex + 1}/${jadwalHariIni.length}',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-              SizedBox(height: 10),
-              Expanded(
-                child: _showingDeadlines 
-                    ? _buildDeadlineList()
-                    : _buildScheduleList(jadwalHariIni),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -461,12 +490,47 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildScheduleList(List<Schedule> jadwalHariIni) {
     if (_isLoadingSchedules) {
-      return Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[700]!),
+        ),
+      );
     }
 
     return jadwalHariIni.isEmpty
-        ? Center(
-            child: Text('Tidak ada jadwal untuk hari ini'),
+        ? Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 8,
+                  offset: Offset(3, 3),
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            padding: EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.event_busy,
+                  color: Colors.blue[300],
+                  size: 24,
+                ),
+                SizedBox(width: 12),
+                Text(
+                  'Tidak ada jadwal untuk hari ini',
+                  style: TextStyle(
+                    color: Colors.blue[900],
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           )
         : AnimatedSwitcher(
             duration: Duration(milliseconds: 500),
@@ -485,32 +549,47 @@ class _DashboardPageState extends State<DashboardPage> {
             child: Container(
               key: ValueKey<int>(_currentScheduleIndex),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(2, 2),
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    offset: Offset(3, 3),
+                    spreadRadius: 1,
                   ),
                 ],
               ),
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(16), // Reduced padding from 24 to 16
               child: Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(8),
+                    padding: EdgeInsets.all(12), // Reduced padding from 16 to 12
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.blue[700]!,
+                          Colors.blue[500]!,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: Offset(2, 2),
+                        ),
+                      ],
                     ),
                     child: Icon(
                       Icons.school,
-                      color: Colors.blue,
-                      size: 24,
+                      color: Colors.white,
+                      size: 24, // Reduced size from 32 to 24
                     ),
                   ),
-                  SizedBox(width: 16),
+                  SizedBox(width: 16), // Reduced spacing from 24 to 16
                   Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -519,36 +598,63 @@ class _DashboardPageState extends State<DashboardPage> {
                         Text(
                           jadwalHariIni[_currentScheduleIndex].namaPelajaran,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 16, // Reduced from 18 to 16
                             fontWeight: FontWeight.bold,
+                            color: Colors.blue[900],
                           ),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: 4), // Reduced spacing from 6 to 4
                         Text(
-                          jadwalHariIni[_currentScheduleIndex].kelas, // Add class name
+                          jadwalHariIni[_currentScheduleIndex].kelas,
                           style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
+                            fontSize: 14, // Reduced from 16 to 14
+                            color: Colors.blue[800],
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        SizedBox(height: 4),
-                        Text(
-                          jadwalHariIni[_currentScheduleIndex].jam,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.blue[700],
+                        SizedBox(height: 4), // Reduced spacing from 6 to 4
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Reduced padding
+                          decoration: BoxDecoration(
+                            color: Colors.blue[700]!.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            jadwalHariIni[_currentScheduleIndex].jam,
+                            style: TextStyle(
+                              fontSize: 13, // Reduced from 14 to 13
+                              color: Colors.blue[700],
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.arrow_forward_ios, size: 18),
-                    onPressed: () {
-                      setState(() {
-                        _currentScheduleIndex = (_currentScheduleIndex + 1) % jadwalHariIni.length;
-                      });
-                    },
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.blue[600]!.withOpacity(0.9),
+                          Colors.blue[400]!.withOpacity(0.9),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: IconButton(
+                      icon: Icon(Icons.arrow_forward_ios, 
+                        size: 18, 
+                        color: Colors.white
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _currentScheduleIndex = 
+                            (_currentScheduleIndex + 1) % jadwalHariIni.length;
+                        });
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -588,7 +694,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 width: 200,
                 margin: EdgeInsets.only(right: 10),
                 decoration: BoxDecoration(
-                  color: daysLeft == 0 ? const Color.fromARGB(255, 154, 239, 175) : const Color.fromARGB(255, 217, 255, 205),
+                  color: daysLeft == 0 ? const Color.fromARGB(255, 226, 238, 121) : const Color.fromARGB(255, 246, 255, 205),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 padding: EdgeInsets.all(12),
@@ -616,7 +722,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           : 'Deadline: ${daysLeft} hari lagi',
                       style: TextStyle(
                         fontSize: 12,
-                        color: const Color.fromARGB(255, 34, 185, 47),
+                        color: const Color.fromARGB(255, 77, 185, 34),
                         fontWeight: daysLeft == 0 ? FontWeight.bold : FontWeight.normal,
                       ),
                     ),
@@ -631,199 +737,238 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     _getJadwalMengajarBesok();
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      body: RefreshIndicator(
-        onRefresh: _reloadProfileData,
-        child: Column(
-          children: [
-            Stack(
-              children: [
-                ClipPath(
-                  clipper: AppBarClipper(),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.blue.shade900, Colors.blue.shade700],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    height: 230,
+      backgroundColor: Color.fromARGB(255, 233, 233, 233), // Changed to custom light gray
+      body: SafeArea( // Add SafeArea
+        child: RefreshIndicator(
+          onRefresh: _reloadProfileData,
+          child: LayoutBuilder( // Add LayoutBuilder
+            builder: (context, constraints) {
+              return SingleChildScrollView( // Wrap everything in SingleChildScrollView
+                physics: AlwaysScrollableScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
                   ),
-                ),
-                Column(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.only(top: 50, left: 20, right: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Column(
+                    children: [
+                      Stack(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 25,
-                                    backgroundColor: Colors.white,
-                                    backgroundImage: _profileImagePath != null
-                                        ? FileImage(File(_profileImagePath!))
-                                        : AssetImage('assets/profile_picture.png') as ImageProvider,
-                                  ),
-                                  SizedBox(width: 10),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _name,
-                                        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                                      ),
-                                      Text(
-                                        _email,
-                                        style: TextStyle(color: Colors.white, fontSize: 16),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                          ClipPath(
+                            clipper: AppBarClipper(),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [Colors.blue.shade900, Colors.blue.shade700],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
                               ),
-                              IconButton(
-                                icon: Icon(Icons.notifications, color: const Color.fromARGB(255, 255, 255, 255)),
-                                onPressed: _showNotification,
-                              ),
-                            ],
+                              height: 230,
+                            ),
                           ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    _buildScheduleCard(),
-                  ],
-                ),
-              ],
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Berita',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.add),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => NewsPage(onNewsAdded: _addNews),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 15),
-                    FutureBuilder(
-                      future: _loadingFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Container(
-                            height: 155,
-                            child: Center(
-                              child: Shimmer.fromColors(
-                                baseColor: Colors.grey[300]!,
-                                highlightColor: Colors.grey[100]!,
+                          Column(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.only(top: 50, left: 20, right: 20),
                                 child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Container(
-                                      width: 100,
-                                      height: 100,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(height: 10),
-                                    Container(
-                                      width: 100,
-                                      height: 20,
-                                      color: Colors.white,
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 25,
+                                              backgroundColor: Colors.white,
+                                              backgroundImage: _profileImagePath != null
+                                                  ? FileImage(File(_profileImagePath!))
+                                                  : AssetImage('assets/profile_picture.png') as ImageProvider,
+                                            ),
+                                            SizedBox(width: 10),
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  _name,
+                                                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                                                ),
+                                                Text(
+                                                  _email,
+                                                  style: TextStyle(color: Colors.white, fontSize: 16),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.notifications, color: const Color.fromARGB(255, 255, 255, 255)),
+                                          onPressed: _showNotification,
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
+                              SizedBox(height: 20),
+                              _buildScheduleCard(),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 20),
+                            // News section
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Berita',
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.add),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => NewsPage(onNewsAdded: _addNews),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
-                          );
-                        }
-                        return _buildCardItem();
-                      },
-                    ),
-                    SizedBox(height: 20),
-                    Text('Penugasan Kelas',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 10),
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      child: _isLoadingClasses
-                          ? Center(child: CircularProgressIndicator())
-                          : Column(
-                              children: _classList.map((classData) {
-                                return Column(
-                                  children: [
-                                    _buildClassButton(
-                                      classData.kelas, // Changed from namaKelas to kelas
-                                      () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => tugaskelas(
-                                              onTaskAdded: (task, className) {
-                                                updateDeadlineNotifications(
-                                                  task, 
-                                                  classData.kelas // Changed from namaKelas to kelas
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    SizedBox(height: 10),
-                                  ],
-                                );
-                              }).toList(),
+                            SizedBox(height: 15),
+                            // News card
+                            FutureBuilder(
+                              future: _loadingFuture,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return _buildLoadingShimmer();
+                                }
+                                return _buildCardItem();
+                              },
                             ),
-                    ),
-                  ],
+                            SizedBox(height: 20),
+                            // Class assignments section
+                            Text('Penugasan Kelas',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            SizedBox(height: 10),
+                            _isLoadingClasses
+                                ? Center(child: CircularProgressIndicator())
+                                : ListView.builder(
+                                    physics: NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemCount: _classList.length,
+                                    itemBuilder: (context, index) {
+                                      final classData = _classList[index];
+                                      return Padding(
+                                        padding: EdgeInsets.only(bottom: 10),
+                                        child: _buildClassButton(
+                                          classData.kelas,
+                                          () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => tugaskelas(
+                                                  onTaskAdded: (task, className) {
+                                                    updateDeadlineNotifications(task, classData.kelas);
+                                                  },
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  ),
+                            SizedBox(height: 20), // Add bottom padding
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingShimmer() {
+    return Container(
+      height: 155,
+      child: Center(
+        child: Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                color: Colors.white,
               ),
-            ),
-          ],
+              SizedBox(height: 10),
+              Container(
+                width: 100,
+                height: 20,
+                color: Colors.white,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildClassButton(String title, VoidCallback onPressed) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue[700],
-        minimumSize: Size(double.infinity, 50),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
       ),
-      child: Text(
-        title,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.bold
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          minimumSize: Size(double.infinity, 60),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.class_, color: Colors.blue[700], size: 24),
+            SizedBox(width: 12),
+            Text(
+              title,
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Spacer(),
+            Icon(Icons.arrow_forward_ios, color: Colors.blue[700], size: 18),
+          ],
         ),
       ),
     );
@@ -878,84 +1023,98 @@ class _DashboardPageState extends State<DashboardPage> {
                 child: Container(
                   margin: EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
-                    color: Colors.blue[700],
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.blue[700]!.withOpacity(0.95),
+                        Colors.blue[900]!.withOpacity(0.95),
+                      ],
+                    ),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 4,
-                        offset: Offset(2, 2)
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 15,
+                        offset: Offset(0, 10),
+                        spreadRadius: -5,
                       ),
                     ],
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 120, // Fixed width
-                        height: 120, // Same as width to make it square
-                        margin: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              spreadRadius: 1,
-                              blurRadius: 3,
-                              offset: Offset(0, 2),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 120, // Fixed width
+                            height: 120, // Same as width to make it square
+                            margin: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 3,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.file(
-                            news['image'],
-                            fit: BoxFit.cover, // Changed to cover to crop the image
-                            width: 120,
-                            height: 120,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                news['judul'],
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18, // Increased font size
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.file(
+                                news['image'],
+                                fit: BoxFit.cover, // Changed to cover to crop the image
+                                width: 120,
+                                height: 120,
                               ),
-                              SizedBox(height: 8),
-                              Expanded(
-                                child: Text(
-                                  news['deskripsi'],
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14, // Increased font size
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    news['judul'],
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18, // Increased font size
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                                  SizedBox(height: 8),
+                                  Expanded(
+                                    child: Text(
+                                      news['deskripsi'],
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 14, // Increased font size
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Text(
+                                    news['tanggal'],
+                                    style: TextStyle(
+                                      color: Colors.white60,
+                                      fontSize: 12
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                news['tanggal'],
-                                style: TextStyle(
-                                  color: Colors.white60,
-                                  fontSize: 12
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               );
