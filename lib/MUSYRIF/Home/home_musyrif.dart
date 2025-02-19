@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Menu/pengaturan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Models/news_item.dart';
+import 'Components/gallery_section.dart';
 
 class DashboardMusyrifPage extends StatefulWidget {
   @override
@@ -287,94 +288,49 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildNewsCarousel(),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: _buildMenuCard(Icons.report, 'Laporan'),
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: _buildMenuCard(Icons.card_travel, 'Perizinan'),
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: _buildMenuCard(Icons.healing, 'Kesehatan'),
-                    ),
-                  ),
-                ],
-              ),
-              
-              // Gallery Title with Add Button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Gallery',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade900,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: _showAddImageDialog,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-
-              // Display Gallery Images
-              Column(
-                children: _galleryImages.map((url) {
-                  return Container(
-                    width: double.infinity,
-                    height: 200,
-                    margin: const EdgeInsets.only(bottom: 10),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          blurRadius: 6,
-                          offset: const Offset(0, 4),
+                  _buildNewsCarousel(),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: _buildMenuCard(Icons.report, 'Laporan'),
                         ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        url,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Center(
-                            child: Text(
-                              'Failed to load image',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          );
-                        },
                       ),
-                    ),
-                  );
-                }).toList(),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: _buildMenuCard(Icons.card_travel, 'Perizinan'),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: _buildMenuCard(Icons.healing, 'Kesehatan'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 10),
+            GallerySection(
+              galleryImages: _galleryImages,
+              onAddImage: _showAddImageDialog,
+            ),
+            const SizedBox(height: 20),
+          ],
         ),
       ),
     );

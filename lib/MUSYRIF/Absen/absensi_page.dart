@@ -1,3 +1,4 @@
+import 'package:aplikasi_ortu/MUSYRIF/Absen/absen_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
@@ -17,20 +18,24 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar>
   final List<String> kelasList = ['Kamar A', 'Kamar B', 'Kamar C', 'Kamar D'];
   final Map<String, List<Map<String, dynamic>>> siswaData = {
     'Kamar A': [
-      {'name': 'Paul Walker', 'absen': '01', 'checked': false},
-      {'name': 'John Doe', 'absen': '02', 'checked': false},
+      {'name': 'Laporan', 'absen': '01', 'checked': false},
+      {'name': 'Izin', 'absen': '02', 'checked': false},
+      {'name': 'Sakit', 'absen': '03', 'checked': false},
     ],
     'Kamar B': [
-      {'name': 'Jane Doe', 'absen': '01', 'checked': false},
-      {'name': 'Max Payne', 'absen': '02', 'checked': false},
+      {'name': 'Laporan', 'absen': '01', 'checked': false},
+      {'name': 'Izin', 'absen': '02', 'checked': false},
+      {'name': 'Sakit', 'absen': '03', 'checked': false},
     ],
     'Kamar C': [
-      {'name': 'Alice Brown', 'absen': '01', 'checked': false},
-      {'name': 'Bob Smith', 'absen': '02', 'checked': false},
+      {'name': 'Laporan', 'absen': '01', 'checked': false},
+      {'name': 'Izin', 'absen': '02', 'checked': false},
+      {'name': 'Sakit', 'absen': '03', 'checked': false},
     ],
     'Kamar D': [
-      {'name': 'Charlie Green', 'absen': '01', 'checked': false},
-      {'name': 'Emma White', 'absen': '02', 'checked': false},
+      {'name': 'Laporan', 'absen': '01', 'checked': false},
+      {'name': 'Izin', 'absen': '02', 'checked': false},
+      {'name': 'Sakit', 'absen': '03', 'checked': false},
     ],
   };
 
@@ -309,6 +314,18 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar>
     });
   }
 
+  void _navigateToDetail(Map<String, dynamic> siswa) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AbsenDetailPage(
+          siswa: siswa,
+          kelas: selectedClass!,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -342,19 +359,14 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Absensi Kelas',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      'Absensi Kelas',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
                     ),
                     SizedBox(height: 8),
                     Text(
@@ -392,8 +404,7 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar>
                     child: AnimatedContainer(
                       duration: Duration(milliseconds: 300),
                       width: MediaQuery.of(context).size.width * 0.7,
-                      margin:
-                          EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       padding: EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: isSelected ? Colors.white : Colors.blue.shade50,
@@ -440,29 +451,6 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar>
                               ),
                             ],
                           ),
-                          if (selectedClass == kelas) ...[
-                            SizedBox(height: 8),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade50,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                checkedCount ==
-                                        (siswaData[selectedClass]?.length ??
-                                            0)
-                                    ? 'Hadir Semua ✓'
-                                    : 'Hadir: $checkedCount',
-                                style: TextStyle(
-                                  color: Colors.blue.shade700,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),
@@ -472,218 +460,77 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar>
             ),
             SizedBox(height: 20),
             if (selectedClass != null) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Daftar Siswa',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade900,
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: attendanceSavedStatus[selectedClass!]! ? null : _toggleCheckAllStudents,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade600,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                      child: Text(
-                        _areAllChecked ? 'Batalkan Semua' : 'Centang Semua',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               Expanded(
                 child: ListView.builder(
                   padding: EdgeInsets.all(16),
                   itemCount: siswaData[selectedClass]?.length ?? 0,
                   itemBuilder: (context, index) {
                     var siswa = siswaData[selectedClass]![index];
-                    return AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
-                      margin: EdgeInsets.symmetric(vertical: 6),
-                      decoration: BoxDecoration(
-                        color: siswa['checked']
-                            ? Colors.blue.shade50
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: Offset(0, 4),
+                    return GestureDetector(
+                      onTap: () => _navigateToDetail(siswa),
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 300),
+                        margin: EdgeInsets.symmetric(vertical: 6),
+                        decoration: BoxDecoration(
+                          color: siswa['checked']
+                              ? Colors.blue.shade50
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: siswa['checked']
+                                ? Colors.blue.shade100
+                                : Colors.grey.shade100,
+                            child: Text(
+                              siswa['name'][0],
+                              style: TextStyle(
+                                color: siswa['checked']
+                                    ? Colors.blue.shade900
+                                    : Colors.grey.shade700,
+                              ),
+                            ),
                           ),
-                        ],
-                      ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: siswa['checked']
-                              ? Colors.blue.shade100
-                              : Colors.grey.shade100,
-                          child: Text(
-                            siswa['name'][0],
+                          title: Text(
+                            siswa['name'],
                             style: TextStyle(
+                              fontWeight: FontWeight.bold,
                               color: siswa['checked']
                                   ? Colors.blue.shade900
-                                  : Colors.grey.shade700,
+                                  : Colors.black87,
                             ),
                           ),
-                        ),
-                        title: Text(
-                          siswa['name'],
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: siswa['checked']
-                                ? Colors.blue.shade900
-                                : Colors.black87,
-                          ),
-                        ),
-                        subtitle: _isEditing
-                            ? TextField(
-                                decoration: InputDecoration(
-                                  hintText: 'Tambahkan keterangan',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                          subtitle: _isEditing
+                              ? TextField(
+                                  decoration: InputDecoration(
+                                    hintText: 'Tambahkan keterangan',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      siswa['note'] = value;
+                                    });
+                                  },
+                                )
+                              : Text(
+                                  siswa['note'] ?? '',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
                                   ),
                                 ),
-                                onChanged: (value) {
-                                  setState(() {
-                                    siswa['note'] = value;
-                                  });
-                                },
-                              )
-                            : Text(
-                                siswa['note'] ?? '',
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                        trailing: Transform.scale(
-                          scale: 1.2,
-                          child: Checkbox(
-                            value: siswa['checked'],
-                            onChanged: attendanceSavedStatus[selectedClass!]! && !_isEditing ? null : (value) => _toggleCheck(index),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            activeColor: Colors.blue.shade700,
-                          ),
                         ),
                       ),
                     );
                   },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    if (!attendanceSavedStatus[selectedClass!]!) ...[
-                      ElevatedButton(
-                        onPressed: _saveAttendance,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade800,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          elevation: 5,
-                          shadowColor: Colors.blue.shade200,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.save_rounded, color: Colors.white),
-                            SizedBox(width: 8),
-                            Text(
-                              'Simpan Absensi',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    if (attendanceSavedStatus[selectedClass!]!) ...[
-                      SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ElevatedButton(
-                            onPressed: _showCheckedStudents,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade600,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              elevation: 5,
-                              shadowColor: Colors.blue.shade200,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.visibility, color: Colors.white),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Lihat Absensi',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: _toggleEditing,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange.shade600,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              elevation: 5,
-                              shadowColor: Colors.orange.shade200,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit, color: Colors.white),
-                                SizedBox(width: 8),
-                                Text(
-                                  _isEditing ? 'Selesai Edit' : 'Edit Absensi',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
                 ),
               ),
             ] else ...[
