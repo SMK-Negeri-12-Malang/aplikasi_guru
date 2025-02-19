@@ -58,31 +58,14 @@ class NewsDetailPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    margin: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          spreadRadius: 2,
-                          blurRadius: 8,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.file(
-                        news['image'],
-                        width: double.infinity,
-                        height: 200, // Fixed height for consistency
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                  Image.file(
+                    news['image'],
+                    width: double.infinity,
+                    // Remove height constraint and fit to show original aspect ratio
+                    fit: BoxFit.contain,
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.all(16.0),
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
