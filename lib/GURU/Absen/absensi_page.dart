@@ -153,7 +153,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                 },
                 child: Text('Simpan'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: const Color.fromARGB(255, 17, 82, 136),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
@@ -214,7 +214,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
-              Icon(Icons.people, color: Colors.blue.shade800),
+              Icon(Icons.people, color: const Color.fromARGB(255, 13, 65, 124)),
               SizedBox(width: 8),
               Text('Daftar Kehadiran'),
             ],
@@ -399,7 +399,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
               onPressed: () => Navigator.pop(context),
               child: Text('Tutup'),
               style: TextButton.styleFrom(
-                foregroundColor: Colors.blue.shade700,
+                foregroundColor: const Color.fromARGB(255, 16, 72, 129),
               ),
             ),
           ],
@@ -433,7 +433,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                 padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 22),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.blue.shade900, Colors.blue.shade700],
+                    colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -443,7 +443,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.shade900.withOpacity(0.3),
+                      color: const Color.fromARGB(255, 10, 55, 122).withOpacity(0.3),
                       blurRadius: 10,
                       offset: Offset(0, 5),
                     ),
@@ -523,7 +523,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                               : [],
                           border: Border.all(
                             color: isSelected
-                                ? Colors.blue.shade300
+                                ? const Color.fromARGB(255, 18, 69, 110)
                                 : Colors.transparent,
                             width: 2,
                           ),
@@ -537,8 +537,8 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                                 Icon(
                                   Icons.class_,
                                   color: isSelected
-                                      ? Colors.blue.shade900
-                                      : Colors.blue.shade300,
+                                      ? const Color.fromARGB(255, 18, 91, 199)
+                                      : const Color.fromARGB(255, 78, 171, 247),
                                   size: 24,
                                 ),
                                 SizedBox(width: 8),
@@ -568,7 +568,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                                       ? 'Hadir Semua ✓'
                                       : 'Hadir: $checkedCount',
                                   style: TextStyle(
-                                    color: Colors.blue.shade700,
+                                    color: const Color.fromARGB(255, 12, 71, 129),
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -601,7 +601,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                     ElevatedButton(
                       onPressed: attendanceSavedStatus[selectedClass!]! ? null : _toggleCheckAllStudents,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade600,
+                        backgroundColor: const Color.fromARGB(255, 19, 91, 155),
                         foregroundColor: Colors.white,
                         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         shape: RoundedRectangleBorder(
@@ -695,7 +695,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              activeColor: Colors.blue.shade700,
+                              activeColor: const Color.fromARGB(255, 17, 85, 153),
                             ),
                           ),
                         ),
