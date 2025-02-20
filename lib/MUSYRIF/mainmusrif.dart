@@ -1,9 +1,7 @@
 import 'package:aplikasi_ortu/MUSYRIF/Absen/absensi_page.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Grade/grade_page.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Home/coba.dart';
+import 'package:aplikasi_ortu/MUSYRIF/keuangan/keuangan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/home_musyrif.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Profil/profil.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Laporan_musyrif/laporan_musyrif.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,7 +20,7 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
 
   final List<NavItem> _navItems = [
     NavItem(icon: Icons.note_add, label: 'Grade'),
-    NavItem(icon: Icons.report, label: 'Laporan'),
+    NavItem(icon: Icons.account_balance_wallet, label: 'keuangan'),
     NavItem(icon: Icons.home, label: 'Home'),
     NavItem(icon: Icons.list, label: 'Absen'),
     NavItem(icon: Icons.person, label: 'Profil'),
@@ -112,8 +110,8 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
             });
           },
           children: [
-            GradePage(),
-            coba(),
+            Keuangan(),
+            Keuangan(),
             DashboardMusyrifPage(),
             AbsensiPageKamar(),    
             profilmusryf(),

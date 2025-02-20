@@ -240,7 +240,7 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.class_, size: 40, color: Colors.blue),
+                    Icon(Icons.class_, size: 40, color: const Color.fromARGB(255, 18, 84, 138)),
                     SizedBox(width: 16),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,7 +258,7 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                   ],
                 ),
                 IconButton(
-                  icon: Icon(Icons.assessment, color: Colors.blue),
+                  icon: Icon(Icons.assessment, color: const Color.fromARGB(255, 27, 91, 143)),
                   onPressed: () => _navigateToRekapPage(className),
                 ),
               ],
@@ -395,7 +395,7 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
               padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 22),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.blue.shade900, Colors.blue.shade700],
+                  colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),

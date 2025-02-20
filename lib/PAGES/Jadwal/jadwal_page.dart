@@ -37,7 +37,7 @@ class _JadwalPageState extends State<JadwalPage> {
             ),
             child: SafeArea(
               child: Padding(
-                padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 24),
+                padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 11),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

@@ -433,7 +433,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                 padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 22),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.blue.shade900, Colors.blue.shade700],
+                    colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),

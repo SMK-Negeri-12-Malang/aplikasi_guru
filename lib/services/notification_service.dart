@@ -20,23 +20,24 @@ class NotificationService {
   }
 
   Future<void> addNotification(Map<String, dynamic> notification) async {
-    final notifications = await getNotifications();
-    // Check if notification already exists
-    bool exists = notifications.any((n) => 
-        n['taskName'] == notification['taskName'] && 
-        n['className'] == notification['className']);
-    
-    if (!exists) {
-      notifications.add(notification);
-      await saveNotifications(notifications);
-    }
+    final prefs = await SharedPreferences.getInstance();
+    List<Map<String, dynamic>> notifications = await getNotifications();
+    notifications.add(notification);
+    await prefs.setString(_notificationsKey, json.encode(notifications));
   }
 
   Future<void> removeNotification(int index) async {
-    final notifications = await getNotifications();
+    final prefs = await SharedPreferences.getInstance();
+    List<Map<String, dynamic>> notifications = await getNotifications();
+    
     if (index >= 0 && index < notifications.length) {
       notifications.removeAt(index);
-      await saveNotifications(notifications);
+      await prefs.setString(_notificationsKey, json.encode(notifications));
     }
+  }
+
+  Future<void> clearNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_notificationsKey);
   }
 }

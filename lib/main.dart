@@ -189,7 +189,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
                 );
               }),
               currentIndex: _currentIndex,
-              selectedItemColor: Colors.blue[700],
+              selectedItemColor: const Color.fromARGB(255, 33, 93, 153),
               unselectedItemColor: Colors.black54,
               backgroundColor: Colors.white,
               type: BottomNavigationBarType.fixed,

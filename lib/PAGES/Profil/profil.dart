@@ -68,7 +68,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> with SingleTicker
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Colors.blue[400]!, Colors.blue[800]!],
+                      colors: [Color.fromARGB(255, 46, 65, 134), Color(0xFF4557A4)],
                     ),
                   ),
                   child: Column(
