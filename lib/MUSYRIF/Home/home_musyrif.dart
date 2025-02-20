@@ -1,12 +1,12 @@
-import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Gallery/gallery_list.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Aktivitas/gallery_list.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/laporan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Perijinan/perijinan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Models/gallery_item.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'Menu/pengaturan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Models/news_item.dart';
+import 'package:shimmer/shimmer.dart';
 import 'Models/activity_item.dart';
 
 class DashboardMusyrifPage extends StatefulWidget {
@@ -84,11 +84,16 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
     ),
   ];
 
+  bool _isLoadingNews = true;
+  bool _isLoadingGallery = true;
+  bool _isLoadingActivity = true;
+
   @override
   void initState() {
     super.initState();
     _loadProfileData();
     _startAutoScroll();
+    _simulateLoading();
   }
 
   Future<void> _loadProfileData() async {
@@ -114,6 +119,24 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
     });
   }
 
+  void _simulateLoading() {
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _isLoadingNews = false;
+      });
+    });
+    Future.delayed(const Duration(seconds: 3), () {
+      setState(() {
+        _isLoadingGallery = false;
+      });
+    });
+    Future.delayed(const Duration(seconds: 4), () {
+      setState(() {
+        _isLoadingActivity = false;
+      });
+    });
+  }
+
   // Fungsi untuk pindah halaman berdasarkan nama button
   void _onButtonPressed(String buttonType) {
     print("Button pressed: $buttonType");
@@ -129,15 +152,45 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
       case 'Kesehatan':
         Navigator.push(context, MaterialPageRoute(builder: (context) => Kesehatan()));
         break;
-      case 'Pengaturan':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => PengaturanPage()));
-        break;
       default:
         print('Unknown button type');
     }
   }
 
+  Widget _buildShimmerEffect({required double height, required double width}) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+        height: height,
+        width: width,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    );
+  }
+
   Widget _buildNewsCarousel() {
+    if (_isLoadingNews) {
+      return Column(
+        children: [
+          _buildShimmerEffect(height: 200, width: double.infinity),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              3,
+              (index) => Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                child: _buildShimmerEffect(height: 8, width: 8),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
     return Column(
       children: [
         SizedBox(
@@ -230,6 +283,40 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
   }
 
   Widget _buildGallerySection() {
+    if (_isLoadingGallery) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildShimmerEffect(height: 24, width: 100),
+                  _buildShimmerEffect(height: 24, width: 80),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 120,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 3,
+                itemBuilder: (context, index) {
+                  return Container(
+                    width: 120,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    child: _buildShimmerEffect(height: 120, width: 120),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       decoration: BoxDecoration(
@@ -309,6 +396,39 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
   }
 
   Widget _buildActivitySection() {
+    if (_isLoadingActivity) {
+      return Container(
+        margin: const EdgeInsets.only(top: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildShimmerEffect(height: 24, width: 150),
+                  _buildShimmerEffect(height: 24, width: 80),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 3,
+              itemBuilder: (context, index) {
+                return Container(
+                  height: 120,
+                  margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: _buildShimmerEffect(height: 120, width: double.infinity),
+                );
+              },
+            ),
+          ],
+        ),
+      );
+    }
     return Container(
       margin: const EdgeInsets.only(top: 16.0),
       padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -332,7 +452,7 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
                 ),
                 TextButton(
                   onPressed: () {
-                    // Navigate to activity list page
+                  
                   },
                   child: Text(
                     'Lihat Semua',

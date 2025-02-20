@@ -1,9 +1,9 @@
-import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
-import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
-import 'package:aplikasi_ortu/PAGES/Jadwal/jadwal_page.dart';
-import 'package:aplikasi_ortu/PAGES/Home/Home_Guru.dart';
-import 'package:aplikasi_ortu/PAGES/Profil/profil.dart';
-import 'package:aplikasi_ortu/SPLASHSCREEN/splashscreen.dart';
+import 'package:aplikasi_ortu/GURU/Absen/absensi_page.dart';
+import 'package:aplikasi_ortu/GURU/Grade/class_selection_page.dart';
+import 'package:aplikasi_ortu/GURU/Jadwal/jadwal_page.dart';
+import 'package:aplikasi_ortu/GURU/Home/Home_Guru.dart';
+import 'package:aplikasi_ortu/GURU/Profil/profil.dart';
+import 'package:aplikasi_ortu/splashscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'utils/page_transitions.dart';
