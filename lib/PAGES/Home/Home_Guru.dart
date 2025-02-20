@@ -446,7 +446,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         if (_deadlineNotifications.isNotEmpty)
                           TextButton.icon(
                             icon: Icon(Icons.warning_amber_rounded,
-                                color: const Color.fromARGB(255, 181, 211, 47),
+                                color: const Color.fromARGB(255, 41, 230, 88),
                                 size: 20),
                             label: Text(
                               _showingDeadlines
@@ -454,7 +454,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                   : 'Lihat Deadline',
                               style: TextStyle(
                                   color:
-                                      const Color.fromARGB(255, 186, 211, 47)),
+                                      const Color.fromARGB(255, 41, 230, 88)),
                             ),
                             onPressed: () {
                               setState(() {
@@ -698,8 +698,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 margin: EdgeInsets.only(right: 10),
                 decoration: BoxDecoration(
                   color: daysLeft == 0
-                      ? const Color.fromARGB(255, 226, 238, 121)
-                      : const Color.fromARGB(255, 246, 255, 205),
+                      ? const Color.fromARGB(255, 114, 114, 113)
+                      : const Color.fromARGB(255, 225, 226, 220),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 padding: EdgeInsets.all(12),
@@ -968,43 +968,81 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildClassButton(String title, VoidCallback onPressed) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 4),
+      margin: EdgeInsets.symmetric(vertical: 6), // Reduced from 8
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: Offset(0, 3),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
           ),
         ],
       ),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          minimumSize: Size(double.infinity, 60),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.class_, color: Colors.blue[700], size: 24),
-            SizedBox(width: 12),
-            Text(
-              title,
-              style: TextStyle(
-                color: Colors.black87,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(15),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16), // Reduced padding
+            height: 85, // Reduced from 100
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10), // Reduced from 12
+                  decoration: BoxDecoration(
+                    color: Color(0xFF2E3F7F).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.class_,
+                    color: Color(0xFF2E3F7F),
+                    size: 26, // Reduced from 30
+                  ),
+                ),
+                SizedBox(width: 16), // Reduced from 20
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          color: Color(0xFF2E3F7F),
+                          fontSize: 16, // Reduced from 18
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4), // Reduced from 6
+                      Text(
+                        'Lihat detail tugas kelas',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 13, // Reduced from 14
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF2E3F7F).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.arrow_forward_ios,
+                    color: Color(0xFF2E3F7F),
+                    size: 18, // Reduced from 20
+                  ),
+                ),
+              ],
             ),
-            Spacer(),
-            Icon(Icons.arrow_forward_ios, color: Colors.blue[700], size: 18),
-          ],
+          ),
         ),
       ),
     );
