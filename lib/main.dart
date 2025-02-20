@@ -1,9 +1,9 @@
-import 'package:aplikasi_ortu/PAGES/Absen/absensi_page.dart';
-import 'package:aplikasi_ortu/PAGES/Grade/class_selection_page.dart';
-import 'package:aplikasi_ortu/PAGES/Jadwal/jadwal_page.dart';
-import 'package:aplikasi_ortu/PAGES/Home/Home_Guru.dart';
-import 'package:aplikasi_ortu/PAGES/Profil/profil.dart';
-import 'package:aplikasi_ortu/SPLASHSCREEN/splashscreen.dart';
+import 'package:aplikasi_ortu/GURU/Absen/absensi_page.dart';
+import 'package:aplikasi_ortu/GURU/Grade/class_selection_page.dart';
+import 'package:aplikasi_ortu/GURU/Jadwal/jadwal_page.dart';
+import 'package:aplikasi_ortu/GURU/Home/Home_Guru.dart';
+import 'package:aplikasi_ortu/GURU/Profil/profil.dart';
+import 'package:aplikasi_ortu/splashscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'utils/page_transitions.dart';
@@ -12,8 +12,8 @@ import 'utils/animations.dart';
 void main() {
   runApp(MyApp());
 }
-//yanto
-//herman
+
+//coba push
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -68,7 +68,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
 
   final List<NavItem> _navItems = [
     NavItem(icon: Icons.note_add, label: 'Nilai'),
-    NavItem(icon: Icons.calendar_today, label: 'Jadwal'), // Changed icon and label
+    NavItem(icon: Icons.calendar_today, label: 'Jadwal'), 
     NavItem(icon: Icons.home, label: 'Home'),
     NavItem(icon: Icons.list, label: 'Absen'),
     NavItem(icon: Icons.person, label: 'Profil'),
