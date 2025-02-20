@@ -68,7 +68,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> with SingleTicker
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Colors.blue[400]!, Colors.blue[800]!],
+                      colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
                     ),
                   ),
                   child: Column(
@@ -154,7 +154,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> with SingleTicker
                                     color: Colors.blue[50],
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Icon(Icons.phone, color: Colors.blue[700]),
+                                  child: Icon(Icons.phone, color: const Color.fromARGB(255, 15, 75, 134)),
                                 ),
                                 title: Text(
                                   'Nomor Telepon',
@@ -180,7 +180,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> with SingleTicker
                                     color: Colors.blue[50],
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Icon(Icons.location_on, color: Colors.blue[700]),
+                                  child: Icon(Icons.location_on, color: const Color.fromARGB(255, 16, 90, 165)),
                                 ),
                                 title: Text(
                                   'Alamat',
@@ -213,7 +213,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> with SingleTicker
                                 _editProfile(context);
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue[700],
+                                backgroundColor: const Color.fromARGB(255, 14, 73, 133),
                                 minimumSize: Size(double.infinity, 50),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),

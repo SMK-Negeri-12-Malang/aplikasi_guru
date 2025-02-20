@@ -1,5 +1,5 @@
+import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import '../../widgets/custom_app_bar.dart';
 
 class AbsenPage extends StatelessWidget {
   @override
