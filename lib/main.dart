@@ -12,8 +12,8 @@ import 'utils/animations.dart';
 void main() {
   runApp(MyApp());
 }
-//yanto
-//herman
+
+//coba push
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
