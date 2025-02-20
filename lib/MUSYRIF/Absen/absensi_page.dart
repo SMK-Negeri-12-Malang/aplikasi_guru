@@ -404,7 +404,7 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar>
                     child: AnimatedContainer(
                       duration: Duration(milliseconds: 300),
                       width: MediaQuery.of(context).size.width * 0.7,
-                      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       padding: EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: isSelected ? Colors.white : Colors.blue.shade50,
