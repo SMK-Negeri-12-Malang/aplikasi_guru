@@ -2,6 +2,8 @@ import 'package:aplikasi_ortu/MUSYRIF/Home/Detail_page/Berita/all_news_page.dart
 import 'package:flutter/material.dart';
 
 class ActivitySection extends StatelessWidget {
+  ActivitySection({Key? key}) : super(key: key);  // Add constructor with optional key
+
   final List<Map<String, String>> newsItems = [
     {
       'imageUrl': 'https://picsum.photos/200/200', // Example image URL
@@ -83,7 +85,7 @@ class ActivitySection extends StatelessWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.network(
-                          newsItems[index]['imageUrl']!,
+                          newsItems[index]['imageUrl'] ?? '', // Add null check operator
                           width: 100,
                           height: 100,
                           fit: BoxFit.cover,
@@ -95,7 +97,7 @@ class ActivitySection extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              newsItems[index]['title']!,
+                              newsItems[index]['title'] ?? '', // Add null check operator
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -103,7 +105,7 @@ class ActivitySection extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              newsItems[index]['description']!,
+                              newsItems[index]['description'] ?? '', // Add null check operator
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey,
@@ -113,7 +115,7 @@ class ActivitySection extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              newsItems[index]['time']!,
+                              newsItems[index]['time'] ?? '', // Add null check operator
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey,

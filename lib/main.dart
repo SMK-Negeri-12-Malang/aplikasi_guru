@@ -68,7 +68,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
 
   final List<NavItem> _navItems = [
     NavItem(icon: Icons.note_add, label: 'Nilai'),
-    NavItem(icon: Icons.calendar_today, label: 'Jadwal'), // Changed icon and label
+    NavItem(icon: Icons.calendar_today, label: 'Jadwal'), 
     NavItem(icon: Icons.home, label: 'Home'),
     NavItem(icon: Icons.list, label: 'Absen'),
     NavItem(icon: Icons.person, label: 'Profil'),
