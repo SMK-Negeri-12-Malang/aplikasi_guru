@@ -18,10 +18,18 @@ class _JadwalPageState extends State<JadwalPage> {
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blue.shade900, Colors.blue.shade700],
+                colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  spreadRadius: 5,
+                  blurRadius: 15,
+                  offset: Offset(0, 3),
+                ),
+              ],
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(30),
                 bottomRight: Radius.circular(30),
@@ -75,40 +83,62 @@ class _JadwalPageState extends State<JadwalPage> {
               itemCount: kelas.length,
               itemBuilder: (context, index) {
                 return Container(
-                  height: 90, // Make the container taller
+                  height: 120, // Increased from 90 to 120
                   margin: EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(15),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.3), // More visible shadow
-                        spreadRadius: 3,
-                        blurRadius: 7,
-                        offset: Offset(0, 3),
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 2,
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
                       ),
                     ],
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white,
+                        Colors.grey.shade50,
+                      ],
+                    ),
                   ),
                   child: ListTile(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 25, vertical: 20), // Increased padding
-                    title: Text(
-                      kelas[index],
-                      style: TextStyle(
-                        fontSize: 18, // Larger font size
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 25, vertical: 25), // Increased vertical padding
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          kelas[index],
+                          style: TextStyle(
+                            fontSize: 22, // Increased from 18 to 22
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2E3F7F),
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Lihat detail jadwal',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
                     ),
                     trailing: Container(
-                      padding: EdgeInsets.all(12), // Larger icon container
+                      padding: EdgeInsets.all(16), // Increased from 12 to 16
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
+                        color: Color(0xFF2E3F7F).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         Icons.arrow_forward_ios,
-                        color: Colors.blue,
-                        size: 24, // Larger icon
+                        color: Color(0xFF2E3F7F),
+                        size: 28, // Increased from 24 to 28
                       ),
                     ),
                     onTap: () {
