@@ -1,6 +1,6 @@
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/laporan.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Perijinan/perijinan.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Izin/izin.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Widgets/berita_baru.dart';
@@ -39,10 +39,13 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(120.0),
         child: AppBar(
-          backgroundColor: const Color.fromARGB(255, 233, 233, 233),
           flexibleSpace: Container(
             decoration: BoxDecoration(
-             color: Color(0xFF2E3F7F),
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade900, Colors.blue.shade700],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(30),
                 bottomRight: Radius.circular(30),
@@ -178,12 +181,12 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
     print("Button pressed: $buttonType");
     switch (buttonType) {
       case 'Laporan':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => Laporan(onNewsAdded: (news) {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Laporan(
           // Handle the news added
-        })));
+        )));
         break;
       case 'Perizinan':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => AttendancePage()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => IzinPage()));
         break;
       case 'Kesehatan':
         Navigator.push(context, MaterialPageRoute(builder: (context) => Kesehatan()));

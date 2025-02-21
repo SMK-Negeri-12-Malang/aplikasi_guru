@@ -1,4 +1,6 @@
+import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan_detail.dart';
 import 'package:flutter/material.dart';
+ // Impor halaman detail
 
 class Santri {
   final String name;
@@ -6,6 +8,17 @@ class Santri {
 
   Santri(this.name, this.kelas);
 }
+
+class KesehatanSantri {
+  final String name;
+  final String kelas;
+  final String keluhan;
+
+  KesehatanSantri({required this.name, required this.kelas, required this.keluhan});
+}
+
+// List global untuk menyimpan data kesehatan
+List<KesehatanSantri> kesehatanList = [];
 
 class Kesehatan extends StatefulWidget {
   @override
@@ -23,19 +36,45 @@ class _KesehatanPageState extends State<Kesehatan> {
     Santri("Ahmad", "10A"), Santri("Budi", "11B"), Santri("Chandra", "12C"),
     Santri("Dewi", "10A"), Santri("Eka", "11B"), Santri("Faisal", "12C"),
     Santri("Gita", "10A"), Santri("Hadi", "11B"), Santri("Indra", "12C"),
-    Santri("Joko", "10A"), Santri("Kiki", "11B"), Santri("Lina", "12C"),
-    Santri("Mira", "10A"), Santri("Nanda", "11B"), Santri("Omar", "12C"),
-    Santri("Putri", "10A"), Santri("Qori", "11B"), Santri("Rizki", "12C"),
-    Santri("Siti", "10A"), Santri("Taufik", "11B"), Santri("Umar", "12C"),
-    Santri("Vina", "10A"), Santri("Wahyu", "11B"), Santri("Xenia", "12C"),
-    Santri("Yogi", "10A"), Santri("Zahra", "11B"), Santri("Bagas", "12C"),
-    Santri("Citra", "10A"), Santri("Dian", "11B"), Santri("Edo", "12C"),
   ];
 
   void _updateClass(String name) {
     setState(() {
       _selectedClass = _santriList.firstWhere((santri) => santri.name == name, orElse: () => Santri("", "")).kelas;
     });
+  }
+
+  void _saveData() {
+    String nama = _nameController.text;
+    String kelas = _selectedClass ?? "-";
+    String keluhan = _keluhanController.text;
+
+    if (nama.isEmpty || keluhan.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Harap isi semua data")),
+      );
+      return;
+    }
+
+    // Simpan data ke list global
+    kesehatanList.add(KesehatanSantri(name: nama, kelas: kelas, keluhan: keluhan));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Data disimpan: $nama - $kelas - $keluhan")),
+    );
+
+    // Kosongkan input setelah simpan
+    _nameController.clear();
+    _keluhanController.clear();
+    setState(() {
+      _selectedClass = null;
+    });
+
+    // Pindah ke halaman detail
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => DetailKesehatan(kamar: kelas)),
+    );
   }
 
   @override
@@ -138,22 +177,7 @@ class _KesehatanPageState extends State<Kesehatan> {
                   borderRadius: BorderRadius.circular(25),
                 ),
               ),
-              onPressed: () {
-                String nama = _nameController.text;
-                String kelas = _selectedClass ?? "-";
-                String keluhan = _keluhanController.text;
-
-                if (nama.isEmpty || keluhan.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Harap isi semua data")),
-                  );
-                  return;
-                }
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Data disimpan: $nama - $kelas - $keluhan")),
-                );
-              },
+              onPressed: _saveData,
               child: Text(
                 "Simpan",
                 style: TextStyle(
