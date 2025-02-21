@@ -25,12 +25,10 @@ class _AbsensiKelasPageState extends State<tugaskelas>
   late AnimationController _controller;
   late Animation<double> _animation;
 
-  final List<String> kelasList = ['Tugas', 'Kamar B', 'Kamar C', 'Kamar D'];
+  final List<String> kelasList = ['Tugas', 'Ujian'];
   final Map<String, List<Map<String, dynamic>>> siswaData = {
     'Tugas': [], // Empty list initially
-    'Kamar B': [],
-    'Kamar C': [],
-    'Kamar D': [],
+    'Ujian': [],
   };
 
   String? selectedClass;
@@ -51,6 +49,10 @@ class _AbsensiKelasPageState extends State<tugaskelas>
     }).toList();
   }
 
+  // Add this controller
+  late PageController _categoryPageController;
+  int _currentCategoryPage = 0;
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +66,7 @@ class _AbsensiKelasPageState extends State<tugaskelas>
       curve: Curves.easeInOut,
     );
     _controller.forward();
+    _categoryPageController = PageController(viewportFraction: 0.85); // Changed viewportFraction
   }
 
   Future<void> _loadSavedTasks() async {
@@ -77,6 +80,7 @@ class _AbsensiKelasPageState extends State<tugaskelas>
   void dispose() {
     _controller.dispose();
     searchController.dispose();
+    _categoryPageController.dispose();
     super.dispose();
   }
 
@@ -124,7 +128,7 @@ void _addNewTask() {
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey),
+                        border: Border.all(color: const Color.fromARGB(255, 247, 244, 244)),
                       ),
                       child: InkWell(
                         onTap: () async {
@@ -144,7 +148,7 @@ void _addNewTask() {
                                   ? Icons.file_present
                                   : Icons.upload_file,
                               size: 30,
-                              color: Colors.grey,
+                              color: const Color.fromARGB(255, 155, 153, 153),
                             ),
                             SizedBox(width: 12),
                             Text(
@@ -435,6 +439,131 @@ void _addNewTask() {
     );
   }
 
+  Widget _buildCategorySelector() {
+    return Container(
+      height: 180, // Reduced height
+      margin: EdgeInsets.only(top: 0), // Added top margin to reduce space
+      padding: EdgeInsets.only(left: 15), // Added left padding
+      child: Row(
+        children: [
+          Expanded(
+            child: PageView.builder(
+              controller: _categoryPageController,
+              scrollDirection: Axis.vertical,
+              itemCount: kelasList.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentCategoryPage = index;
+                  selectedClass = kelasList[index];
+                  selectedIndex = index;
+                  checkedCount = siswaData[selectedClass]!
+                      .where((siswa) => siswa['checked'])
+                      .length;
+                });
+              },
+              itemBuilder: (context, index) {
+                String kelas = kelasList[index];
+                bool isSelected = selectedIndex == index;
+                return Container(
+                  margin: EdgeInsets.symmetric(vertical: 5), // Reduced from 5
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white : Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(15), // Reduced from 20
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.shade100.withOpacity(0.5),
+                        blurRadius: 8, // Reduced from 10
+                        offset: Offset(0, 4), // Reduced from 5
+                      ),
+                    ],
+                    border: Border.all(
+                      color: isSelected ? const Color.fromARGB(255, 11, 83, 143) : Colors.transparent,
+                      width: 1.5, // Reduced from 2
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(3), // Reduced from 4
+                              decoration: BoxDecoration(
+                                color: isSelected ? Colors.blue.shade50 : Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.assignment,
+                                color: isSelected ? Colors.blue.shade900 : Colors.blue.shade300,
+                                size: 28, // Reduced from 35
+                              ),
+                            ),
+                            SizedBox(height: 8), // Reduced from 12
+                            Text(
+                              kelas,
+                              style: TextStyle(
+                                fontSize: 18, // Reduced from 22
+                                fontWeight: FontWeight.bold,
+                                color: isSelected ? Colors.blue.shade900 : Colors.blue.shade300,
+                              ),
+                            ),
+                            if (selectedClass == kelas)
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 3), // Reduced padding
+                                margin: EdgeInsets.only(top: 4), // Reduced from 5
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade50,
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Text(
+                                  checkedCount == (siswaData[selectedClass]?.length ?? 0)
+                                      ? 'Selesai Semua ✓'
+                                      : 'Selesai: $checkedCount',
+                                  style: TextStyle(
+                                    color: Colors.blue.shade700,
+                                    fontSize: 11, // Reduced from 13
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          // Dot indicators
+          Container(
+            width: 16,
+            padding: EdgeInsets.symmetric(vertical: 8),
+            margin: EdgeInsets.only(right: 16), // Added right margin
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                kelasList.length,
+                (index) => Container(
+                  width: 6,
+                  height: 6,
+                  margin: EdgeInsets.symmetric(vertical: 3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentCategoryPage == index
+                        ? Colors.blue.shade700
+                        : Colors.grey.shade300,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -445,7 +574,7 @@ void _addNewTask() {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 22),
+              padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 22), // Reduced vertical padding
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Colors.blue.shade900, Colors.blue.shade700],
@@ -536,108 +665,8 @@ void _addNewTask() {
                 ),
               ),
             ),
-            SizedBox(height: 20),
-            Container(
-              height: 120,
-              child: ListView.builder(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: kelasList.length,
-                itemBuilder: (context, index) {
-                  String kelas = kelasList[index];
-                  bool isSelected = selectedIndex == index;
-                  return GestureDetector(
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      setState(() {
-                        selectedClass = kelas;
-                        selectedIndex = index;
-                        checkedCount = siswaData[selectedClass]!
-                            .where((siswa) => siswa['checked'])
-                            .length;
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
-                      width: MediaQuery.of(context).size.width * 0.7,
-                      margin:
-                          EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: isSelected ? Colors.white : Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: Colors.blue.shade100,
-                                  blurRadius: 10,
-                                  offset: Offset(0, 5),
-                                ),
-                              ]
-                            : [],
-                        border: Border.all(
-                          color: isSelected
-                              ? Colors.blue.shade300
-                              : Colors.transparent,
-                          width: 2,
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.class_,
-                                color: isSelected
-                                    ? Colors.blue.shade900
-                                    : Colors.blue.shade300,
-                                size: 24,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                kelas,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: isSelected
-                                      ? Colors.blue.shade900
-                                      : Colors.blue.shade300,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (selectedClass == kelas) ...[
-                            SizedBox(height: 8),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade50,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                checkedCount ==
-                                        (siswaData[selectedClass]?.length ??
-                                            0)
-                                    ? 'Selesai Semua ✓'
-                                    : 'Selesai: $checkedCount',
-                                style: TextStyle(
-                                  color: Colors.blue.shade700,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+            SizedBox(height: 10), // Reduced spacing from 20 to 10
+            _buildCategorySelector(),
             SizedBox(height: 20),
             if (selectedClass != null) ...[
               Padding(
