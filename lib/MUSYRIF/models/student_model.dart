@@ -16,6 +16,8 @@ class Student {
       kelas: json['kelas'],
     );
   }
+
+  get id => null;
 }
 
 class StudentData {

@@ -61,3 +61,7 @@ class _HistoryPageState extends State<HistoryPage> {
     );
   }
 }
+
+
+StatusIcon({required String status}) {
+}

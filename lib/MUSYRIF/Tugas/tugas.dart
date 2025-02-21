@@ -122,8 +122,12 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
                         ),
                       ),
                       ElevatedButton.icon(
-                        icon: Icon(Icons.history),
-                        label: Text('History'),
+                        icon: Icon(Icons.history,
+                        color: Color.fromARGB(255, 255, 255, 255),),
+                        label: Text('History',
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 255, 255, 255),
+                        ),),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF2E3F7F),
                           shape: RoundedRectangleBorder(
@@ -131,21 +135,12 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
                           ),
                         ),
                         onPressed: () {
-                          if (selectedDate.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Pilih tanggal terlebih dahulu'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                            return;
-                          }
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => HistoryPage(
                                 kategori: selectedKamar,
-                                selectedDate: selectedDate,
+                                selectedDate: selectedDate.isEmpty ? '' : selectedDate,
                               ),
                             ),
                           );
