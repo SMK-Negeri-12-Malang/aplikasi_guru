@@ -1,10 +1,10 @@
 import 'package:aplikasi_ortu/MUSYRIF/Absen/absensi_page.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Tugas/tugas.dart';
 import 'package:aplikasi_ortu/MUSYRIF/keuangan/keuangan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/home_musyrif.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Profil/profil.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 
 class homemusryf extends StatefulWidget {
   @override
@@ -19,7 +19,7 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<NavItem> _navItems = [
-    NavItem(icon: Icons.task, label: 'Tugas'),
+    NavItem(icon: Icons.note_add, label: 'Grade'),
     NavItem(icon: Icons.account_balance_wallet, label: 'keuangan'),
     NavItem(icon: Icons.home, label: 'Home'),
     NavItem(icon: Icons.list, label: 'Absen'),
@@ -56,7 +56,8 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? imagePath = prefs.getString('profile_image');
     if (imagePath != null) {
-      setState(() {});
+      setState(() {
+      });
     }
   }
 
@@ -95,21 +96,21 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
       },
       child: Scaffold(
         key: _scaffoldKey,
-        appBar: _currentIndex == 2 || _currentIndex == 4 || _currentIndex == 3 || _currentIndex == 1 || _currentIndex == 0 ? null : AppBar(
+        appBar: _currentIndex == 2 || _currentIndex == 4 || _currentIndex == 3 || _currentIndex == 1 ? null : AppBar(
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           title: Text(_getAppBarTitle(), textAlign: TextAlign.center),
           centerTitle: true,
         ),
         body: PageView(
           controller: _pageController,
-          physics: NeverScrollableScrollPhysics(),
+          physics: NeverScrollableScrollPhysics(), // Disable page swiping
           onPageChanged: (index) {
             setState(() {
               _currentIndex = index;
             });
           },
           children: [
-            Tugas(),
+            Keuangan(),
             Keuangan(),
             DashboardMusyrifPage(),
             AbsensiPageKamar(),    
@@ -140,6 +141,12 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
                           : 1.0,
                       child: Container(
                         padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          //color: index == _currentIndex
+                            //  ? Colors.blue.withOpacity(0.2)
+                              //: Colors.transparent,
+                          //borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Icon(_navItems[index].icon),
                       ),
                     );
@@ -162,8 +169,22 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
     );
   }
 
+
   String _getAppBarTitle() {
-    return '';
+    switch (_currentIndex) {
+      case 0:
+        return '';
+      case 1:
+        return '';
+      case 2:
+        return '';
+      case 3:
+        return '';
+      case 4:
+        return '';
+      default:
+        return '';
+    }
   }
 }
 

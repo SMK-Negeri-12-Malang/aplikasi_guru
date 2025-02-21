@@ -17,7 +17,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       appBar: AppBar(
         title: Text('Edit Profil'),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 12, 73, 134),
+        backgroundColor: Colors.blue[700],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -49,7 +49,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 fillColor: Colors.blue[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: const Color.fromARGB(255, 21, 98, 161), width: 2),
+                  borderSide: BorderSide(color: Colors.blue, width: 2),
                 ),
                 contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
@@ -79,7 +79,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 fillColor: Colors.blue[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: const Color.fromARGB(255, 16, 87, 145), width: 2),
+                  borderSide: BorderSide(color: Colors.blue, width: 2),
                 ),
                 contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
@@ -111,7 +111,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 fillColor: Colors.blue[50],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: const Color.fromARGB(255, 11, 64, 107), width: 2),
+                  borderSide: BorderSide(color: Colors.blue, width: 2),
                 ),
                 contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
@@ -134,7 +134,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 15, 66, 117), // Warna latar belakang tombol
+                backgroundColor: Colors.blue[700], // Warna latar belakang tombol
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
