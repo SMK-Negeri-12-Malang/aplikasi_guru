@@ -78,7 +78,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
-
+  
     // Initialize slide animation controller
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 800),
