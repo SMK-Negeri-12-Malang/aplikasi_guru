@@ -240,6 +240,190 @@ class _DashboardPageState extends State<DashboardPage> {
     return _schedules.where((schedule) => schedule.hari == today).toList();
   }
 
+  Future<bool> _confirmDelete() async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: Text('Hapus Notifikasi'),
+          content: Text('Apakah Anda yakin ingin menghapus notifikasi ini?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Batal', style: TextStyle(color: Colors.grey)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('Hapus', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
+  }
+
+  void _showDeleteSuccessSnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Notifikasi berhasil dihapus'),
+          ],
+        ),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationIcon() {
+    return Stack(
+      children: [
+        IconButton(
+          icon: Icon(Icons.notifications, 
+               color: const Color.fromARGB(255, 255, 255, 255)),
+          onPressed: _showNotification,
+        ),
+        if (_deadlineNotifications.isNotEmpty)
+          Positioned(
+            right: 12,
+            top: 12,
+            child: Container(
+              padding: EdgeInsets.all(1),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white,
+                  width: 0.5,
+                ),
+              ),
+              constraints: BoxConstraints(
+                minWidth: 10,
+                minHeight: 10,
+              ),
+              child: _deadlineNotifications.length < 10 
+                ? Container(
+                    width: 4,
+                    height: 4,
+                  )
+                : Text(
+                    '${_deadlineNotifications.length}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 7,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildNotificationItem(Map<String, dynamic> notification, int index) {
+    return Dismissible(
+      key: UniqueKey(), // Use UniqueKey for stable deletion
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: EdgeInsets.only(right: 20.0),
+        child: Icon(Icons.delete, color: Colors.white),
+      ),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (direction) => _confirmDelete(),
+      onDismissed: (direction) async {
+        try {
+          await _notificationService.removeNotification(index);
+          setState(() {
+            _deadlineNotifications.removeAt(index);
+          });
+          _showDeleteSuccessSnackbar();
+          // If the list is now empty, update the notification badge
+          if (_deadlineNotifications.isEmpty) {
+            setState(() {});
+          }
+        } catch (e) {
+          print('Error deleting notification: $e');
+          // Revert the UI if deletion fails
+          setState(() {
+            _loadNotifications();
+          });
+        }
+      },
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.blue[50],
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 5,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: const Color.fromARGB(255, 15, 74, 122),
+            child: Icon(Icons.assignment, color: Colors.white),
+          ),
+          title: Text(
+            notification['taskName'],
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Kelas: ${notification['className']}'),
+              Text(
+                'Deadline: ${notification['deadline']}',
+                style: TextStyle(color: Colors.red),
+              ),
+            ],
+          ),
+          trailing: IconButton(
+            icon: Icon(Icons.delete_outline, color: Colors.red[300]),
+            onPressed: () async {
+              if (await _confirmDelete()) {
+                try {
+                  await _notificationService.removeNotification(index);
+                  setState(() {
+                    _deadlineNotifications.removeAt(index);
+                  });
+                  _showDeleteSuccessSnackbar();
+                  // If the list is now empty, update the notification badge
+                  if (_deadlineNotifications.isEmpty) {
+                    setState(() {});
+                  }
+                } catch (e) {
+                  print('Error deleting notification: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Gagal menghapus notifikasi'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showNotification() {
     showModalBottomSheet(
       context: context,
@@ -280,7 +464,9 @@ class _DashboardPageState extends State<DashboardPage> {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    Icon(Icons.notifications, color: Colors.blue, size: 24),
+                    Icon(Icons.notifications,
+                        color: const Color.fromARGB(255, 19, 82, 134),
+                        size: 24),
                     SizedBox(width: 10),
                     Text(
                       'Notifikasi',
@@ -317,48 +503,8 @@ class _DashboardPageState extends State<DashboardPage> {
                     : ListView.builder(
                         itemCount: _deadlineNotifications.length,
                         itemBuilder: (context, index) {
-                          final notification = _deadlineNotifications[index];
-                          return Container(
-                            margin: EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue[50],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Colors.blue,
-                                child: Icon(
-                                  Icons.assignment,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              title: Text(
-                                notification['taskName'],
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Kelas: ${notification['className']}'),
-                                  Text(
-                                    'Deadline: ${notification['deadline']}',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ],
-                              ),
-                              trailing: IconButton(
-                                icon: Icon(Icons.close),
-                                onPressed: () async {
-                                  await _notificationService
-                                      .removeNotification(index);
-                                  await _loadNotifications();
-                                },
-                              ),
-                            ),
-                          );
+                          return _buildNotificationItem(
+                              _deadlineNotifications[index], index);
                         },
                       ),
               ),
@@ -430,7 +576,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             children: [
                               Icon(Icons.calendar_today,
                                   color:
-                                      const Color.fromARGB(255, 223, 234, 245),
+                                      const Color.fromARGB(255, 255, 255, 255),
                                   size: 20),
                               SizedBox(width: 8),
                               Text(
@@ -438,7 +584,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                     ? 'Deadline Tugas'
                                     : 'Jadwal Hari ${_getHariIni()}',
                                 style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
+                                    color: const Color.fromARGB(255, 0, 0, 0),
+                                    fontSize: 14, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -447,12 +594,13 @@ class _DashboardPageState extends State<DashboardPage> {
                           TextButton.icon(
                             icon: Icon(Icons.warning_amber_rounded,
                                 color: const Color.fromARGB(255, 41, 230, 88),
-                                size: 20),
+                                size: 15),
                             label: Text(
                               _showingDeadlines
                                   ? 'Lihat Jadwal'
                                   : 'Lihat Deadline',
                               style: TextStyle(
+                                  fontSize: 13,
                                   color:
                                       const Color.fromARGB(255, 41, 230, 88)),
                             ),
@@ -468,7 +616,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             child: Text(
                               '${_currentScheduleIndex + 1}/${jadwalHariIni.length}',
                               style: TextStyle(
-                                color: Colors.grey[600],
+                                color: const Color.fromARGB(255, 241, 240, 240),
                                 fontSize: 14,
                               ),
                             ),
@@ -520,7 +668,7 @@ class _DashboardPageState extends State<DashboardPage> {
               children: [
                 Icon(
                   Icons.event_busy,
-                  color: Colors.blue[300],
+                  color: const Color.fromARGB(255, 15, 66, 107),
                   size: 24,
                 ),
                 SizedBox(width: 12),
@@ -573,10 +721,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [
-                          Colors.blue[700]!,
-                          Colors.blue[500]!,
-                        ],
+                        colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
                       ),
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
@@ -604,7 +749,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           style: TextStyle(
                             fontSize: 16, // Reduced from 18 to 16
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue[900],
+                            color: const Color.fromARGB(255, 11, 49, 105),
                           ),
                         ),
                         SizedBox(height: 4), // Reduced spacing from 6 to 4
@@ -612,7 +757,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           jadwalHariIni[_currentScheduleIndex].kelas,
                           style: TextStyle(
                             fontSize: 14, // Reduced from 16 to 14
-                            color: Colors.blue[800],
+                            color: const Color.fromARGB(255, 13, 66, 126),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -621,14 +766,15 @@ class _DashboardPageState extends State<DashboardPage> {
                           padding: EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4), // Reduced padding
                           decoration: BoxDecoration(
-                            color: Colors.blue[700]!.withOpacity(0.1),
+                            color: const Color.fromARGB(255, 19, 83, 146)!
+                                .withOpacity(0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             jadwalHariIni[_currentScheduleIndex].jam,
                             style: TextStyle(
                               fontSize: 13, // Reduced from 14 to 13
-                              color: Colors.blue[700],
+                              color: const Color.fromARGB(255, 24, 103, 182),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -641,10 +787,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [
-                          Colors.blue[600]!.withOpacity(0.9),
-                          Colors.blue[400]!.withOpacity(0.9),
-                        ],
+                        colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
                       ),
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -698,8 +841,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 margin: EdgeInsets.only(right: 10),
                 decoration: BoxDecoration(
                   color: daysLeft == 0
-                      ? const Color.fromARGB(255, 114, 114, 113)
-                      : const Color.fromARGB(255, 225, 226, 220),
+                      ? const Color.fromARGB(255, 253, 253, 253)
+                      : const Color.fromARGB(255, 255, 255, 255),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 padding: EdgeInsets.all(12),
@@ -769,8 +912,8 @@ class _DashboardPageState extends State<DashboardPage> {
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    Colors.blue.shade900,
-                                    Colors.blue.shade700
+                                    Color(0xFF2E3F7F),
+                                    Color(0xFF4557A4)
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
@@ -827,12 +970,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                             ),
                                           ],
                                         ),
-                                        IconButton(
-                                          icon: Icon(Icons.notifications,
-                                              color: const Color.fromARGB(
-                                                  255, 255, 255, 255)),
-                                          onPressed: _showNotification,
-                                        ),
+                                        _buildNotificationIcon(),
                                       ],
                                     ),
                                   ],
@@ -987,7 +1125,8 @@ class _DashboardPageState extends State<DashboardPage> {
           onTap: onPressed,
           borderRadius: BorderRadius.circular(15),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16), // Reduced padding
+            padding: EdgeInsets.symmetric(
+                horizontal: 16, vertical: 16), // Reduced padding
             height: 85, // Reduced from 100
             child: Row(
               children: [
@@ -1093,10 +1232,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    Colors.blue[700]!.withOpacity(0.95),
-                    Colors.blue[900]!.withOpacity(0.95),
-                  ],
+                  colors: [Color(0xFF2E3F7F), Color.fromARGB(255, 117, 127, 170)],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
