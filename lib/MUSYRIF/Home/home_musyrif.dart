@@ -39,13 +39,10 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(120.0),
         child: AppBar(
+          backgroundColor: const Color.fromARGB(255, 233, 233, 233),
           flexibleSpace: Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blue.shade900, Colors.blue.shade700],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+             color: Color(0xFF2E3F7F),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(30),
                 bottomRight: Radius.circular(30),
