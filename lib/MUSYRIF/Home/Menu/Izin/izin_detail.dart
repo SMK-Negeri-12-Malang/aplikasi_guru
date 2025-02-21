@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+//izin detail
 class IzinDetail extends StatelessWidget {
   final String kamar;
 
