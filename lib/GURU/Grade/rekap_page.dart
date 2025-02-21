@@ -185,9 +185,9 @@ class _RekapPageState extends State<RekapPage> {
           children: [
             // Custom header instead of AppBar
             Container(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(25),
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: const Color.fromARGB(255, 16, 90, 150),
                 borderRadius: BorderRadius.vertical(
                   bottom: Radius.circular(15),
                 ),
@@ -287,7 +287,7 @@ class _RekapPageState extends State<RekapPage> {
                 // Implement CSV download here if needed
               },
               child: Icon(Icons.download),
-              backgroundColor: Colors.orange,
+              backgroundColor: const Color.fromARGB(255, 11, 189, 70),
             ),
     );
   }

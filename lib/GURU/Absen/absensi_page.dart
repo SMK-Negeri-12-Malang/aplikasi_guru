@@ -31,6 +31,9 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
   bool _areAllChecked = false;
   bool _isEditing = false;
 
+  late PageController _categoryPageController;
+  int _currentCategoryPage = 0;
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +41,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
+    _categoryPageController = PageController(viewportFraction: 0.85);
     _controller.forward();
     _fetchData();
   }
@@ -45,6 +49,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
   @override
   void dispose() {
     _controller.dispose();
+    _categoryPageController.dispose();
     super.dispose();
   }
 
@@ -412,6 +417,127 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
     setState(() {
       _isEditing = !_isEditing;
     });
+  }
+
+  Widget _buildClassSelector() {
+    return Column(
+      children: [
+        Container(
+          height: MediaQuery.of(context).size.height * 0.15,
+          child: PageView.builder(
+            controller: _categoryPageController,
+            itemCount: kelasList.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentCategoryPage = index;
+                selectedClass = kelasList[index];
+                selectedIndex = index;
+                checkedCount = siswaData[selectedClass]!
+                    .where((siswa) => siswa['checked'])
+                    .length;
+              });
+            },
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, index) {
+              return AnimatedBuilder(
+                animation: _categoryPageController,
+                builder: (context, child) {
+                  double value = 1.0;
+                  if (_categoryPageController.position.haveDimensions) {
+                    value = _categoryPageController.page! - index;
+                    value = (1 - (value.abs() * 0.3)).clamp(0.85, 1.0);
+                  }
+                  return Transform.scale(
+                    scale: value,
+                    child: _buildClassCard(index),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+        // Dot indicators moved below
+        SizedBox(height: 16), // Space between card and indicators
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            kelasList.length,
+            (index) => Container(
+              width: 8,
+              height: 8,
+              margin: EdgeInsets.symmetric(horizontal: 6),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _currentCategoryPage == index
+                    ? Colors.blue.shade700
+                    : Colors.grey.shade300,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildClassCard(int index) {
+    String kelas = kelasList[index];
+    bool isSelected = selectedIndex == index;
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: isSelected ? Colors.white : Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.shade100.withOpacity(0.5),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: isSelected ? Colors.blue.shade300 : Colors.transparent,
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.class_,
+            color: isSelected ? Colors.blue.shade900 : Colors.blue.shade300,
+            size: 28,
+          ),
+          SizedBox(height: 8),
+          Text(
+            kelas,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isSelected ? Colors.blue.shade900 : Colors.blue.shade300,
+            ),
+          ),
+          if (selectedClass == kelas)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+              margin: EdgeInsets.only(top: 4),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Text(
+                checkedCount == (siswaData[selectedClass]?.length ?? 0)
+                    ? 'Hadir Semua ✓'
+                    : 'Hadir: $checkedCount',
+                style: TextStyle(
+                  color: Colors.blue.shade700,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   @override
