@@ -171,7 +171,7 @@ class _TablePageState extends State<TablePage> {
               Text('Nilai berhasil disimpan'),
             ],
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: const Color.fromARGB(255, 76, 175, 101),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           margin: EdgeInsets.all(16),
@@ -402,9 +402,9 @@ class _TablePageState extends State<TablePage> {
           children: [
             // Custom header
             Container(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(25),
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: const Color.fromARGB(255, 16, 89, 150),
                 borderRadius: BorderRadius.vertical(
                   bottom: Radius.circular(15),
                 ),
@@ -538,7 +538,7 @@ class _TablePageState extends State<TablePage> {
                             heroTag: 'add_column',
                             onPressed: _addColumn,
                             child: Icon(Icons.add_box),
-                            backgroundColor: Colors.green,
+                            backgroundColor: const Color.fromARGB(255, 172, 224, 29),
                             tooltip: 'Tambah Kolom',
                           ),
                           SizedBox(height: 8),
@@ -546,7 +546,7 @@ class _TablePageState extends State<TablePage> {
                             heroTag: 'edit',
                             onPressed: _editTask,
                             child: Icon(isEditing ? Icons.save : Icons.edit),
-                            backgroundColor: isEditing ? Colors.green : Colors.blue,
+                            backgroundColor: isEditing ? const Color.fromARGB(255, 140, 175, 76) : const Color.fromARGB(255, 152, 243, 33),
                             tooltip: isEditing ? 'Simpan Nilai' : 'Edit Nilai',
                           ),
                           SizedBox(height: 8),
@@ -554,7 +554,7 @@ class _TablePageState extends State<TablePage> {
                             heroTag: 'download',
                             onPressed: _downloadCSV,
                             child: Icon(Icons.download),
-                            backgroundColor: Colors.orange,
+                            backgroundColor: const Color.fromARGB(255, 19, 184, 19),
                             tooltip: 'Unduh CSV',
                           ),
                         ],

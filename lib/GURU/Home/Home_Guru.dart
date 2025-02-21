@@ -242,27 +242,29 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<bool> _confirmDelete() async {
     return await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          title: Text('Hapus Notifikasi'),
-          content: Text('Apakah Anda yakin ingin menghapus notifikasi ini?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Batal', style: TextStyle(color: Colors.grey)),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text('Hapus', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    ) ?? false;
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              title: Text('Hapus Notifikasi'),
+              content:
+                  Text('Apakah Anda yakin ingin menghapus notifikasi ini?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text('Batal', style: TextStyle(color: Colors.grey)),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text('Hapus', style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
   }
 
   void _showDeleteSuccessSnackbar() {
@@ -289,8 +291,8 @@ class _DashboardPageState extends State<DashboardPage> {
     return Stack(
       children: [
         IconButton(
-          icon: Icon(Icons.notifications, 
-               color: const Color.fromARGB(255, 255, 255, 255)),
+          icon: Icon(Icons.notifications,
+              color: const Color.fromARGB(255, 255, 255, 255)),
           onPressed: _showNotification,
         ),
         if (_deadlineNotifications.isNotEmpty)
@@ -311,20 +313,20 @@ class _DashboardPageState extends State<DashboardPage> {
                 minWidth: 10,
                 minHeight: 10,
               ),
-              child: _deadlineNotifications.length < 10 
-                ? Container(
-                    width: 4,
-                    height: 4,
-                  )
-                : Text(
-                    '${_deadlineNotifications.length}',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 7,
-                      fontWeight: FontWeight.bold,
+              child: _deadlineNotifications.length < 10
+                  ? Container(
+                      width: 4,
+                      height: 4,
+                    )
+                  : Text(
+                      '${_deadlineNotifications.length}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 7,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
             ),
           ),
       ],
@@ -461,7 +463,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
                     Icon(Icons.notifications,
@@ -532,7 +534,7 @@ class _DashboardPageState extends State<DashboardPage> {
     String hariIni = _getHariIni();
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16),
+      margin: EdgeInsets.symmetric(horizontal: 10),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(15),
         child: BackdropFilter(
@@ -563,7 +565,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.all(20.0), // Increased padding
+              padding: const EdgeInsets.all(12), // Increased padding
               child: Container(
                 height: 200, // Increased height from 180 to 200
                 child: Column(
@@ -585,7 +587,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                     : 'Jadwal Hari ${_getHariIni()}',
                                 style: TextStyle(
                                     color: const Color.fromARGB(255, 0, 0, 0),
-                                    fontSize: 14, fontWeight: FontWeight.bold),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -886,190 +889,174 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     _getJadwalMengajarBesok();
     return Scaffold(
-      backgroundColor:
-          Color.fromARGB(255, 233, 233, 233), // Changed to custom light gray
-      body: SafeArea(
-        // Add SafeArea
-        child: RefreshIndicator(
-          onRefresh: _reloadProfileData,
-          child: LayoutBuilder(
-            // Add LayoutBuilder
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                // Wrap everything in SingleChildScrollView
-                physics: AlwaysScrollableScrollPhysics(),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: Column(
-                    children: [
-                      Stack(
-                        children: [
-                          ClipPath(
-                            clipper: AppBarClipper(),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Color(0xFF2E3F7F),
-                                    Color(0xFF4557A4)
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                              ),
-                              height: 230,
-                            ),
-                          ),
-                          Column(
+      backgroundColor: Colors.transparent, // Changed to transparent
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF2E3F7F),
+              const Color.fromARGB(255, 255, 255, 255),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: _reloadProfileData,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(
+                              top: 50, left: 20, right: 20, bottom: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
-                                padding: EdgeInsets.only(
-                                    top: 50, left: 20, right: 20),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 25,
-                                              backgroundColor: Colors.white,
-                                              backgroundImage: _profileImagePath !=
-                                                      null
-                                                  ? FileImage(
-                                                      File(_profileImagePath!))
-                                                  : AssetImage(
-                                                          'assets/profile_picture.png')
-                                                      as ImageProvider,
-                                            ),
-                                            SizedBox(width: 10),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  _name,
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 20,
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                                Text(
-                                                  _email,
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 16),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                        _buildNotificationIcon(),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 25,
+                                    backgroundColor: Colors.white,
+                                    backgroundImage: _profileImagePath != null
+                                        ? FileImage(File(_profileImagePath!))
+                                        : AssetImage(
+                                                'assets/profile_picture.png')
+                                            as ImageProvider,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _name,
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        _email,
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              SizedBox(height: 20),
-                              _buildScheduleCard(),
+                              _buildNotificationIcon(),
                             ],
                           ),
-                        ],
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: 20),
-                            // News section
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Berita',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.add),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            NewsPage(onNewsAdded: _addNews),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 15),
-                            // News card
-                            FutureBuilder(
-                              future: _loadingFuture,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return _buildLoadingShimmer();
-                                }
-                                return _buildCardItem();
-                              },
-                            ),
-                            SizedBox(height: 20),
-                            // Class assignments section
-                            Text('Penugasan Kelas',
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold)),
-                            SizedBox(height: 10),
-                            _isLoadingClasses
-                                ? Center(child: CircularProgressIndicator())
-                                : ListView.builder(
-                                    physics: NeverScrollableScrollPhysics(),
-                                    shrinkWrap: true,
-                                    itemCount: _classList.length,
-                                    itemBuilder: (context, index) {
-                                      final classData = _classList[index];
-                                      return Padding(
-                                        padding: EdgeInsets.only(bottom: 10),
-                                        child: _buildClassButton(
-                                          classData.kelas,
-                                          () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    tugaskelas(
-                                                  onTaskAdded:
-                                                      (task, className) {
-                                                    updateDeadlineNotifications(
-                                                        task, classData.kelas);
-                                                  },
-                                                ),
-                                              ),
-                                            );
-                                          },
+                        ),
+                        _buildScheduleCard(),
+                        // Remove the Stack and ClipPath here since we're using gradient background
+
+                        // Rest of the content
+                        Padding(
+                          padding: EdgeInsets.only(
+                            left: 15, // Padding kiri
+                            right: 11,
+                            top: 0, 
+                            bottom: 5,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: 20),
+                              // News section
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Berita',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.add),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              NewsPage(onNewsAdded: _addNews),
                                         ),
                                       );
                                     },
                                   ),
-                            SizedBox(height: 20), // Add bottom padding
-                          ],
+                                ],
+                              ),
+                              SizedBox(height: 15),
+                              // News card
+                              FutureBuilder(
+                                future: _loadingFuture,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return _buildLoadingShimmer();
+                                  }
+                                  return _buildCardItem();
+                                },
+                              ),
+                              SizedBox(height: 20),
+                              // Class assignments section
+                              Text('Penugasan Kelas',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold)),
+                              SizedBox(height: 10),
+                              _isLoadingClasses
+                                  ? Center(child: CircularProgressIndicator())
+                                  : ListView.builder(
+                                      physics: NeverScrollableScrollPhysics(),
+                                      shrinkWrap: true,
+                                      itemCount: _classList.length,
+                                      itemBuilder: (context, index) {
+                                        final classData = _classList[index];
+                                        return Padding(
+                                          padding: EdgeInsets.only(bottom: 10),
+                                          child: _buildClassButton(
+                                            classData.kelas,
+                                            () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      tugaskelas(
+                                                    onTaskAdded:
+                                                        (task, className) {
+                                                      updateDeadlineNotifications(
+                                                          task,
+                                                          classData.kelas);
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        );
+                                      },
+                                    ),
+                              SizedBox(height: 20), // Add bottom padding
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -1232,7 +1219,10 @@ class _DashboardPageState extends State<DashboardPage> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF2E3F7F), Color.fromARGB(255, 117, 127, 170)],
+                  colors: [
+                    Color(0xFF2E3F7F),
+                    Color.fromARGB(255, 117, 127, 170)
+                  ],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [

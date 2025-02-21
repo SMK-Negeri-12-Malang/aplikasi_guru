@@ -37,7 +37,7 @@ class JadwalDetailPage extends StatelessWidget {
                 children: [
                   // Back button and title
                   Padding(
-                    padding: EdgeInsets.all(16),
+                    padding: EdgeInsets.all(6),
                     child: Row(
                       children: [
                         IconButton(
