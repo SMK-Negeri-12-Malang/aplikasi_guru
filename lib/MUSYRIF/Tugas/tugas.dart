@@ -1,7 +1,9 @@
+import 'package:aplikasi_ortu/MUSYRIF/Tugas/history_page.dart';
 import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../models/student_model.dart';
 import '../services/student_service.dart';
+import 'activity_table_page.dart';
 
 class Tugas extends StatelessWidget {
   @override
@@ -108,13 +110,48 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Pilih Tugas",
-                    style: TextStyle(
-                      fontSize: screenWidth * 0.045,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2E3F7F),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Pilih Tugas",
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.045,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2E3F7F),
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        icon: Icon(Icons.history),
+                        label: Text('History'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF2E3F7F),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (selectedDate.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Pilih tanggal terlebih dahulu'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            return;
+                          }
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => HistoryPage(
+                                kategori: selectedKamar,
+                                selectedDate: selectedDate,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                   SizedBox(height: screenHeight * 0.02),
                   Container(
@@ -258,7 +295,26 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
                             ),
                           ),
                           onPressed: () {
-                            // Handle form submission
+                            if (selectedStudent != null && selectedDate.isNotEmpty && selectedSesi != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ActivityTablePage(
+                                    studentName: selectedStudent!.name,
+                                    date: selectedDate,
+                                    sesi: selectedSesi!,
+                                    kategori: selectedKamar,
+                                  ),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Mohon lengkapi semua data'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           },
                           child: Text(
                             'Simpan',
