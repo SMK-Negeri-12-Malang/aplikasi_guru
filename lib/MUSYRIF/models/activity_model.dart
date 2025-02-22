@@ -1,15 +1,15 @@
 class Activity {
   final String aktivitas;
   final String kategori;
-  final String dilakukan;
-  late final int skor;
-  late final String keterangan;
+  String? dilakukan;  // Make nullable
+  int? skor;         // Make nullable
+  String keterangan;
 
   Activity({
     required this.aktivitas,
     required this.kategori,
-    required this.dilakukan,
-    required this.skor,
-    required this.keterangan,
+    this.dilakukan,  // Remove required
+    this.skor,      // Remove required
+    this.keterangan = '',
   });
 }
