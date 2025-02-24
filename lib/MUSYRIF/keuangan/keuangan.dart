@@ -1,4 +1,5 @@
 import 'package:aplikasi_ortu/MUSYRIF/keuangan/detail_keuangan.dart';
+import 'package:aplikasi_ortu/MUSYRIF/models/transaction.dart';
 import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../models/student_data.dart';
@@ -229,6 +230,22 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
     );
   }
 
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: color, size: 20),
+        onPressed: onPressed,
+      ),
+    );
+  }
 
   Widget _buildRoomCard(int index, bool isSelected) {
     final screenWidth = MediaQuery.of(context).size.width;

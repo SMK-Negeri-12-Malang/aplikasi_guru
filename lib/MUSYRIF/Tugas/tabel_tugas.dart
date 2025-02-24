@@ -273,11 +273,11 @@ class ActivityDataSource extends DataGridSource {
         DataGridCell<String>(columnName: 'Kategori', value: activity.kategori),
         DataGridCell<String>(
           columnName: 'Dilakukan', 
-          value: activity.dilakukan == null || activity.dilakukan!.isEmpty ? '-' : activity.dilakukan!
+          value: activity.dilakukan ?? '-'
         ),
         DataGridCell<String>(
           columnName: 'Skor', 
-          value: activity.skor == null ? '-' : activity.skor.toString()
+          value: activity.skor?.toString() ?? '-'
         ),
         DataGridCell<String>(
           columnName: 'Keterangan', 

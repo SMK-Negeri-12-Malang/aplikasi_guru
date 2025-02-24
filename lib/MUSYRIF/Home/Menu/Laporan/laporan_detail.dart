@@ -12,7 +12,7 @@ class LaporanDetail extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Detail Laporan Pelanggaran - $kamar"),
+        title: Text("Detail Pelanggaran - $kamar"),
         backgroundColor: Colors.blueAccent,
       ),
       body: filteredLaporan.isEmpty
@@ -43,6 +43,7 @@ class LaporanDetail extends StatelessWidget {
                         "Kamar: ${data.kamar}\n"
                         "Pelanggaran: ${data.pelanggaran}\n"
                         "Tanggal: ${data.tanggal}\n"
+                        "iqob: ${data.iqob}\n"
                         "Poin: ${data.poin}",
                         style: TextStyle(fontSize: 16),
                       ),
@@ -52,5 +53,5 @@ class LaporanDetail extends StatelessWidget {
               },
             ),
     );
-  }
+  }//p
 }

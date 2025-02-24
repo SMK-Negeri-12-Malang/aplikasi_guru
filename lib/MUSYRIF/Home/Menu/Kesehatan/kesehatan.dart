@@ -1,20 +1,19 @@
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan_detail.dart';
 import 'package:flutter/material.dart';
- // Impor halaman detail
 
 class Santri {
   final String name;
-  final String kelas;
+  final String kamar;
 
-  Santri(this.name, this.kelas);
+  Santri(this.name, this.kamar);
 }
 
 class KesehatanSantri {
   final String name;
-  final String kelas;
+  final String kamar;
   final String keluhan;
 
-  KesehatanSantri({required this.name, required this.kelas, required this.keluhan});
+  KesehatanSantri({required this.name, required this.kamar, required this.keluhan});
 }
 
 // List global untuk menyimpan data kesehatan
@@ -28,25 +27,25 @@ class Kesehatan extends StatefulWidget {
 class _KesehatanPageState extends State<Kesehatan> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _keluhanController = TextEditingController();
-  String? _selectedClass;
+  String? _selectedKamar;
   bool _showDropdown = false;
   bool _showAllNames = false;
 
   final List<Santri> _santriList = [
-    Santri("Ahmad", "10A"), Santri("Budi", "11B"), Santri("Chandra", "12C"),
-    Santri("Dewi", "10A"), Santri("Eka", "11B"), Santri("Faisal", "12C"),
-    Santri("Gita", "10A"), Santri("Hadi", "11B"), Santri("Indra", "12C"),
+    Santri("Ahmad", "Kamar A"), Santri("Budi", "Kamar B"), Santri("Chandra", "Kamar C"),
+    Santri("Dewi", "Kamar A"), Santri("Eka", "Kamar B"), Santri("Faisal", "Kamar C"),
+    Santri("Gita", "Kamar A"), Santri("Hadi", "Kamar B"), Santri("Indra", "Kamar C"),
   ];
 
-  void _updateClass(String name) {
+  void _updateKamar(String name) {
     setState(() {
-      _selectedClass = _santriList.firstWhere((santri) => santri.name == name, orElse: () => Santri("", "")).kelas;
+      _selectedKamar = _santriList.firstWhere((santri) => santri.name == name, orElse: () => Santri("", "")).kamar;
     });
   }
 
   void _saveData() {
     String nama = _nameController.text;
-    String kelas = _selectedClass ?? "-";
+    String kamar = _selectedKamar ?? "-";
     String keluhan = _keluhanController.text;
 
     if (nama.isEmpty || keluhan.isEmpty) {
@@ -57,24 +56,21 @@ class _KesehatanPageState extends State<Kesehatan> {
     }
 
     // Simpan data ke list global
-    kesehatanList.add(KesehatanSantri(name: nama, kelas: kelas, keluhan: keluhan));
+    kesehatanList.add(KesehatanSantri(name: nama, kamar: kamar, keluhan: keluhan));
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Data disimpan: $nama - $kelas - $keluhan")),
+      SnackBar(content: Text("Data disimpan: $nama - $kamar - $keluhan")),
     );
 
     // Kosongkan input setelah simpan
     _nameController.clear();
     _keluhanController.clear();
     setState(() {
-      _selectedClass = null;
+      _selectedKamar = null;
     });
 
-    // Pindah ke halaman detail
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => DetailKesehatan(kamar: kelas)),
-    );
+    // Pindah ke halaman utama
+    Navigator.pop(context);
   }
 
   @override
@@ -108,7 +104,7 @@ class _KesehatanPageState extends State<Kesehatan> {
               },
               onChanged: (value) {
                 setState(() {});
-                _updateClass(value);
+                _updateKamar(value);
               },
             ),
             if (_showDropdown && filteredSantriList.isNotEmpty)
@@ -126,7 +122,7 @@ class _KesehatanPageState extends State<Kesehatan> {
                             title: Text(santri.name),
                             onTap: () {
                               _nameController.text = santri.name;
-                              _updateClass(santri.name);
+                              _updateKamar(santri.name);
                               setState(() {
                                 _showDropdown = false;
                               });
@@ -149,9 +145,9 @@ class _KesehatanPageState extends State<Kesehatan> {
               ),
             SizedBox(height: 10),
             TextField(
-              controller: TextEditingController(text: _selectedClass),
+              controller: TextEditingController(text: _selectedKamar),
               decoration: InputDecoration(
-                labelText: "Kelas",
+                labelText: "Kamar",
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
