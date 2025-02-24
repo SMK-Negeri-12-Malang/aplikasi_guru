@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 import 'laporan_detail.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Home/home_musyrif.dart'; // Import halaman dashboard
 
 class LaporanModel {
   final String nama;
   final String kamar;
   final String pelanggaran;
+  final String iqob;
   final String tanggal;
   final String poin;
+   
 
   LaporanModel({
     required this.nama,
     required this.kamar,
     required this.pelanggaran,
+    required this.iqob, // Add iqob field
     required this.tanggal,
     required this.poin,
+
   });
 }
 
@@ -29,6 +34,7 @@ class _LaporanState extends State<Laporan> {
   final TextEditingController _kamarController = TextEditingController();
   final TextEditingController _tanggalController = TextEditingController();
   final TextEditingController _poinController = TextEditingController();
+  final TextEditingController _iqobController = TextEditingController(); // Add iqob controller
   String? _selectedPelanggaran;
 
   final List<String> _pelanggaranList = [
@@ -49,12 +55,22 @@ class _LaporanState extends State<Laporan> {
     'Menggunakan handphone saat pembelajaran': 10,
   };
 
+  final Map<String, String> _iqobPelanggaran = {
+    'Terlambat': 'Membersihkan halaman',
+    'Tidak mengerjakan PR': 'Menulis ulang pelajaran',
+    'Membolos': 'Menghafal surat pendek',
+    'Berkelahi': 'Menulis surat permintaan maaf',
+    'Tidak berpakaian rapi': 'Membersihkan kamar',
+    'Menggunakan handphone saat pembelajaran': 'Menyerahkan handphone selama seminggu',
+  };
+
   final List<Map<String, String>> _siswaList = [
     {'nama': 'Ahmad', 'kamar': 'Kamar A'},
     {'nama': 'Aisyah', 'kamar': 'Kamar A'},
     {'nama': 'Budi', 'kamar': 'Kamar B'},
     {'nama': 'Citra', 'kamar': 'Kamar C'},
     {'nama': 'Dian', 'kamar': 'Kamar D'},
+    {'nama': 'Paul', 'kamar': 'Kamar A'},
   ];
 
   List<Map<String, String>> _filteredSiswa = [];
@@ -72,7 +88,8 @@ class _LaporanState extends State<Laporan> {
         _kamarController.text.isNotEmpty &&
         _selectedPelanggaran != null &&
         _tanggalController.text.isNotEmpty &&
-        _poinController.text.isNotEmpty) {
+        _poinController.text.isNotEmpty &&
+        _iqobController.text.isNotEmpty) {
       setState(() {
         laporanList.add(
           LaporanModel(
@@ -81,21 +98,19 @@ class _LaporanState extends State<Laporan> {
             pelanggaran: _selectedPelanggaran!,
             tanggal: _tanggalController.text,
             poin: _poinController.text,
+            iqob: _iqobController.text, // Add iqob field
           ),
         );
       });
 
       _namaController.clear();
       _kamarController.clear();
+      _iqobController.clear(); // Clear iqob controller
       _tanggalController.clear();
       _poinController.clear();
+     
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => LaporanDetail(kamar: _kamarController.text),
-        ),
-      );
+      Navigator.pop(context); // Navigate back to the previous page
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Harap isi semua data!')),
@@ -157,6 +172,7 @@ class _LaporanState extends State<Laporan> {
                   _selectedPelanggaran = newValue;
                   if (newValue != null) {
                     _poinController.text = _poinPelanggaran[newValue]!.toString();
+                    _iqobController.text = _iqobPelanggaran[newValue]!;
                   }
                 });
               },
@@ -165,10 +181,17 @@ class _LaporanState extends State<Laporan> {
               controller: _tanggalController,
               decoration: InputDecoration(labelText: 'Tanggal'),
             ),
+             TextField(
+              controller: _iqobController,
+              decoration: InputDecoration(labelText: 'Hukuman/Iqob'),
+              readOnly: true,
+            
+            ),
             TextField(
               controller: _poinController,
               decoration: InputDecoration(labelText: 'Poin Pelanggaran'),
               readOnly: true,
+           
             ),
             SizedBox(height: 20),
             ElevatedButton(

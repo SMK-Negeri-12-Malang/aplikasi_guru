@@ -9,7 +9,7 @@ class DetailKesehatan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Filter data berdasarkan kamar yang dipilih
-    final filteredList = kesehatanList.where((data) => data.kelas == kamar).toList();
+    final filteredList = kesehatanList.where((data) => data.kamar == kamar).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -26,7 +26,7 @@ class DetailKesehatan extends StatelessWidget {
                 return Card(
                   child: ListTile(
                     title: Text(data.name),
-                    subtitle: Text("Kelas: ${data.kelas}\nKeluhan: ${data.keluhan}"),
+                    subtitle: Text("Kamar: ${data.kamar}\nKeluhan: ${data.keluhan}"),
                   ),
                 );
               },

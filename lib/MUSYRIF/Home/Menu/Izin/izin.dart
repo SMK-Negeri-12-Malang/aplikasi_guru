@@ -1,236 +1,133 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'izin_detail.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Home/home_musyrif.dart';
+
+class IzinModel {
+  final String nama;
+  final String tanggal;
+  final String kamar;
+  final String halaqo;
+  final String musyrif;
+
+  IzinModel({
+    required this.nama,
+    required this.tanggal,
+    required this.kamar,
+    required this.halaqo,
+    required this.musyrif,
+  });
+}
+
+List<IzinModel> izinList = [
+  IzinModel(nama: 'Ahmad', tanggal: '01-02-2025 to 05-02-2025', kamar: 'Kelas A', halaqo: 'Halaqo 1', musyrif: 'Ustadz Ali'),
+  IzinModel(nama: 'Aisyah', tanggal: '02-02-2025 to 06-02-2025', kamar: 'Kelas A', halaqo: 'Halaqo 2', musyrif: 'Ustadzah Fatimah'),
+];
 
 class IzinPage extends StatefulWidget {
   @override
-  _AttendancePageState createState() => _AttendancePageState();
+  _IzinState createState() => _IzinState();
 }
 
-class _AttendancePageState extends State<IzinPage> {
-  DateTime? selectedDate;
-  DateTime? returnDate;
-  String? selectedName;
-  TextEditingController nameController = TextEditingController();
-  TextEditingController dateController = TextEditingController();
-  TextEditingController returnDateController = TextEditingController();
+class _IzinState extends State<IzinPage> {
+  final TextEditingController _namaController = TextEditingController();
+  final TextEditingController _tanggalMulaiController = TextEditingController();
+  final TextEditingController _tanggalKembaliController = TextEditingController();
+  final TextEditingController _kamarController = TextEditingController();
+  final TextEditingController _halaqoController = TextEditingController();
+  final TextEditingController _musyrifController = TextEditingController();
 
-  Map<String, Map<String, String>> studentData = {
-    'Ahmad': {'kelas': '10A', 'kamar': 'A1', 'halaqo': 'H1', 'musryf': 'Ust. Ali'},
-    'Budi': {'kelas': '10B', 'kamar': 'B2', 'halaqo': 'H2', 'musryf': 'Ust. Hasan'},
-    'Citra': {'kelas': '11A', 'kamar': 'C3', 'halaqo': 'H3', 'musryf': 'Ust. Yusuf'},
-  };
-
-  Map<String, int> permissionCount = {
-    'Ahmad': 2,
-    'Budi': 1,
-    'Citra': 3,
-  };
-
-  String kelas = '';
-  String kamar = '';
-  String halaqo = '';
-  String musryf = '';
-
-  void _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+    DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
     );
-    if (picked != null && picked != selectedDate) {
+    if (picked != null) {
       setState(() {
-        selectedDate = picked;
-        dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+        controller.text = "${picked.day}-${picked.month}-${picked.year}";
       });
     }
   }
 
-  void _selectReturnDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate ?? DateTime.now(),
-      firstDate: selectedDate ?? DateTime.now(),
-      lastDate: DateTime(2030),
-    );
-    if (picked != null && picked != returnDate) {
+  void _submitIzin() {
+    if (_namaController.text.isNotEmpty &&
+        _tanggalMulaiController.text.isNotEmpty &&
+        _tanggalKembaliController.text.isNotEmpty &&
+        _kamarController.text.isNotEmpty &&
+        _halaqoController.text.isNotEmpty &&
+        _musyrifController.text.isNotEmpty) {
       setState(() {
-        returnDate = picked;
-        returnDateController.text = DateFormat('yyyy-MM-dd').format(picked);
+        izinList.add(
+          IzinModel(
+            nama: _namaController.text,
+            tanggal: "${_tanggalMulaiController.text} to ${_tanggalKembaliController.text}",
+            kamar: _kamarController.text,
+            halaqo: _halaqoController.text,
+            musyrif: _musyrifController.text,
+          ),
+        );
       });
-    }
-  }
 
-  void _onNameSelected(String name) {
-    setState(() {
-      selectedName = name;
-      nameController.text = name;
-      kelas = studentData[name]?['kelas'] ?? '';
-      kamar = studentData[name]?['kamar'] ?? '';
-      halaqo = studentData[name]?['halaqo'] ?? '';
-      musryf = studentData[name]?['musryf'] ?? '';
-    });
-  }
+      _namaController.clear();
+      _tanggalMulaiController.clear();
+      _tanggalKembaliController.clear();
+      _kamarController.clear();
+      _halaqoController.clear();
+      _musyrifController.clear();
 
-  void _submitPermission() {
-    if (selectedName != null && selectedDate != null && returnDate != null) {
-      // Handle submission
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Perizinan berhasil disubmit')),
-      );
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Harap isi semua field termasuk tanggal kembali')),
+        SnackBar(content: Text('Harap isi semua data!')),
       );
     }
-  }
-
-  int calculateDays(DateTime startDate, DateTime endDate) {
-    return endDate.difference(startDate).inDays + 1;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Halaman Izin Siswa')),
+      appBar: AppBar(
+        title: Text('Formulir Izin'),
+        backgroundColor: Colors.green,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
+        padding: EdgeInsets.all(16),
+        child: Column(
           children: [
-            Autocomplete<String>(
-              optionsBuilder: (TextEditingValue textEditingValue) {
-                return studentData.keys.where(
-                  (option) => option.toLowerCase().contains(
-                        textEditingValue.text.toLowerCase(),
-                      ),
-                );
-              },
-              onSelected: _onNameSelected,
-              fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                return TextField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  decoration: InputDecoration(
-                    labelText: 'Nama Siswa',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: EdgeInsets.all(10),
-                  ),
-                );
-              },
-            ),
-            SizedBox(height: 10),
-            if (selectedName != null)
-              Container(
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.blue[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Jumlah izin semester ini: ${permissionCount[selectedName] ?? 0}',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            SizedBox(height: 10),
             TextField(
-              controller: dateController,
-              decoration: InputDecoration(
-                labelText: 'Tanggal Mulai Izin',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: EdgeInsets.all(10),
-              ),
-              readOnly: true,
-              onTap: () => _selectDate(context),
+              controller: _namaController,
+              decoration: InputDecoration(labelText: 'Nama'),
             ),
-            SizedBox(height: 10),
             TextField(
-              controller: returnDateController,
-              decoration: InputDecoration(
-                labelText: 'Tanggal Kembali',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: EdgeInsets.all(10),
-              ),
+              controller: _tanggalMulaiController,
+              decoration: InputDecoration(labelText: 'Tanggal Mulai'),
               readOnly: true,
-              onTap: () => _selectReturnDate(context),
+              onTap: () => _selectDate(context, _tanggalMulaiController),
             ),
-            SizedBox(height: 10),
             TextField(
-              controller: TextEditingController(text: kelas),
-              decoration: InputDecoration(
-                labelText: 'Kelas',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: EdgeInsets.all(10),
-              ),
+              controller: _tanggalKembaliController,
+              decoration: InputDecoration(labelText: 'Tanggal Kembali'),
               readOnly: true,
+              onTap: () => _selectDate(context, _tanggalKembaliController),
             ),
-            SizedBox(height: 10),
             TextField(
-              controller: TextEditingController(text: kamar),
-              decoration: InputDecoration(
-                labelText: 'Kamar',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: EdgeInsets.all(10),
-              ),
-              readOnly: true,
+              controller: _kamarController,
+              decoration: InputDecoration(labelText: 'Kamar'),
             ),
-            SizedBox(height: 10),
             TextField(
-              controller: TextEditingController(text: halaqo),
-              decoration: InputDecoration(
-                labelText: 'Halaqo',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: EdgeInsets.all(10),
-              ),
-              readOnly: true,
+              controller: _halaqoController,
+              decoration: InputDecoration(labelText: 'Halaqo'),
             ),
-            SizedBox(height: 10),
             TextField(
-              controller: TextEditingController(text: musryf),
-              decoration: InputDecoration(
-                labelText: 'Musyrif',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: EdgeInsets.all(10),
-              ),
-              readOnly: true,
+              controller: _musyrifController,
+              decoration: InputDecoration(labelText: 'Musyrif'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                if (selectedName != null && selectedDate != null && returnDate != null) {
-                  _submitPermission();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Harap isi semua field termasuk tanggal kembali')),
-                  );
-                }
-              },
-              child: Text(
-                'Kirim',
-                style: TextStyle(
-                  color: const Color.fromARGB(255, 255, 255, 255),
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 45),
-                backgroundColor: Colors.green,
-              ),
+              onPressed: _submitIzin,
+              child: Text('Simpan Izin'),
             ),
-            SizedBox(height: 20),
           ],
         ),
       ),
