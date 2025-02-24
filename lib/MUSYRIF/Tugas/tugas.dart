@@ -1,9 +1,9 @@
-import 'package:aplikasi_ortu/MUSYRIF/Tugas/history_page.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Tugas/tabel_history.dart';
 import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../models/student_model.dart';
 import '../services/student_service.dart';
-import 'activity_table_page.dart';
+import 'tabel_tugas.dart';
 
 class Tugas extends StatelessWidget {
   @override
@@ -122,8 +122,13 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
                         ),
                       ),
                       ElevatedButton.icon(
-                        icon: Icon(Icons.history),
-                        label: Text('History'),
+                        icon: Icon(Icons.history,
+                        color: Color.fromARGB(255, 255, 255, 255),
+                        ),
+                        label: Text('History',
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 255, 255, 255),
+                        ),),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF2E3F7F),
                           shape: RoundedRectangleBorder(
@@ -131,21 +136,11 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
                           ),
                         ),
                         onPressed: () {
-                          if (selectedDate.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Pilih tanggal terlebih dahulu'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                            return;
-                          }
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => HistoryPage(
                                 kategori: selectedKamar,
-                                selectedDate: selectedDate,
                               ),
                             ),
                           );
