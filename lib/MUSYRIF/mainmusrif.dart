@@ -121,7 +121,7 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withOpacity(0.2),
                 spreadRadius: 1,
                 blurRadius: 5,
                 offset: const Offset(0, -1),

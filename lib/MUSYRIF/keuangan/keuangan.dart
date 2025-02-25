@@ -58,7 +58,6 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
           CustomGradientAppBar(
             title: 'Keuangan Santri',
             icon: Icons.account_balance_wallet,
-            height: 100.0, // Reduced height
             textColor: Colors.white, // Explicitly set white text
             child: Container(), // Empty container since we don't need the centered content anymore
           ),
