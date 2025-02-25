@@ -1,3 +1,4 @@
+import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'izin_detail.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/home_musyrif.dart';
@@ -86,70 +87,130 @@ class _IzinState extends State<IzinPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Formulir Izin'),
-        backgroundColor: Colors.green,
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: _namaController,
-              decoration: InputDecoration(labelText: 'Nama',border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),),
-            ),
-            SizedBox(height:10),
-            TextField(
-              controller: _tanggalMulaiController,
-              decoration: InputDecoration(labelText: 'Tanggal Mulai',border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),),
-              readOnly: true,
-              onTap: () => _selectDate(context, _tanggalMulaiController),
-            ),
-            SizedBox(height:10),
-            TextField(
-              controller: _tanggalKembaliController,
-              decoration: InputDecoration(labelText: 'Tanggal Kembali',border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),),
-              readOnly: true,
-              onTap: () => _selectDate(context, _tanggalKembaliController),
-            ),
-            SizedBox(height:10),
-            TextField(
-              controller: _kamarController,
-              decoration: InputDecoration(labelText: 'Kamar',border:  OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),),
-            ),
-            SizedBox(height:10),
-            TextField(
-              controller: _halaqoController,
-              decoration: InputDecoration(labelText: 'Halaqo',border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),),
-            ),
-            SizedBox(height:10),
-            TextField(
-              controller: _musyrifController,
-              decoration: InputDecoration(labelText: 'Musyrif',border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+      backgroundColor: Color.fromARGB(255, 233, 233, 233),
+      body: CustomScrollView(
+        slivers: [
+          CustomGradientAppBar(
+            title: 'Formulir Izin',
+            icon: Icons.edit_note,
+            height: 100.0,
+            textColor: Colors.white,
+            child: Container(),
+          ),
+          SliverToBoxAdapter(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(screenWidth * 0.04),
+              child: Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildTextField(_namaController, 'Nama Santri', Icons.person),
+                      SizedBox(height: 16),
+                      Column(
+                        children: [
+                          _buildDateField(
+                            _tanggalMulaiController,
+                            'Tanggal keluar',
+                            () => _selectDate(context, _tanggalMulaiController),
+                          ),
+                          SizedBox(height: 16),
+                          _buildDateField(
+                            _tanggalKembaliController,
+                            'Tanggal Kembali',
+                            () => _selectDate(context, _tanggalKembaliController),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      _buildTextField(_kamarController, 'Kamar', Icons.room),
+                      SizedBox(height: 16),
+                      _buildTextField(_halaqoController, 'Halaqo', Icons.group),
+                      SizedBox(height: 16),
+                      _buildTextField(_musyrifController, 'Musyrif', Icons.supervisor_account),
+                      SizedBox(height: 24),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF2E3F7F),
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: _submitIzin,
+                        child: Text(
+                          'Simpan Izin',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              onPressed: _submitIzin,
-              child: Text('Simpan Izin', style: TextStyle(color: Colors.white)),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Color(0xFF2E3F7F)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey[300]!),
         ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Color(0xFF2E3F7F)),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildDateField(TextEditingController controller, String label, VoidCallback onTap) {
+    return TextFormField(
+      controller: controller,
+      readOnly: true,
+      onTap: onTap,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(Icons.calendar_today, color: Color(0xFF2E3F7F)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Color(0xFF2E3F7F)),
+        ),
+        filled: true,
+        fillColor: Colors.white,
       ),
     );
   }

@@ -2,67 +2,81 @@ import 'package:flutter/material.dart';
 
 class CustomGradientAppBar extends StatelessWidget {
   final String title;
-  final double height;
-  final Widget? child;
+  final String? subtitle;  // Add subtitle support
   final IconData icon;
+  final double height;
   final Color textColor;
+  final Color? iconColor;
+  final double? titleSize;  // Add titleSize support
+  final Widget child;
 
-  CustomGradientAppBar({
+  const CustomGradientAppBar({
+    Key? key,
     required this.title,
-    this.height = 180.0,
-    this.child,
-    this.icon = Icons.school, // Default icon
-    this.textColor = Colors.white, // Add text color parameter
-  });
+    this.subtitle,  // Optional subtitle
+    required this.icon,
+    this.height = 100.0,
+    this.textColor = Colors.white,
+    this.iconColor,
+    this.titleSize,  // Optional titleSize
+    required this.child,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return SliverAppBar(
       expandedHeight: height,
       floating: false,
       pinned: true,
-      flexibleSpace: FlexibleSpaceBar(
-        centerTitle: true,
-        title: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF2E3F7F),
+              Color(0xFF4557A4),
+            ],
+          ),
+        ),
+        child: FlexibleSpaceBar(
+          centerTitle: true,
+          title: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: screenWidth * 0.045,
+                  color: textColor,
+                  fontSize: titleSize ?? 20.0,
                   fontWeight: FontWeight.bold,
-                  color: textColor, // Use the text color parameter
                 ),
               ),
-              SizedBox(width: screenWidth * 0.02),
-              Icon(
-                icon,
-                size: screenWidth * 0.06,
-                color: textColor, // Match icon color with text
-              ),
+              if (subtitle != null)
+                Text(
+                  subtitle!,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
             ],
           ),
         ),
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
-            ),
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(20),
-              bottomRight: Radius.circular(20),
-            ),
-          ),
-          child: child,
-        ),
       ),
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back_ios, color: iconColor ?? textColor),
+        onPressed: () => Navigator.pop(context),
+      ),
+      actions: [
+        IconButton(
+          icon: Icon(icon, color: iconColor ?? textColor),
+          onPressed: () {},
+        ),
+      ],
     );
   }
 }

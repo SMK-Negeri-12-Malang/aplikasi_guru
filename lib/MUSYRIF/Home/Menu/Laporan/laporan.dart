@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
 import 'laporan_detail.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/home_musyrif.dart'; // Import halaman dashboard
 
@@ -9,7 +10,6 @@ class LaporanModel {
   final String iqob;
   final String tanggal;
   final String poin;
-   
 
   LaporanModel({
     required this.nama,
@@ -18,7 +18,6 @@ class LaporanModel {
     required this.iqob, // Add iqob field
     required this.tanggal,
     required this.poin,
-
   });
 }
 
@@ -108,7 +107,6 @@ class _LaporanState extends State<Laporan> {
       _iqobController.clear(); // Clear iqob controller
       _tanggalController.clear();
       _poinController.clear();
-     
 
       Navigator.pop(context); // Navigate back to the previous page
     } else {
@@ -120,109 +118,225 @@ class _LaporanState extends State<Laporan> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Laporan Pelanggaran'),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: _namaController,
-              decoration: InputDecoration(labelText: 'Nama',border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),),
-              onChanged: _filterSiswa,
-            ),
-            if (_filteredSiswa.isNotEmpty)
-              Container(
-                height: 100,
-                child: ListView.builder(
-                  itemCount: _filteredSiswa.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(_filteredSiswa[index]['nama']!),
-                      onTap: () {
-                        setState(() {
-                          _namaController.text = _filteredSiswa[index]['nama']!;
-                          _kamarController.text = _filteredSiswa[index]['kamar']!;
-                          _filteredSiswa.clear();
-                        });
-                      },
-                    );
-                  },
+      backgroundColor: Color.fromARGB(255, 233, 233, 233),
+      body: CustomScrollView(
+        slivers: [
+          CustomGradientAppBar(
+            title: 'Laporan Pelanggaran',
+            icon: Icons.warning_rounded,
+            height: 100.0,
+            textColor: Colors.white,
+            child: Container(),
+          ),
+          SliverToBoxAdapter(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(screenWidth * 0.04),
+              child: Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildTextField(
+                        _namaController,
+                        "Nama Santri",
+                        Icons.person,
+                        onChanged: (value) {
+                          _filterSiswa(value);
+                        },
+                      ),
+                      if (_filteredSiswa.isNotEmpty)
+                        _buildSuggestionsList(),
+                      SizedBox(height: 16),
+                      _buildTextField(
+                        _kamarController,
+                        "Kamar",
+                        Icons.room,
+                        readOnly: true,
+                      ),
+                      SizedBox(height: 16),
+                      _buildDropdownField(),
+                      SizedBox(height: 16),
+                      _buildTextField(
+                        _tanggalController,
+                        "Tanggal",
+                        Icons.calendar_today,
+                      ),
+                      SizedBox(height: 16),
+                      _buildTextField(
+                        _iqobController,
+                        "Hukuman/Iqob",
+                        Icons.gavel,
+                        readOnly: true,
+                      ),
+                      SizedBox(height: 16),
+                      _buildTextField(
+                        _poinController,
+                        "Poin Pelanggaran",
+                        Icons.stars,
+                        readOnly: true,
+                      ),
+                      SizedBox(height: 24),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF2E3F7F),
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: _submitLaporan,
+                        child: Text(
+                          'Simpan Laporan',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              SizedBox(height: 10),
-            TextField(
-              controller: _kamarController,
-              decoration: InputDecoration(labelText: 'Kamar',border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),),
-              readOnly: true,
             ),
-            SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(labelText: 'Jenis Pelanggaran',border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),),
-              value: _selectedPelanggaran,
-              items: _pelanggaranList.map((String pelanggaran) {
-                return DropdownMenuItem<String>(
-                  value: pelanggaran,
-                  child: Text(pelanggaran),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    bool readOnly = false,
+    void Function(String)? onChanged,
+  }) {
+    return TextFormField(
+      controller: controller,
+      readOnly: readOnly,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Color(0xFF2E3F7F)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Color(0xFF2E3F7F)),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildDropdownField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: ExpansionTile(
+        leading: Icon(Icons.warning, color: Color(0xFF2E3F7F)),
+        title: Text(
+          _selectedPelanggaran ?? 'Pilih Jenis Pelanggaran',
+          style: TextStyle(
+            color: _selectedPelanggaran != null ? Colors.black87 : Colors.grey[600],
+            fontSize: 16,
+          ),
+        ),
+        children: [
+          Container(
+            height: 200,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _pelanggaranList.length,
+              itemBuilder: (context, index) {
+                final pelanggaran = _pelanggaranList[index];
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Color(0xFF2E3F7F).withOpacity(0.1),
+                    child: Icon(
+                      Icons.warning,
+                      color: Color(0xFF2E3F7F),
+                      size: 20,
+                    ),
+                  ),
+                  title: Text(pelanggaran),
+                  subtitle: Text(
+                    'Poin: ${_poinPelanggaran[pelanggaran]}',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                    ),
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _selectedPelanggaran = pelanggaran;
+                      _poinController.text = _poinPelanggaran[pelanggaran]!.toString();
+                      _iqobController.text = _iqobPelanggaran[pelanggaran]!;
+                    });
+                  },
                 );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedPelanggaran = newValue;
-                  if (newValue != null) {
-                    _poinController.text = _poinPelanggaran[newValue]!.toString();
-                    _iqobController.text = _iqobPelanggaran[newValue]!;
-                  }
-                });
               },
             ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _tanggalController,
-              decoration: InputDecoration(labelText: 'Tanggal',border:  OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),),
-            ),
-            SizedBox(height: 10),
-             TextField(
-              controller: _iqobController,
-              decoration: InputDecoration(labelText: 'Hukuman/Iqob',border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),),  
-              readOnly: true,
-            
-            ),
-            SizedBox(height: 10,),
-            TextField(
-              controller: _poinController,
-              decoration: InputDecoration(labelText: 'Poin Pelanggaran',border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),),  
-              readOnly: true,
-           
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                minimumSize: Size(double.infinity, 45),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuggestionsList() {
+    return Card(
+      elevation: 4,
+      margin: EdgeInsets.only(top: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Container(
+        constraints: BoxConstraints(maxHeight: 200),
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: _filteredSiswa.length,
+          itemBuilder: (context, index) {
+            final siswa = _filteredSiswa[index];
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Color(0xFF2E3F7F).withOpacity(0.1),
+                child: Text(
+                  siswa['nama']![0],
+                  style: TextStyle(
+                    color: Color(0xFF2E3F7F),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              onPressed: _submitLaporan,
-              child: Text('Simpan Laporan'),
-            ),
-          ],
+              title: Text(siswa['nama']!),
+              subtitle: Text(siswa['kamar']!),
+              onTap: () {
+                setState(() {
+                  _namaController.text = siswa['nama']!;
+                  _kamarController.text = siswa['kamar']!;
+                  _filteredSiswa.clear();
+                });
+              },
+            );
+          },
         ),
       ),
     );
