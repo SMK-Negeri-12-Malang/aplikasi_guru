@@ -129,7 +129,7 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
                       crossAxisSpacing: 15,
                       mainAxisSpacing: 15,
                       children: [
-                        _buildMenuCard(Icons.report, 'Laporan'),
+                        _buildMenuCard(Icons.report, 'Pelanggaran'),
                         _buildMenuCard(Icons.card_travel, 'Perizinan'),
                         _buildMenuCard(Icons.healing, 'Kesehatan'),
                       ],
@@ -180,7 +180,7 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
   void _onButtonPressed(String buttonType) {
     print("Button pressed: $buttonType");
     switch (buttonType) {
-      case 'Laporan':
+      case 'Pelanggaran':
         Navigator.push(context, MaterialPageRoute(builder: (context) => Laporan(
           // Handle the news added
         )));

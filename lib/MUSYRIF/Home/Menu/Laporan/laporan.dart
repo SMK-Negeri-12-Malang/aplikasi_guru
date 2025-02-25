@@ -131,7 +131,9 @@ class _LaporanState extends State<Laporan> {
           children: [
             TextField(
               controller: _namaController,
-              decoration: InputDecoration(labelText: 'Nama'),
+              decoration: InputDecoration(labelText: 'Nama',border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),),
               onChanged: _filterSiswa,
             ),
             if (_filteredSiswa.isNotEmpty)
@@ -153,13 +155,19 @@ class _LaporanState extends State<Laporan> {
                   },
                 ),
               ),
+              SizedBox(height: 10),
             TextField(
               controller: _kamarController,
-              decoration: InputDecoration(labelText: 'Kamar'),
+              decoration: InputDecoration(labelText: 'Kamar',border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),),
               readOnly: true,
             ),
+            SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              decoration: InputDecoration(labelText: 'Jenis Pelanggaran'),
+              decoration: InputDecoration(labelText: 'Jenis Pelanggaran',border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),),
               value: _selectedPelanggaran,
               items: _pelanggaranList.map((String pelanggaran) {
                 return DropdownMenuItem<String>(
@@ -177,24 +185,40 @@ class _LaporanState extends State<Laporan> {
                 });
               },
             ),
+            SizedBox(height: 10),
             TextField(
               controller: _tanggalController,
-              decoration: InputDecoration(labelText: 'Tanggal'),
+              decoration: InputDecoration(labelText: 'Tanggal',border:  OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),),
             ),
+            SizedBox(height: 10),
              TextField(
               controller: _iqobController,
-              decoration: InputDecoration(labelText: 'Hukuman/Iqob'),
+              decoration: InputDecoration(labelText: 'Hukuman/Iqob',border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),),  
               readOnly: true,
             
             ),
+            SizedBox(height: 10,),
             TextField(
               controller: _poinController,
-              decoration: InputDecoration(labelText: 'Poin Pelanggaran'),
+              decoration: InputDecoration(labelText: 'Poin Pelanggaran',border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),),  
               readOnly: true,
            
             ),
             SizedBox(height: 20),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                minimumSize: Size(double.infinity, 45),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+              ),
               onPressed: _submitLaporan,
               child: Text('Simpan Laporan'),
             ),
