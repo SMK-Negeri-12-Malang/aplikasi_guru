@@ -22,7 +22,7 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
     NavItem(icon: Icons.task, label: 'Tugas'),
     NavItem(icon: Icons.account_balance_wallet, label: 'keuangan'),
     NavItem(icon: Icons.home, label: 'Home'),
-    NavItem(icon: Icons.list, label: 'Absen'),
+    NavItem(icon: Icons.report, label: 'Laporan'), 
     NavItem(icon: Icons.person, label: 'Profil'),
   ];
 
