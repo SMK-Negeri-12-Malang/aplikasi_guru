@@ -35,7 +35,7 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar> {
           CustomGradientAppBar(
             title: 'Laporan Santri',
             icon: Icons.assignment,
-            height: 100.0,
+            
             textColor: Colors.white,
             child: Container(),
           ),

@@ -88,7 +88,6 @@ class _KesehatanPageState extends State<Kesehatan> {
           CustomGradientAppBar(
             title: 'Form Kesehatan Santri',
             icon: Icons.medical_services,
-            height: 100.0,
             textColor: Colors.white,
             iconColor: Colors.white,
             child: Container(),

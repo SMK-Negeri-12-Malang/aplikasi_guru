@@ -100,7 +100,6 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
           CustomGradientAppBar(
             title: 'Tugas Santri',
             icon: Icons.task_sharp,
-            height: 100.0,
             textColor: Colors.white,
             child: Container(),
           ),

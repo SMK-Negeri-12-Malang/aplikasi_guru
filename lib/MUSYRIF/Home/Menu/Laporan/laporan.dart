@@ -127,7 +127,6 @@ class _LaporanState extends State<Laporan> {
           CustomGradientAppBar(
             title: 'Laporan Pelanggaran',
             icon: Icons.warning_rounded,
-            height: 100.0,
             textColor: Colors.white,
             child: Container(),
           ),

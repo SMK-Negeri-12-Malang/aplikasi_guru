@@ -95,8 +95,8 @@ class _IzinState extends State<IzinPage> {
         slivers: [
           CustomGradientAppBar(
             title: 'Formulir Izin',
-            icon: Icons.edit_note,
-            height: 100.0,
+            icon: Icons.edit,
+          
             textColor: Colors.white,
             child: Container(),
           ),

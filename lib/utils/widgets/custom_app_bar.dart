@@ -2,23 +2,23 @@ import 'package:flutter/material.dart';
 
 class CustomGradientAppBar extends StatelessWidget {
   final String title;
-  final String? subtitle;  // Add subtitle support
+  final String? subtitle; // Optional subtitle
   final IconData icon;
   final double height;
   final Color textColor;
   final Color? iconColor;
-  final double? titleSize;  // Add titleSize support
+  final double? titleSize; // Optional titleSize
   final Widget child;
 
   const CustomGradientAppBar({
     Key? key,
     required this.title,
-    this.subtitle,  // Optional subtitle
+    this.subtitle,
     required this.icon,
-    this.height = 100.0,
+    this.height = 50,
     this.textColor = Colors.white,
     this.iconColor,
-    this.titleSize,  // Optional titleSize
+    this.titleSize = 25, // Optional titleSize
     required this.child,
   }) : super(key: key);
 
@@ -50,7 +50,7 @@ class CustomGradientAppBar extends StatelessWidget {
                 title,
                 style: TextStyle(
                   color: textColor,
-                  fontSize: titleSize ?? 20.0,
+                  fontSize: titleSize ?? 24.0, // Ukuran title diperbesar
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -59,7 +59,7 @@ class CustomGradientAppBar extends StatelessWidget {
                   subtitle!,
                   style: TextStyle(
                     color: textColor,
-                    fontSize: 12.0,
+                    fontSize: 14.0, // Subtitle sedikit diperbesar
                     fontWeight: FontWeight.normal,
                   ),
                 ),
@@ -67,14 +67,22 @@ class CustomGradientAppBar extends StatelessWidget {
           ),
         ),
       ),
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: iconColor ?? textColor),
-        onPressed: () => Navigator.pop(context),
+      leading: Padding(
+        padding: const EdgeInsets.all(1), // Memberikan padding agar lebih besar
+        child: IconButton(
+          iconSize: 30.0, // Ukuran ikon diperbesar
+          icon: Icon(Icons.arrow_back_ios, color: iconColor ?? textColor),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       actions: [
-        IconButton(
-          icon: Icon(icon, color: iconColor ?? textColor),
-          onPressed: () {},
+        Padding(
+          padding: const EdgeInsets.all(1), // Memberikan padding agar lebih besar
+          child: IconButton(
+            iconSize: 30.0, // Ukuran ikon diperbesar
+            icon: Icon(icon, color: iconColor ?? textColor),
+            onPressed: () {},
+          ),
         ),
       ],
     );
