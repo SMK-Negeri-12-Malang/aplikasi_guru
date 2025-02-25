@@ -97,36 +97,56 @@ class _IzinState extends State<IzinPage> {
           children: [
             TextField(
               controller: _namaController,
-              decoration: InputDecoration(labelText: 'Nama'),
+              decoration: InputDecoration(labelText: 'Nama',border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),),
             ),
+            SizedBox(height:10),
             TextField(
               controller: _tanggalMulaiController,
-              decoration: InputDecoration(labelText: 'Tanggal Mulai'),
+              decoration: InputDecoration(labelText: 'Tanggal Mulai',border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),),
               readOnly: true,
               onTap: () => _selectDate(context, _tanggalMulaiController),
             ),
+            SizedBox(height:10),
             TextField(
               controller: _tanggalKembaliController,
-              decoration: InputDecoration(labelText: 'Tanggal Kembali'),
+              decoration: InputDecoration(labelText: 'Tanggal Kembali',border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),),
               readOnly: true,
               onTap: () => _selectDate(context, _tanggalKembaliController),
             ),
+            SizedBox(height:10),
             TextField(
               controller: _kamarController,
-              decoration: InputDecoration(labelText: 'Kamar'),
+              decoration: InputDecoration(labelText: 'Kamar',border:  OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),),
             ),
+            SizedBox(height:10),
             TextField(
               controller: _halaqoController,
-              decoration: InputDecoration(labelText: 'Halaqo'),
+              decoration: InputDecoration(labelText: 'Halaqo',border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),),
             ),
+            SizedBox(height:10),
             TextField(
               controller: _musyrifController,
-              decoration: InputDecoration(labelText: 'Musyrif'),
+              decoration: InputDecoration(labelText: 'Musyrif',border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),),
             ),
             SizedBox(height: 20),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+              ),
               onPressed: _submitIzin,
-              child: Text('Simpan Izin'),
+              child: Text('Simpan Izin', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
