@@ -1,7 +1,8 @@
+import 'package:aplikasi_ortu/models/guru_model.dart';
+import 'package:aplikasi_ortu/models/musyrif_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../MODELS/guru_model.dart';
-import '../MODELS/musyrif_model.dart';
+
 
 class AuthService {
   static const String guruApiUrl = 'https://677d1f084496848554c91eb9.mockapi.io/Guru';
