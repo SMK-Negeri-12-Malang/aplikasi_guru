@@ -1,4 +1,4 @@
-import 'package:aplikasi_ortu/MODELS/jadwal_home.dart';
+import 'package:aplikasi_ortu/models/jadwal_home.dart';
 import 'package:intl/intl.dart';
 
 class ScheduleService {

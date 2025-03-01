@@ -1,6 +1,7 @@
+import 'package:aplikasi_ortu/models/class_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../MODELS/class_model.dart';
+
 
 class ClassService {
   final String baseUrl = 'https://67ac42f05853dfff53d9e093.mockapi.io/kalas';

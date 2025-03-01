@@ -1,7 +1,8 @@
 import 'dart:convert';
+import 'package:aplikasi_ortu/models/grade_model.dart';
 import 'package:http/http.dart' as http;
 import 'api_config.dart';
-import '../MODELS/grade_model.dart';
+
 
 class GradeService {
   static Future<List<Grade>> getGrades() async {
