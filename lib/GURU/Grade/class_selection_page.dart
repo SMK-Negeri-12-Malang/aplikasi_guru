@@ -206,7 +206,35 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
     return true;
   }
 
+  double _getCategoryCompletion(String className, String category) {
+    final students = classStudents[className]!;
+    int totalStudents = students.length;
+    int filledGrades = 0;
+
+    for (var student in students) {
+      final grades = student['grades'][category];
+      if (grades != null && grades != 0) {
+        filledGrades++;
+      }
+    }
+
+    return totalStudents > 0 ? (filledGrades / totalStudents) : 0.0;
+  }
+
+  Color _getCompletionColor(double percentage) {
+    if (percentage == 0) {
+      return Colors.grey.shade100;
+    }
+    
+    // Create a gradient from white to green based on percentage
+    int green = (percentage * 255).round();
+    return Color.fromRGBO(255 - (green ~/ 2), 255, 255 - (green ~/ 2), 1.0);
+  }
+
   Widget _buildCategoryChip(String label, bool isComplete, String className) {
+    double completion = _getCategoryCompletion(className, label);
+    Color chipColor = _getCompletionColor(completion);
+    
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -221,9 +249,42 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
           ),
         );
       },
-      child: Chip(
-        label: Text(label, style: TextStyle(fontSize: 12)),
-        backgroundColor: isComplete ? Colors.green.shade100 : Colors.grey.shade300,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              chipColor,
+              Colors.white,
+            ],
+            stops: [completion, 1.0],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label, 
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(width: 4),
+              Text(
+                '${(completion * 100).toInt()}%',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -282,11 +343,7 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
               spacing: 8,
               runSpacing: 8,
               children: gradeCategories.map((category) {
-                return ActionChip(
-                  label: Text(category),
-                  onPressed: () => _navigateToTablePage(className, category),
-                  backgroundColor: Colors.grey[200],
-                );
+                return _buildCategoryChip(category, false, className);
               }).toList(),
             ),
             SizedBox(height: 16),
