@@ -404,7 +404,11 @@ class _TablePageState extends State<TablePage> {
         
         // Nilai
         sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: rowIndex))
-          ..value = TextCellValue(filteredStudents[i]['grades'][widget.tableName]?.toString() ?? '0')
+          ..value = TextCellValue(
+              filteredStudents[i]['grades'][widget.tableName] != null && 
+              filteredStudents[i]['grades'][widget.tableName] != 0 
+                  ? filteredStudents[i]['grades'][widget.tableName].toString() 
+                  : '-')
           ..cellStyle = dataStyle;
       }
 
@@ -584,17 +588,23 @@ class _TablePageState extends State<TablePage> {
                                           DataCell(
                                             isEditing
                                                 ? TextFormField(
-                                                    initialValue: student['grades']?[widget.tableName]?.toString() ?? '0',
+                                                    initialValue: student['grades']?[widget.tableName] != null && student['grades']?[widget.tableName] != 0 
+                                                        ? student['grades']![widget.tableName].toString() 
+                                                        : '',
                                                     keyboardType: TextInputType.number,
                                                     onChanged: (value) {
                                                       setState(() {
                                                         student['grades'] ??= {};
-                                                        student['grades'][widget.tableName] = int.tryParse(value) ?? 0;
+                                                        student['grades'][widget.tableName] = value.isEmpty ? 0 : int.tryParse(value) ?? 0;
                                                         hasUnsavedChanges = true;
                                                       });
                                                     },
                                                   )
-                                                : Text(student['grades']?[widget.tableName]?.toString() ?? '0'),
+                                                : Text(
+                                                    student['grades']?[widget.tableName] != null && student['grades']?[widget.tableName] != 0 
+                                                        ? student['grades']![widget.tableName].toString() 
+                                                        : '-'
+                                                  ),
                                           ),
                                         ],
                                       );
