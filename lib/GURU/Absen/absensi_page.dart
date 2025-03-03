@@ -95,11 +95,34 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
           }
         }
         
+        List<String> sortedClasses = classes.toList()..sort();
+        
         setState(() {
-          kelasList = classes.toList()..sort();
+          kelasList = sortedClasses;
           siswaData = groupedStudents;
           attendanceSavedStatus = savedStatus;
           isLoading = false;
+          
+          // Automatically select the first class
+          if (sortedClasses.isNotEmpty) {
+            selectedClass = sortedClasses[0];
+            selectedIndex = 0;
+            _currentCategoryPage = 0;
+            checkedCount = siswaData[selectedClass]!
+                .where((siswa) => siswa['checked'])
+                .length;
+            
+            // Animate to first class
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (_categoryPageController.hasClients) {
+                _categoryPageController.animateToPage(
+                  0,
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              }
+            });
+          }
         });
       }
     } catch (e) {

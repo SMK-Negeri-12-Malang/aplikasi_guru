@@ -216,70 +216,77 @@ class _RekapPageState extends State<RekapPage> {
             Expanded(
               child: isLoading
                   ? _buildShimmerTable()
-                  : Column(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.all(16),
-                          child: TextField(
-                            controller: searchController,
-                            decoration: InputDecoration(
-                              labelText: 'Cari Siswa',
-                              prefixIcon: Icon(Icons.search),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
+                  : widget.classStudents.isEmpty
+                      ? Center(
+                          child: Text(
+                            'Tidak ada data siswa untuk kelas ini.',
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.all(16),
+                              child: TextField(
+                                controller: searchController,
+                                decoration: InputDecoration(
+                                  labelText: 'Cari Siswa',
+                                  prefixIcon: Icon(Icons.search),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onChanged: _filterStudents,
                               ),
                             ),
-                            onChanged: _filterStudents,
-                          ),
-                        ),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: SingleChildScrollView(
-                              child: DataTable(
-                                columns: [
-                                  DataColumn(label: Text('No')),
-                                  DataColumn(label: Text('Nama Siswa')),
-                                  ...widget.classTables.map((category) =>
-                                    DataColumn(
-                                      label: Tooltip(
-                                        message: 'Nilai $category',
-                                        child: Text(
-                                          category,
-                                          style: TextStyle(fontWeight: FontWeight.bold),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: SingleChildScrollView(
+                                  child: DataTable(
+                                    columns: [
+                                      DataColumn(label: Text('No')),
+                                      DataColumn(label: Text('Nama Siswa')),
+                                      ...widget.classTables.map((category) =>
+                                        DataColumn(
+                                          label: Tooltip(
+                                            message: 'Nilai $category',
+                                            child: Text(
+                                              category,
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                  DataColumn(label: Text('Rata-rata')),
-                                ],
-                                rows: filteredStudents.asMap().entries.map((entry) {
-                                  var student = entry.value;
-                                  var grades = student['grades'] ?? {};
-                                  double average = _calculateAverage(grades);
-
-                                  return DataRow(
-                                    cells: [
-                                      DataCell(Text('${entry.key + 1}')),
-                                      DataCell(Text(student['name'] ?? '')),
-                                      ...widget.classTables.map((category) =>
-                                        DataCell(_buildGradeCell(grades[category], category: category)),
-                                      ),
-                                      DataCell(_buildGradeCell(average.toStringAsFixed(1))),
+                                      DataColumn(label: Text('Rata-rata')),
                                     ],
-                                  );
-                                }).toList(),
+                                    rows: filteredStudents.asMap().entries.map((entry) {
+                                      var student = entry.value;
+                                      var grades = student['grades'] ?? {};
+                                      double average = _calculateAverage(grades);
+
+                                      return DataRow(
+                                        cells: [
+                                          DataCell(Text('${entry.key + 1}')),
+                                          DataCell(Text(student['name'] ?? '')),
+                                          ...widget.classTables.map((category) =>
+                                            DataCell(_buildGradeCell(grades[category], category: category)),
+                                          ),
+                                          DataCell(_buildGradeCell(average.toStringAsFixed(1))),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
             ),
           ],
         ),
       ),
-      floatingActionButton: isLoading
+      floatingActionButton: isLoading || widget.classStudents.isEmpty
           ? null
           : FloatingActionButton(
               heroTag: 'download',

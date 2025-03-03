@@ -24,6 +24,8 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
     'Ujian Sekolah',
     'Ujian Nasional'
   ];
+  String? selectedSubject; // Add this line
+  List<String> subjects = ['Bahasa Indonesia', 'Matematika', 'IPA', 'IPS', 'Bahasa Inggris']; // Add this line
 
   @override
   void initState() {
@@ -227,6 +229,13 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
   }
 
   Widget _buildClassCard(String className, List<Map<String, dynamic>> students) {
+    // Define subject names based on class
+    Map<String, String> subjectNames = {
+      'Kelas 7A': 'Bahasa Indonesia',
+      'Kelas 7B': 'Bahasa Thailand',
+      // Add more classes and their subjects as needed
+    };
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       elevation: 4,
@@ -250,7 +259,7 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          'Jumlah Siswa: ${students.length}',
+                          'Mata Pelajaran: ${subjectNames[className] ?? ""}',
                           style: TextStyle(color: Colors.grey[600]),
                         ),
                       ],
@@ -434,6 +443,33 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.9),
                       fontSize: 16,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  // Add Subject Dropdown
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        hint: Text('Pilih Mata Pelajaran'),
+                        value: selectedSubject,
+                        items: subjects.map((String subject) {
+                          return DropdownMenuItem<String>(
+                            value: subject,
+                            child: Text(subject),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedSubject = newValue;
+                          });
+                        },
+                      ),
                     ),
                   ),
                 ],
