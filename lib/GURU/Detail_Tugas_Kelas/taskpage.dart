@@ -66,7 +66,26 @@ class _AbsensiKelasPageState extends State<tugaskelas>
       curve: Curves.easeInOut,
     );
     _controller.forward();
-    _categoryPageController = PageController(viewportFraction: 0.85); // Changed viewportFraction
+    
+    // Initialize with first task selected
+    selectedClass = kelasList[0];
+    selectedIndex = 0;
+    _currentCategoryPage = 0;
+    _categoryPageController = PageController(
+      viewportFraction: 0.85,
+      initialPage: 0,
+    );
+    
+    // Set initial checkedCount
+    Future.delayed(Duration.zero, () {
+      setState(() {
+        if (selectedClass != null) {
+          checkedCount = siswaData[selectedClass]!
+              .where((siswa) => siswa['checked'])
+              .length;
+        }
+      });
+    });
   }
 
   Future<void> _loadSavedTasks() async {
@@ -536,29 +555,6 @@ void _addNewTask() {
               },
             ),
           ),
-          // Dot indicators
-          Container(
-            width: 16,
-            padding: EdgeInsets.symmetric(vertical: 8),
-            margin: EdgeInsets.only(right: 16), // Added right margin
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                kelasList.length,
-                (index) => Container(
-                  width: 6,
-                  height: 6,
-                  margin: EdgeInsets.symmetric(vertical: 3),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _currentCategoryPage == index
-                        ? Colors.blue.shade700
-                        : Colors.grey.shade300,
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -666,7 +662,69 @@ void _addNewTask() {
               ),
             ),
             SizedBox(height: 10), // Reduced spacing from 20 to 10
-            _buildCategorySelector(),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildCategorySelector(),
+                ),
+                // Add navigation controls on the right
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  margin: EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.arrow_upward, color: Colors.blue.shade700),
+                        onPressed: () {
+                          if (_currentCategoryPage > 0) {
+                            _categoryPageController.previousPage(
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                        iconSize: 20,
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints(minWidth: 30, minHeight: 30),
+                      ),
+                      ...List.generate(
+                        kelasList.length,
+                        (index) => Container(
+                          width: 6,
+                          height: 6,
+                          margin: EdgeInsets.symmetric(vertical: 3),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _currentCategoryPage == index
+                                ? Colors.blue.shade700
+                                : Colors.grey.shade300,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.arrow_downward, color: Colors.blue.shade700),
+                        onPressed: () {
+                          if (_currentCategoryPage < kelasList.length - 1) {
+                            _categoryPageController.nextPage(
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                        iconSize: 20,
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints(minWidth: 30, minHeight: 30),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             SizedBox(height: 20),
             if (selectedClass != null) ...[
               Padding(

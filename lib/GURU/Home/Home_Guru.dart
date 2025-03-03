@@ -344,21 +344,26 @@ class _DashboardPageState extends State<DashboardPage> {
       confirmDismiss: (direction) => _confirmDelete(),
       onDismissed: (direction) async {
         try {
+          // Remove from service first
           await _notificationService.removeNotification(index);
+          // Then update UI
           setState(() {
             _deadlineNotifications.removeAt(index);
+            // Update parent state if bottom sheet is open
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop(); // Close bottom sheet
+              _showNotification(); // Reopen with updated data
+            }
           });
           _showDeleteSuccessSnackbar();
-          // If the list is now empty, update the notification badge
-          if (_deadlineNotifications.isEmpty) {
-            setState(() {});
-          }
         } catch (e) {
           print('Error deleting notification: $e');
-          // Revert the UI if deletion fails
-          setState(() {
-            _loadNotifications();
-          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal menghapus notifikasi'),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       },
       child: Container(
@@ -398,15 +403,18 @@ class _DashboardPageState extends State<DashboardPage> {
             onPressed: () async {
               if (await _confirmDelete()) {
                 try {
+                  // Remove from service first
                   await _notificationService.removeNotification(index);
+                  // Then update UI
                   setState(() {
                     _deadlineNotifications.removeAt(index);
+                    // Update parent state if bottom sheet is open
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop(); // Close bottom sheet
+                      _showNotification(); // Reopen with updated data
+                    }
                   });
                   _showDeleteSuccessSnackbar();
-                  // If the list is now empty, update the notification badge
-                  if (_deadlineNotifications.isEmpty) {
-                    setState(() {});
-                  }
                 } catch (e) {
                   print('Error deleting notification: $e');
                   ScaffoldMessenger.of(context).showSnackBar(
