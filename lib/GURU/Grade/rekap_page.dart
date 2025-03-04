@@ -1,6 +1,7 @@
 import 'package:aplikasi_ortu/SERVISCE/grade_state_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RekapPage extends StatefulWidget {
   final String className;
@@ -24,7 +25,7 @@ class _RekapPageState extends State<RekapPage> {
   void initState() {
     super.initState();
     _gradeService.addListener(_onGradesUpdated);
-    _initializeData();
+    _loadSavedGradesAndInitialize();
   }
 
   @override
@@ -34,35 +35,72 @@ class _RekapPageState extends State<RekapPage> {
     super.dispose();
   }
 
-  void _initializeData() {
-    setState(() {
-      List<Map<String, dynamic>> latestData = _gradeService.getStudentsForClass(widget.className);
+  Future<void> _loadSavedGradesAndInitialize() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
       
-      // If there's no data from the service, use the provided class students
-      if (latestData.isEmpty) {
-        latestData = widget.classStudents;
-      }
+      // Load grades for each category
+      for (String category in widget.classTables) {
+        final gradesKey = '${widget.className}_${category}_grades';
+        final savedGradesString = prefs.getString(gradesKey);
 
-      // Initialize grades for all students if they don't exist
-      latestData = latestData.map((student) {
-        if (student['grades'] == null) {
-          student['grades'] = {};
-        }
-        
-        // Initialize missing grade categories with 0
-        for (String category in widget.classTables) {
-          if (student['grades'][category] == null) {
-            student['grades'][category] = 0;
+        if (savedGradesString != null) {
+          final Map<String, dynamic> savedGrades = json.decode(savedGradesString);
+          
+          // Update grades for each student
+          for (var student in widget.classStudents) {
+            final String studentId = student['id'].toString();
+            if (savedGrades.containsKey(studentId)) {
+              student['grades'] ??= {};
+              student['grades'][category] = savedGrades[studentId][category] ?? 0;
+            }
           }
         }
-        return student;
-      }).toList();
+      }
+    } catch (e) {
+      print('Error loading saved grades: $e');
+    } finally {
+      _initializeData(); // Call initialize after loading saved grades
+    }
+  }
 
-      filteredStudents = latestData;
-      widget.classStudents.clear();
-      widget.classStudents.addAll(latestData);
-      isLoading = false;
-    });
+  void _initializeData() {
+    try {
+      setState(() {
+        // Create a deep copy of students with properly initialized grades
+        List<Map<String, dynamic>> initializedStudents = widget.classStudents.map((student) {
+          // Ensure grades map exists
+          Map<String, dynamic> grades = Map<String, dynamic>.from(
+            student['grades'] as Map<dynamic, dynamic>? ?? {}
+          );
+          
+          // Initialize missing grade categories with 0
+          for (String category in widget.classTables) {
+            if (!grades.containsKey(category)) {
+              grades[category] = 0;
+            }
+          }
+          
+          return {
+            'id': student['id']?.toString() ?? '',
+            'name': student['name']?.toString() ?? '',
+            'class': student['class']?.toString() ?? '',
+            'grades': grades,
+          };
+        }).toList();
+
+        // Update the students list
+        widget.classStudents.clear();
+        widget.classStudents.addAll(initializedStudents);
+        filteredStudents = List.from(initializedStudents);
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error initializing data: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   void _filterStudents(String query) {
@@ -193,14 +231,17 @@ class _RekapPageState extends State<RekapPage> {
     if (widget.classTables.isEmpty) return 0.0;
     
     double total = 0;
-    int count = widget.classTables.length; // Count all categories
+    int count = 0;
     
-    for (var category in widget.classTables) {
+    for (String category in widget.classTables) {
       var grade = grades[category];
-      total += (grade as num? ?? 0).toDouble(); // Use 0 if grade is null
+      if (grade != null) {
+        total += (grade is num ? grade : 0).toDouble();
+        count++;
+      }
     }
     
-    return total / count;
+    return count > 0 ? total / count : 0.0;
   }
 
   String _getPredicate(double average) {
@@ -217,6 +258,37 @@ class _RekapPageState extends State<RekapPage> {
     if (average >= 6) return 'D ';
     if (average >= 1) return 'D- ';
     return 'N/A';
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(
+              const Color.fromARGB(255, 16, 90, 150),
+            ),
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Memuat rekap nilai...',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 16,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Mohon tunggu sebentar',
+            style: TextStyle(
+              color: Colors.grey[500],
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -257,7 +329,7 @@ class _RekapPageState extends State<RekapPage> {
             ),
             Expanded(
               child: isLoading
-                  ? _buildShimmerTable()
+                  ? _buildLoadingIndicator() // Replace shimmer with new loading indicator
                   : widget.classStudents.isEmpty
                       ? Center(
                           child: Text(

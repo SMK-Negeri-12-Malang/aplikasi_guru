@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'table_page.dart';
-import 'rekap_page.dart'; // Import halaman rekap
+import 'rekap_page.dart'; 
 import 'package:shimmer/shimmer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ClassSelectionPage extends StatefulWidget {
   @override
@@ -30,10 +31,48 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
   @override
   void initState() {
     super.initState();
-    _fetchStudents();
+    _loadSavedDataAndFetchStudents();
+  }
+
+  Future<void> _loadSavedDataAndFetchStudents() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      await _fetchStudents(); // First fetch students
+
+      // After fetching students, load saved grades for each class and category
+      for (String className in classStudents.keys) {
+        for (String category in gradeCategories) {
+          final gradesKey = '${className}_${category}_grades';
+          final savedGradesString = prefs.getString(gradesKey);
+
+          if (savedGradesString != null) {
+            final Map<String, dynamic> savedGrades = json.decode(savedGradesString);
+            
+            // Update grades for students in this class
+            for (var student in classStudents[className]!) {
+              final String studentId = student['id'].toString();
+              if (savedGrades.containsKey(studentId)) {
+                student['grades'] ??= {};
+                student['grades'][category] = savedGrades[studentId][category] ?? 0;
+              }
+            }
+          }
+        }
+      }
+
+      // Update state to refresh UI
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      print('Error loading saved grades: $e');
+    }
   }
 
   Future<void> _fetchStudents() async {
+    setState(() => isLoading = true);
+    
     try {
       final response = await http.get(
         Uri.parse('https://67ac42f05853dfff53d9e093.mockapi.io/siswa')
@@ -41,38 +80,41 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
       
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
-        
-        // Initialize empty maps for each unique class
         Set<String> uniqueClasses = {};
+        
+        // First pass: collect unique classes
         for (var student in data) {
           uniqueClasses.add(student['kelas'] ?? '');
         }
 
-        setState(() {
-          // Initialize data structures for each class
-          for (String className in uniqueClasses) {
-            classTables[className] = [];
-            classStudents[className] = [];
+        // Initialize data structures
+        for (String className in uniqueClasses) {
+          classTables[className] = [];
+          classStudents[className] = [];
+        }
+
+        // Second pass: populate students with initialized grades
+        for (var student in data) {
+          String className = student['kelas'] ?? '';
+          Map<String, dynamic> grades = {};
+          
+          // Initialize all grade categories to 0
+          for (String category in gradeCategories) {
+            grades[category] = 0;
           }
 
-          // Populate students into their respective classes
-          for (var student in data) {
-            String className = student['kelas'] ?? '';
-            classStudents[className]?.add({
-              'id': student['id'],
-              'name': student['name'],
-              'class': className,
-              'grades': {} // Initialize empty grades
-            });
-          }
-          isLoading = false;
-        });
+          classStudents[className]?.add({
+            'id': student['id'],
+            'name': student['name'],
+            'class': className,
+            'grades': grades
+          });
+        }
       }
     } catch (e) {
       print('Error fetching students: $e');
-      setState(() {
-        isLoading = false;
-      });
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
@@ -212,7 +254,7 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
     int filledGrades = 0;
 
     for (var student in students) {
-      final grades = student['grades'][category];
+      final grades = student['grades']?[category];
       if (grades != null && grades != 0) {
         filledGrades++;
       }
@@ -368,12 +410,28 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
   }
 
   void _navigateToRekapPage(String className) {
+    // Initialize grades for all students before navigation
+    List<Map<String, dynamic>> preparedStudents = classStudents[className]!.map((student) {
+      // Create a new map with proper typing and initialized grades
+      Map<String, dynamic> grades = {};
+      for (String category in gradeCategories) {
+        grades[category] = student['grades']?[category] ?? 0;
+      }
+
+      return {
+        'id': student['id']?.toString() ?? '',
+        'name': student['name']?.toString() ?? '',
+        'class': student['class']?.toString() ?? '',
+        'grades': grades,
+      };
+    }).toList();
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => RekapPage(
           className: className,
-          classStudents: classStudents[className]!,
+          classStudents: preparedStudents,
           classTables: gradeCategories,
           onSave: (tableName, updatedStudents) {
             _updateStudentGrades(className, tableName, updatedStudents);
