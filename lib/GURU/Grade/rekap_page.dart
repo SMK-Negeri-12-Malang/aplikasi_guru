@@ -40,14 +40,31 @@ class _RekapPageState extends State<RekapPage> {
 
   void _initializeData() {
     setState(() {
-      final latestData = _gradeService.getStudentsForClass(widget.className);
-      if (latestData.isNotEmpty) {
-        filteredStudents = latestData;
-        widget.classStudents.clear();
-        widget.classStudents.addAll(latestData);
-      } else {
-        filteredStudents = List.from(widget.classStudents);
+      List<Map<String, dynamic>> latestData = _gradeService.getStudentsForClass(widget.className);
+      
+      // If there's no data from the service, use the provided class students
+      if (latestData.isEmpty) {
+        latestData = widget.classStudents;
       }
+
+      // Initialize grades for all students if they don't exist
+      latestData = latestData.map((student) {
+        if (student['grades'] == null) {
+          student['grades'] = {};
+        }
+        
+        // Initialize missing grade categories with 0
+        for (String category in widget.classTables) {
+          if (student['grades'][category] == null) {
+            student['grades'][category] = 0;
+          }
+        }
+        return student;
+      }).toList();
+
+      filteredStudents = latestData;
+      widget.classStudents.clear();
+      widget.classStudents.addAll(latestData);
       isLoading = false;
     });
   }
@@ -69,7 +86,23 @@ class _RekapPageState extends State<RekapPage> {
 
   void _onGradesUpdated() {
     if (mounted) {
-      final updatedStudents = _gradeService.getStudentsForClass(widget.className);
+      List<Map<String, dynamic>> updatedStudents = _gradeService.getStudentsForClass(widget.className);
+      
+      // Initialize grades for updated students
+      updatedStudents = updatedStudents.map((student) {
+        if (student['grades'] == null) {
+          student['grades'] = {};
+        }
+        
+        // Initialize missing grade categories with 0
+        for (String category in widget.classTables) {
+          if (student['grades'][category] == null) {
+            student['grades'][category] = 0;
+          }
+        }
+        return student;
+      }).toList();
+
       setState(() {
         widget.classStudents.clear();
         widget.classStudents.addAll(updatedStudents);
@@ -161,20 +194,33 @@ class _RekapPageState extends State<RekapPage> {
   }
 
   double _calculateAverage(Map<String, dynamic> grades) {
-    if (grades.isEmpty || widget.classTables.isEmpty) return 0.0;
+    if (widget.classTables.isEmpty) return 0.0;
     
     double total = 0;
-    int count = 0;
+    int count = widget.classTables.length; // Count all categories
     
     for (var category in widget.classTables) {
       var grade = grades[category];
-      if (grade != null) {
-        total += (grade as num).toDouble();
-        count++;
-      }
+      total += (grade as num? ?? 0).toDouble(); // Use 0 if grade is null
     }
     
-    return count > 0 ? total / count : 0.0;
+    return total / count;
+  }
+
+  String _getPredicate(double average) {
+    if (average >= 91) return 'A+ ';
+    if (average >= 81) return 'A ';
+    if (average >= 76) return 'A- ';
+    if (average >= 71) return 'B+ ';
+    if (average >= 61) return 'B ';
+    if (average >= 51) return 'B-';
+    if (average >= 41) return 'C+ ';
+    if (average >= 31) return 'C ';
+    if (average >= 26) return 'C- ';
+    if (average >= 16) return 'D+ ';
+    if (average >= 6) return 'D ';
+    if (average >= 1) return 'D- ';
+    return 'N/A';
   }
 
   @override
@@ -259,11 +305,13 @@ class _RekapPageState extends State<RekapPage> {
                                         ),
                                       ),
                                       DataColumn(label: Text('Rata-rata')),
+                                      DataColumn(label: Text('Predikat')),
                                     ],
                                     rows: filteredStudents.asMap().entries.map((entry) {
                                       var student = entry.value;
                                       var grades = student['grades'] ?? {};
                                       double average = _calculateAverage(grades);
+                                      String predicate = _getPredicate(average);
 
                                       return DataRow(
                                         cells: [
@@ -273,6 +321,7 @@ class _RekapPageState extends State<RekapPage> {
                                             DataCell(_buildGradeCell(grades[category], category: category)),
                                           ),
                                           DataCell(_buildGradeCell(average.toStringAsFixed(1))),
+                                          DataCell(Text(predicate)),
                                         ],
                                       );
                                     }).toList(),

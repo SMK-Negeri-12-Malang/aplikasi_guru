@@ -37,7 +37,17 @@ class _TablePageState extends State<TablePage> {
   void initState() {
     super.initState();
     _gradeService.addListener(_onGradesUpdated);
-    _fetchStudents();
+    _loadSavedGrades().then((_) {
+      if (widget.students.isEmpty) {
+        _fetchStudents();
+      } else {
+        setState(() {
+          filteredStudents = List.from(widget.students);
+          _initializeControllers();
+          isLoadingData = false;
+        });
+      }
+    });
   }
 
   @override
@@ -103,6 +113,37 @@ class _TablePageState extends State<TablePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading students: $e')),
       );
+    }
+  }
+
+  Future<void> _loadSavedGrades() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final gradesKey = '${widget.className}_${widget.tableName}_grades';
+      final savedGradesString = prefs.getString(gradesKey);
+
+      if (savedGradesString != null) {
+        final Map<String, dynamic> savedGrades = json.decode(savedGradesString);
+        
+        setState(() {
+          for (var student in widget.students) {
+            final String studentId = student['id'].toString();
+            if (savedGrades.containsKey(studentId)) {
+              student['grades'] = Map<String, dynamic>.from(savedGrades[studentId]);
+              // Update the grade service
+              _gradeService.updateStudentGrade(
+                widget.className,
+                studentId,
+                widget.tableName,
+                savedGrades[studentId][widget.tableName] ?? 0
+              );
+            }
+          }
+          filteredStudents = List.from(widget.students);
+        });
+      }
+    } catch (e) {
+      print('Error loading saved grades: $e');
     }
   }
 
@@ -199,7 +240,7 @@ class _TablePageState extends State<TablePage> {
     );
 
     try {
-      // Save to local storage
+      // Save to SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final gradesKey = '${widget.className}_${widget.tableName}_grades';
       
@@ -363,7 +404,11 @@ class _TablePageState extends State<TablePage> {
         
         // Nilai
         sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: rowIndex))
-          ..value = TextCellValue(filteredStudents[i]['grades'][widget.tableName]?.toString() ?? '0')
+          ..value = TextCellValue(
+              filteredStudents[i]['grades'][widget.tableName] != null && 
+              filteredStudents[i]['grades'][widget.tableName] != 0 
+                  ? filteredStudents[i]['grades'][widget.tableName].toString() 
+                  : '-')
           ..cellStyle = dataStyle;
       }
 
@@ -543,17 +588,23 @@ class _TablePageState extends State<TablePage> {
                                           DataCell(
                                             isEditing
                                                 ? TextFormField(
-                                                    initialValue: student['grades']?[widget.tableName]?.toString() ?? '0',
+                                                    initialValue: student['grades']?[widget.tableName] != null && student['grades']?[widget.tableName] != 0 
+                                                        ? student['grades']![widget.tableName].toString() 
+                                                        : '',
                                                     keyboardType: TextInputType.number,
                                                     onChanged: (value) {
                                                       setState(() {
                                                         student['grades'] ??= {};
-                                                        student['grades'][widget.tableName] = int.tryParse(value) ?? 0;
+                                                        student['grades'][widget.tableName] = value.isEmpty ? 0 : int.tryParse(value) ?? 0;
                                                         hasUnsavedChanges = true;
                                                       });
                                                     },
                                                   )
-                                                : Text(student['grades']?[widget.tableName]?.toString() ?? '0'),
+                                                : Text(
+                                                    student['grades']?[widget.tableName] != null && student['grades']?[widget.tableName] != 0 
+                                                        ? student['grades']![widget.tableName].toString() 
+                                                        : '-'
+                                                  ),
                                           ),
                                         ],
                                       );
