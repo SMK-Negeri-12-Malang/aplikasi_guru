@@ -80,4 +80,6 @@ class GradeStateService extends ChangeNotifier {
     }
     return 0;
   }
+
+  void setGradesForClass(String className, List<Map<String, dynamic>> latestData) {}
 }

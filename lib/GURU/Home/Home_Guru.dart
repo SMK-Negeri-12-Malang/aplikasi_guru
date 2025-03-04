@@ -39,6 +39,8 @@ class _DashboardPageState extends State<DashboardPage> {
   final ClassService _classService = ClassService();
   List<ClassModel> _classList = [];
   bool _isLoadingClasses = true;
+  late Timer _newsTimer;
+  int _currentNewsIndex = 0;
 
   get news => null;
 
@@ -75,6 +77,20 @@ class _DashboardPageState extends State<DashboardPage> {
             _currentScheduleIndex =
                 (_currentScheduleIndex + 1) % jadwalHariIni.length;
           }
+        });
+      }
+    });
+
+    // Initialize timer for news sliding
+    _newsTimer = Timer.periodic(Duration(seconds: 5), (timer) {
+      if (mounted && _newsList.isNotEmpty) {
+        setState(() {
+          _currentNewsIndex = (_currentNewsIndex + 1) % _newsList.length;
+          _pageController.animateToPage(
+            _currentNewsIndex,
+            duration: Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
         });
       }
     });
@@ -151,6 +167,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void dispose() {
     _scheduleTimer.cancel();
+    _newsTimer.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -161,57 +178,6 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
-  void _showJadwalMengajar() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return DraggableScrollableSheet(
-          expand: false,
-          builder: (context, scrollController) {
-            if (_isLoadingSchedules) {
-              return Center(child: CircularProgressIndicator());
-            }
-
-            // Group schedules by day
-            Map<String, List<Schedule>> schedulesByDay = {};
-            for (var schedule in _schedules) {
-              if (!schedulesByDay.containsKey(schedule.hari)) {
-                schedulesByDay[schedule.hari] = [];
-              }
-              schedulesByDay[schedule.hari]!.add(schedule);
-            }
-
-            return Container(
-              padding: EdgeInsets.all(16),
-              child: ListView(
-                controller: scrollController,
-                children: schedulesByDay.entries.map((entry) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        entry.key,
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 18),
-                      ),
-                      ...entry.value.map((schedule) {
-                        return ListTile(
-                          title: Text(schedule.namaPelajaran),
-                          subtitle: Text(schedule.jam),
-                        );
-                      }).toList(),
-                      Divider(),
-                    ],
-                  );
-                }).toList(),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 
   String _getHariBesok() {
     DateTime now = DateTime.now();
@@ -692,128 +658,102 @@ class _DashboardPageState extends State<DashboardPage> {
               ],
             ),
           )
-        : AnimatedSwitcher(
-            duration: Duration(milliseconds: 500),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: Offset(1.0, 0.0),
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
+        : PageView.builder(
+            itemCount: jadwalHariIni.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentScheduleIndex = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              return Container(
+                margin: EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: Offset(3, 3),
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 4,
+                            offset: Offset(2, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.school,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            jadwalHariIni[index].namaPelajaran,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: const Color.fromARGB(255, 11, 49, 105),
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            jadwalHariIni[index].kelas,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: const Color.fromARGB(255, 13, 66, 126),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(255, 19, 83, 146)!
+                                  .withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              jadwalHariIni[index].jam,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: const Color.fromARGB(255, 24, 103, 182),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               );
             },
-            child: Container(
-              key: ValueKey<int>(_currentScheduleIndex),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 8,
-                    offset: Offset(3, 3),
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              padding: EdgeInsets.all(16), // Reduced padding from 24 to 16
-              child: Row(
-                children: [
-                  Container(
-                    padding:
-                        EdgeInsets.all(12), // Reduced padding from 16 to 12
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 4,
-                          offset: Offset(2, 2),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.school,
-                      color: Colors.white,
-                      size: 24, // Reduced size from 32 to 24
-                    ),
-                  ),
-                  SizedBox(width: 16), // Reduced spacing from 24 to 16
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          jadwalHariIni[_currentScheduleIndex].namaPelajaran,
-                          style: TextStyle(
-                            fontSize: 16, // Reduced from 18 to 16
-                            fontWeight: FontWeight.bold,
-                            color: const Color.fromARGB(255, 11, 49, 105),
-                          ),
-                        ),
-                        SizedBox(height: 4), // Reduced spacing from 6 to 4
-                        Text(
-                          jadwalHariIni[_currentScheduleIndex].kelas,
-                          style: TextStyle(
-                            fontSize: 14, // Reduced from 16 to 14
-                            color: const Color.fromARGB(255, 13, 66, 126),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 4), // Reduced spacing from 6 to 4
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4), // Reduced padding
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 19, 83, 146)!
-                                .withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            jadwalHariIni[_currentScheduleIndex].jam,
-                            style: TextStyle(
-                              fontSize: 13, // Reduced from 14 to 13
-                              color: const Color.fromARGB(255, 24, 103, 182),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.arrow_forward_ios,
-                          size: 18, color: Colors.white),
-                      onPressed: () {
-                        setState(() {
-                          _currentScheduleIndex = (_currentScheduleIndex + 1) %
-                              jadwalHariIni.length;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
           );
   }
 
@@ -1205,119 +1145,151 @@ class _DashboardPageState extends State<DashboardPage> {
 
     return SizedBox(
       height: 155,
-      child: PageView.builder(
-        controller: _pageController,
-        itemCount: _newsList.length,
-        itemBuilder: (context, index) {
-          final news = _newsList[index];
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => NewsDetailPage(news: news),
+      child: Stack(
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            itemCount: _newsList.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentNewsIndex = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              final news = _newsList[index];
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NewsDetailPage(news: news),
+                    ),
+                  );
+                },
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF2E3F7F),
+                        Color.fromARGB(255, 117, 127, 170)
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 15,
+                        offset: Offset(0, 10),
+                        spreadRadius: -5,
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 120,
+                            height: 120,
+                            margin: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 3,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.file(
+                                news['image'],
+                                fit: BoxFit.cover,
+                                width: 120,
+                                height: 120,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    news['judul'],
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Expanded(
+                                    child: Text(
+                                      news['deskripsi'],
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 14,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Text(
+                                    news['tanggal'],
+                                    style: TextStyle(
+                                      color: Colors.white60,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               );
             },
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF2E3F7F),
-                    Color.fromARGB(255, 117, 127, 170)
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 15,
-                    offset: Offset(0, 10),
-                    spreadRadius: -5,
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 120,
-                        height: 120,
-                        margin: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              spreadRadius: 1,
-                              blurRadius: 3,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.file(
-                            news['image'],
-                            fit: BoxFit.cover,
-                            width: 120,
-                            height: 120,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                news['judul'],
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: 8),
-                              Expanded(
-                                child: Text(
-                                  news['deskripsi'],
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Text(
-                                news['tanggal'],
-                                style: TextStyle(
-                                  color: Colors.white60,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+          ),
+          // Add page indicator dots
+          Positioned(
+            bottom: 8,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                _newsList.length,
+                (index) => Container(
+                  margin: EdgeInsets.symmetric(horizontal: 4),
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: index == _currentNewsIndex
+                        ? Colors.white
+                        : Colors.white.withOpacity(0.4),
                   ),
                 ),
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
