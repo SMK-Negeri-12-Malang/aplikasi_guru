@@ -507,6 +507,45 @@ class _TablePageState extends State<TablePage> {
     return true;
   }
 
+  String _getPredicate(int nilai) {
+    if (nilai >= 91) return 'A+ ';
+    if (nilai >= 81) return 'A ';
+    if (nilai >= 76) return 'A- ';
+    if (nilai >= 71) return 'B+ ';
+    if (nilai >= 61) return 'B ';
+    if (nilai >= 51) return 'B-';
+    if (nilai >= 41) return 'C+ ';
+    if (nilai >= 31) return 'C ';
+    if (nilai >= 26) return 'C- ';
+    if (nilai >= 16) return 'D+ ';
+    if (nilai >= 6) return 'D ';
+    if (nilai >= 1) return 'D- ';
+    return 'N/A';
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(
+              const Color.fromARGB(255, 16, 89, 150),
+            ),
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Memuat data nilai...',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -551,71 +590,72 @@ class _TablePageState extends State<TablePage> {
                 ),
               ),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: searchController,
-                        decoration: InputDecoration(
-                          labelText: 'Cari Nama Siswa',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                          prefixIcon: Icon(Icons.search),
-                        ),
-                        onChanged: _filterStudents,
-                      ),
-                      SizedBox(height: 16),
-                      Expanded(
-                        child: isLoadingData
-                            ? _buildShimmerTable()
-                            : SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.vertical,
-                                  child: DataTable(
-                                    columns: [
-                                      DataColumn(label: Text('No. Absen')),
-                                      DataColumn(label: Text('Nama Siswa')),
-                                      DataColumn(label: Text('Nilai')),
-                                    ],
-                                    rows: List.generate(filteredStudents.length, (index) {
-                                      final student = filteredStudents[index];
-                                      int studentIndex = widget.students.indexOf(student);
-                                      return DataRow(
-                                        cells: [
-                                          DataCell(Text((index + 1).toString())),
-                                          DataCell(Text(student['name'])),
-                                          DataCell(
-                                            isEditing
-                                                ? TextFormField(
-                                                    initialValue: student['grades']?[widget.tableName] != null && student['grades']?[widget.tableName] != 0 
-                                                        ? student['grades']![widget.tableName].toString() 
-                                                        : '',
-                                                    keyboardType: TextInputType.number,
-                                                    onChanged: (value) {
-                                                      setState(() {
-                                                        student['grades'] ??= {};
-                                                        student['grades'][widget.tableName] = value.isEmpty ? 0 : int.tryParse(value) ?? 0;
-                                                        hasUnsavedChanges = true;
-                                                      });
-                                                    },
-                                                  )
-                                                : Text(
-                                                    student['grades']?[widget.tableName] != null && student['grades']?[widget.tableName] != 0 
-                                                        ? student['grades']![widget.tableName].toString() 
-                                                        : '-'
-                                                  ),
-                                          ),
-                                        ],
-                                      );
-                                    }),
-                                  ),
-                                ),
+                child: isLoadingData
+                    ? _buildLoadingIndicator()
+                    : Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            TextField(
+                              controller: searchController,
+                              decoration: InputDecoration(
+                                labelText: 'Cari Nama Siswa',
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                prefixIcon: Icon(Icons.search),
                               ),
+                              onChanged: _filterStudents,
+                            ),
+                            SizedBox(height: 16),
+                            Expanded(
+                              child: isLoadingData
+                                  ? _buildShimmerTable()
+                                  : SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.vertical,
+                                        child: DataTable(
+                                          columns: [
+                                            DataColumn(label: Text('No. Absen')),
+                                            DataColumn(label: Text('Nama Siswa')),
+                                            DataColumn(label: Text('Nilai')),
+                                            DataColumn(label: Text('Predikat')), // Add this column
+                                          ],
+                                          rows: List.generate(filteredStudents.length, (index) {
+                                            final student = filteredStudents[index];
+                                            int studentIndex = widget.students.indexOf(student);
+                                            final nilai = student['grades']?[widget.tableName] ?? 0;
+                                            final predicate = _getPredicate(nilai);
+                                            
+                                            return DataRow(
+                                              cells: [
+                                                DataCell(Text((index + 1).toString())),
+                                                DataCell(Text(student['name'])),
+                                                DataCell(
+                                                  isEditing
+                                                      ? TextFormField(
+                                                          initialValue: nilai != 0 ? nilai.toString() : '',
+                                                          keyboardType: TextInputType.number,
+                                                          onChanged: (value) {
+                                                            setState(() {
+                                                              student['grades'] ??= {};
+                                                              student['grades'][widget.tableName] = value.isEmpty ? 0 : int.tryParse(value) ?? 0;
+                                                              hasUnsavedChanges = true;
+                                                            });
+                                                          },
+                                                        )
+                                                      : Text(nilai != 0 ? nilai.toString() : '-'),
+                                                ),
+                                                DataCell(Text(predicate)), // Add predicate cell
+                                              ],
+                                            );
+                                          }),
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
               ),
             ],
           ),
@@ -714,11 +754,13 @@ class _TablePageState extends State<TablePage> {
               DataColumn(label: Container(width: 80, height: 20, color: Colors.white)),
               DataColumn(label: Container(width: 150, height: 20, color: Colors.white)),
               DataColumn(label: Container(width: 80, height: 20, color: Colors.white)),
+              DataColumn(label: Container(width: 80, height: 20, color: Colors.white)), // Add this for predicate
             ],
             rows: List.generate(10, (index) => DataRow(cells: [
               DataCell(Container(width: 80, height: 20, color: Colors.white)),
               DataCell(Container(width: 150, height: 20, color: Colors.white)),
               DataCell(Container(width: 80, height: 20, color: Colors.white)),
+              DataCell(Container(width: 80, height: 20, color: Colors.white)), // Add this for predicate
             ])),
           ),
         ),
