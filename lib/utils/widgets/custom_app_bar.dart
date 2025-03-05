@@ -19,7 +19,7 @@ class CustomGradientAppBar extends StatelessWidget {
     this.textColor = Colors.white,
     this.iconColor,
     this.titleSize = 25, // Optional titleSize
-    required this.child,
+    required this.child, required bool showBackButton,
   }) : super(key: key);
 
   @override

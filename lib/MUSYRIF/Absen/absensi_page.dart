@@ -38,6 +38,7 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar> {
             
             textColor: Colors.white,
             child: Container(),
+            showBackButton: false,
           ),
           SliverToBoxAdapter(
             child: Padding(
