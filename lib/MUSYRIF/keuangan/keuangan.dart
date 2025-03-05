@@ -60,6 +60,7 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
             icon: Icons.account_balance_wallet,
             textColor: Colors.white, // Explicitly set white text
             child: Container(), // Empty container since we don't need the centered content anymore
+            showBackButton: false,
           ),
           SliverToBoxAdapter(
             child: Padding(
