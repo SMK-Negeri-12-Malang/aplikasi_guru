@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 
 class CustomGradientAppBar extends StatelessWidget {
   final String title;
-  final String? subtitle; // Optional subtitle
+  final String? subtitle; // Subtitle opsional
   final IconData icon;
   final double height;
   final Color textColor;
   final Color? iconColor;
-  final double? titleSize; // Optional titleSize
+  final double? titleSize; // Ukuran title opsional
   final Widget child;
+  final bool showBackButton; // Menentukan apakah back button ditampilkan
 
   const CustomGradientAppBar({
     Key? key,
@@ -18,8 +19,9 @@ class CustomGradientAppBar extends StatelessWidget {
     this.height = 50,
     this.textColor = Colors.white,
     this.iconColor,
-    this.titleSize = 25, // Optional titleSize
+    this.titleSize = 25,
     required this.child,
+    this.showBackButton = true, // Defaultnya true agar ada tombol kembali
   }) : super(key: key);
 
   @override
@@ -30,6 +32,12 @@ class CustomGradientAppBar extends StatelessWidget {
       pinned: true,
       elevation: 0,
       backgroundColor: Colors.transparent,
+      leading: showBackButton
+          ? IconButton(
+              icon: Icon(Icons.arrow_back, color: iconColor ?? Colors.white),
+              onPressed: () => Navigator.pop(context),
+            )
+          : null, // Jika tidak diaktifkan, leading akan kosong
       flexibleSpace: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -50,7 +58,7 @@ class CustomGradientAppBar extends StatelessWidget {
                 title,
                 style: TextStyle(
                   color: textColor,
-                  fontSize: titleSize ?? 24.0, // Ukuran title diperbesar
+                  fontSize: titleSize ?? 24.0,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -59,7 +67,7 @@ class CustomGradientAppBar extends StatelessWidget {
                   subtitle!,
                   style: TextStyle(
                     color: textColor,
-                    fontSize: 14.0, // Subtitle sedikit diperbesar
+                    fontSize: 14.0,
                     fontWeight: FontWeight.normal,
                   ),
                 ),
@@ -67,24 +75,7 @@ class CustomGradientAppBar extends StatelessWidget {
           ),
         ),
       ),
-      leading: Padding(
-        padding: const EdgeInsets.all(1), // Memberikan padding agar lebih besar
-        child: IconButton(
-          iconSize: 30.0, // Ukuran ikon diperbesar
-          icon: Icon(Icons.arrow_back_ios, color: iconColor ?? textColor),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.all(1), // Memberikan padding agar lebih besar
-          child: IconButton(
-            iconSize: 30.0, // Ukuran ikon diperbesar
-            icon: Icon(icon, color: iconColor ?? textColor),
-            onPressed: () {},
-          ),
-        ),
-      ],
+      actions: [], // Tidak ada ikon tambahan di kanan
     );
   }
 }

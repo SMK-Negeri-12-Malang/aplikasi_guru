@@ -34,10 +34,10 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar> {
         slivers: [
           CustomGradientAppBar(
             title: 'Laporan Santri',
-            icon: Icons.assignment,
-            
+            icon: Icons.assignment,         
             textColor: Colors.white,
             child: Container(),
+            showBackButton: false,
           ),
           SliverToBoxAdapter(
             child: Padding(
