@@ -14,7 +14,8 @@ class KesehatanSantri {
   final String kamar;
   final String keluhan;
 
-  KesehatanSantri({required this.name, required this.kamar, required this.keluhan});
+  KesehatanSantri(
+      {required this.name, required this.kamar, required this.keluhan});
 }
 
 // List global untuk menyimpan data kesehatan
@@ -33,14 +34,23 @@ class _KesehatanPageState extends State<Kesehatan> {
   bool _showAllNames = false;
 
   final List<Santri> _santriList = [
-    Santri("Ahmad", "Kamar A"), Santri("Budi", "Kamar B"), Santri("Chandra", "Kamar C"),
-    Santri("Dewi", "Kamar A"), Santri("Eka", "Kamar B"), Santri("Faisal", "Kamar C"),
-    Santri("Gita", "Kamar A"), Santri("Hadi", "Kamar B"), Santri("Indra", "Kamar C"),
+    Santri("Ahmad", "Kamar A"),
+    Santri("Budi", "Kamar B"),
+    Santri("Chandra", "Kamar C"),
+    Santri("Dewi", "Kamar A"),
+    Santri("Eka", "Kamar B"),
+    Santri("Faisal", "Kamar C"),
+    Santri("Gita", "Kamar A"),
+    Santri("Hadi", "Kamar B"),
+    Santri("Indra", "Kamar C"),
   ];
 
   void _updateKamar(String name) {
     setState(() {
-      _selectedKamar = _santriList.firstWhere((santri) => santri.name == name, orElse: () => Santri("", "")).kamar;
+      _selectedKamar = _santriList
+          .firstWhere((santri) => santri.name == name,
+              orElse: () => Santri("", ""))
+          .kamar;
     });
   }
 
@@ -57,7 +67,8 @@ class _KesehatanPageState extends State<Kesehatan> {
     }
 
     // Simpan data ke list global
-    kesehatanList.add(KesehatanSantri(name: nama, kamar: kamar, keluhan: keluhan));
+    kesehatanList
+        .add(KesehatanSantri(name: nama, kamar: kamar, keluhan: keluhan));
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Data disimpan: $nama - $kamar - $keluhan")),
@@ -78,9 +89,11 @@ class _KesehatanPageState extends State<Kesehatan> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final filteredSantriList = _santriList
-        .where((santri) => santri.name.toLowerCase().contains(_nameController.text.toLowerCase()))
+        .where((santri) => santri.name
+            .toLowerCase()
+            .contains(_nameController.text.toLowerCase()))
         .toList();
-    
+
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 233, 233, 233),
       body: CustomScrollView(
@@ -150,6 +163,14 @@ class _KesehatanPageState extends State<Kesehatan> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                // blurRadius: 10.0,
+                                color: Colors.white,
+                                offset: Offset(0, 0),
+                              ),
+                            ],
                           ),
                         ),
                       ),

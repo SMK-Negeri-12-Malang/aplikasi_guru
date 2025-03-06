@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Izin/izin_detail.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan_detail.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/laporan_detail.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/pelanggaran_detail.dart';
 import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
 
 class AbsensiPageKamar extends StatefulWidget {

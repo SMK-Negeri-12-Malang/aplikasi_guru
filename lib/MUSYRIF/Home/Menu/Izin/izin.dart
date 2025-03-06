@@ -20,8 +20,18 @@ class IzinModel {
 }
 
 List<IzinModel> izinList = [
-  IzinModel(nama: 'Ahmad', tanggal: '01-02-2025 to 05-02-2025', kamar: 'Kelas A', halaqo: 'Halaqo 1', musyrif: 'Ustadz Ali'),
-  IzinModel(nama: 'Aisyah', tanggal: '02-02-2025 to 06-02-2025', kamar: 'Kelas A', halaqo: 'Halaqo 2', musyrif: 'Ustadzah Fatimah'),
+  IzinModel(
+      nama: 'Ahmad',
+      tanggal: '01-02-2025 to 05-02-2025',
+      kamar: 'Kelas A',
+      halaqo: 'Halaqo 1',
+      musyrif: 'Ustadz Ali'),
+  IzinModel(
+      nama: 'Aisyah',
+      tanggal: '02-02-2025 to 06-02-2025',
+      kamar: 'Kelas A',
+      halaqo: 'Halaqo 2',
+      musyrif: 'Ustadzah Fatimah'),
 ];
 
 class IzinPage extends StatefulWidget {
@@ -32,12 +42,14 @@ class IzinPage extends StatefulWidget {
 class _IzinState extends State<IzinPage> {
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _tanggalMulaiController = TextEditingController();
-  final TextEditingController _tanggalKembaliController = TextEditingController();
+  final TextEditingController _tanggalKembaliController =
+      TextEditingController();
   final TextEditingController _kamarController = TextEditingController();
   final TextEditingController _halaqoController = TextEditingController();
   final TextEditingController _musyrifController = TextEditingController();
 
-  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+  Future<void> _selectDate(
+      BuildContext context, TextEditingController controller) async {
     DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -62,7 +74,8 @@ class _IzinState extends State<IzinPage> {
         izinList.add(
           IzinModel(
             nama: _namaController.text,
-            tanggal: "${_tanggalMulaiController.text} to ${_tanggalKembaliController.text}",
+            tanggal:
+                "${_tanggalMulaiController.text} to ${_tanggalKembaliController.text}",
             kamar: _kamarController.text,
             halaqo: _halaqoController.text,
             musyrif: _musyrifController.text,
@@ -88,7 +101,7 @@ class _IzinState extends State<IzinPage> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 233, 233, 233),
       body: CustomScrollView(
@@ -96,7 +109,6 @@ class _IzinState extends State<IzinPage> {
           CustomGradientAppBar(
             title: 'Formulir Izin',
             icon: Icons.edit,
-          
             textColor: Colors.white,
             child: Container(),
           ),
@@ -113,7 +125,8 @@ class _IzinState extends State<IzinPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildTextField(_namaController, 'Nama Santri', Icons.person),
+                      _buildTextField(
+                          _namaController, 'Nama Santri', Icons.person),
                       SizedBox(height: 16),
                       Column(
                         children: [
@@ -126,7 +139,8 @@ class _IzinState extends State<IzinPage> {
                           _buildDateField(
                             _tanggalKembaliController,
                             'Tanggal Kembali',
-                            () => _selectDate(context, _tanggalKembaliController),
+                            () =>
+                                _selectDate(context, _tanggalKembaliController),
                           ),
                         ],
                       ),
@@ -135,7 +149,8 @@ class _IzinState extends State<IzinPage> {
                       SizedBox(height: 16),
                       _buildTextField(_halaqoController, 'Halaqo', Icons.group),
                       SizedBox(height: 16),
-                      _buildTextField(_musyrifController, 'Musyrif', Icons.supervisor_account),
+                      _buildTextField(_musyrifController, 'Musyrif',
+                          Icons.supervisor_account),
                       SizedBox(height: 24),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -151,6 +166,14 @@ class _IzinState extends State<IzinPage> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                // blurRadius: 10.0,
+                                color: Colors.white,
+                                offset: Offset(0, 0),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -165,7 +188,8 @@ class _IzinState extends State<IzinPage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon) {
+  Widget _buildTextField(
+      TextEditingController controller, String label, IconData icon) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
@@ -189,7 +213,8 @@ class _IzinState extends State<IzinPage> {
     );
   }
 
-  Widget _buildDateField(TextEditingController controller, String label, VoidCallback onTap) {
+  Widget _buildDateField(
+      TextEditingController controller, String label, VoidCallback onTap) {
     return TextFormField(
       controller: controller,
       readOnly: true,

@@ -32,9 +32,9 @@ class _LoginScreenState extends State<LoginScreen> {
       if (guru != null) {
         // Login sebagai guru berhasil
         await UserDataManager.saveUserData(
-          guru.name, // Use name from response
-          guru.email  // Use email from response
-        );
+            guru.name, // Use name from response
+            guru.email // Use email from response
+            );
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => homeview()),
@@ -42,16 +42,17 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (musyrif != null) {
         // Login sebagai musyrif berhasil
         await UserDataManager.saveUserData(
-          musyrif.name, // Use name from response
-          musyrif.email // Use email from response
-        );
+            musyrif.name, // Use name from response
+            musyrif.email // Use email from response
+            );
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => homemusryf()),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login gagal. Periksa email dan password')),
+          const SnackBar(
+              content: Text('Login gagal. Periksa email dan password')),
         );
       }
     } catch (e) {
@@ -160,7 +161,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Password Input
                         TextField(
                           controller: _passwordController,
-                          obscureText: !_isPasswordVisible, // Terkait visibilitas
+                          obscureText:
+                              !_isPasswordVisible, // Terkait visibilitas
                           decoration: InputDecoration(
                             labelText: 'Password:',
                             border: OutlineInputBorder(
@@ -182,6 +184,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               },
                             ),
                           ),
+                          onSubmitted: (value) {
+                            if (!_isLoading) {
+                              _handleLogin();
+                            }
+                          },
                         ),
 
                         const SizedBox(height: 10),
@@ -219,7 +226,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white)
                               : const Text(
                                   'Masuk',
                                   style: TextStyle(
