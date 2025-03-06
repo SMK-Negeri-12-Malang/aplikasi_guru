@@ -59,7 +59,8 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
             title: 'Keuangan Santri',
             icon: Icons.account_balance_wallet,
             textColor: Colors.white, // Explicitly set white text
-            child: Container(), // Empty container since we don't need the centered content anymore
+            child:
+                Container(), // Empty container since we don't need the centered content anymore
             showBackButton: false,
           ),
           SliverToBoxAdapter(
@@ -105,20 +106,39 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
                       SizedBox(width: 16),
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          kamarList.length,
-                          (index) => Container(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.arrow_upward),
+                            onPressed: () {
+                              if (_currentPage > 0) {
+                                _pageController.previousPage(
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            },
+                          ),
+                          Container(
                             margin: EdgeInsets.symmetric(vertical: 4),
                             width: 8,
                             height: 8,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: _currentPage == index
-                                  ? Color(0xFF2E3F7F)
-                                  : Colors.grey[300],
+                              color: Color(0xFF2E3F7F),
                             ),
                           ),
-                        ),
+                          IconButton(
+                            icon: Icon(Icons.arrow_downward),
+                            onPressed: () {
+                              if (_currentPage < kamarList.length - 1) {
+                                _pageController.nextPage(
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -177,7 +197,8 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
                                     ),
                                     SizedBox(width: 16),
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           santri["nama"],
@@ -200,7 +221,8 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
                                 ),
                                 SizedBox(height: 12),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     _buildTransactionInfo(
                                       "Masuk",
@@ -279,7 +301,7 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
               borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
-                  color: isSelected 
+                  color: isSelected
                       ? Color(0xFF2E3F7F).withOpacity(0.3)
                       : Colors.black12,
                   blurRadius: 8,

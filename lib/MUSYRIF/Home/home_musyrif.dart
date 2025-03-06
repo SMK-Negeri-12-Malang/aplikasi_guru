@@ -32,12 +32,16 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
     });
   }
 
-  @override 
+  @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final appBarHeight =
+        screenHeight * 0.15; // Adjust the height based on screen size
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 233, 233, 233),
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(120.0),
+        preferredSize: Size.fromHeight(appBarHeight),
         child: AppBar(
           flexibleSpace: Container(
             decoration: BoxDecoration(
@@ -53,7 +57,8 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
             ),
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 22),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 30, horizontal: 22),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -63,7 +68,8 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
                           radius: 30,
                           backgroundImage: _profileImagePath != null
                               ? NetworkImage(_profileImagePath!)
-                              : AssetImage('assets/default_profile.png') as ImageProvider,
+                              : AssetImage('assets/default_profile.png')
+                                  as ImageProvider,
                         ),
                         const SizedBox(width: 16),
                         Column(
@@ -181,15 +187,20 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
     print("Button pressed: $buttonType");
     switch (buttonType) {
       case 'Pelanggaran':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => Laporan(
-          // Handle the news added
-        )));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Laporan(
+                    // Handle the news added
+                    )));
         break;
       case 'Perizinan':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => IzinPage()));
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => IzinPage()));
         break;
       case 'Kesehatan':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => Kesehatan()));
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => Kesehatan()));
         break;
       default:
         print('Unknown button type');
