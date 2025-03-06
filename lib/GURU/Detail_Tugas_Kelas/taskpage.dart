@@ -7,13 +7,16 @@ import 'dart:io';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:aplikasi_ortu/utils/task_storage.dart';
+import '../../SERVISCE/task_manager_service.dart';
 
 class tugaskelas extends StatefulWidget {
-  final Function(Map<String, dynamic>, String)? onTaskAdded;  // Add this line
+  final Function(Map<String, dynamic>, String)? onTaskAdded;
+  final String className;
 
   const tugaskelas({
     Key? key,
-    this.onTaskAdded,  // Add this line
+    this.onTaskAdded,
+    required this.className,
   }) : super(key: key);
 
   @override
@@ -26,10 +29,8 @@ class _AbsensiKelasPageState extends State<tugaskelas>
   late Animation<double> _animation;
 
   final List<String> kelasList = ['Tugas', 'Ujian'];
-  final Map<String, List<Map<String, dynamic>>> siswaData = {
-    'Tugas': [], // Empty list initially
-    'Ujian': [],
-  };
+  final TaskManagerService _taskManager = TaskManagerService();
+  Map<String, List<Map<String, dynamic>>> siswaData = {};
 
   String? selectedClass;
   int checkedCount = 0;
@@ -89,10 +90,20 @@ class _AbsensiKelasPageState extends State<tugaskelas>
   }
 
   Future<void> _loadSavedTasks() async {
-    final savedTasks = await TaskStorage.loadTasks();
-    setState(() {
-      siswaData.addAll(savedTasks);
-    });
+    try {
+      final tasks = await _taskManager.getTasksForClass(widget.className);
+      setState(() {
+        siswaData.clear();
+        // Separate tasks by type (Tugas/Ujian)
+        for (var type in kelasList) {
+          siswaData[type] = tasks.where((task) => 
+            task['type'] == type
+          ).toList();
+        }
+      });
+    } catch (e) {
+      print('Error loading tasks: $e');
+    }
   }
 
   @override
@@ -120,7 +131,7 @@ class _AbsensiKelasPageState extends State<tugaskelas>
   }
 
 
-void _addNewTask() {
+void _addNewTask() async {
   if (selectedClass != null) {
     File? selectedImage;
     PlatformFile? selectedFile;
@@ -266,18 +277,25 @@ void _addNewTask() {
                   child: Text('Batal'),
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (taskName.isNotEmpty && deadline.isNotEmpty) {
+                      final newTask = {
+                        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+                        'name': taskName,
+                        'deadline': deadline,
+                        'description': description,
+                        'type': selectedClass,
+                        'checked': false,
+                        'image': selectedImage,
+                        'file': selectedFile,
+                        'className': widget.className, // Add class name to task
+                      };
+
+                      await _taskManager.saveTaskToClass(widget.className, newTask);
+                      await _loadSavedTasks(); // Reload tasks
+
                       this.setState(() {
-                        siswaData[selectedClass]!.add({
-                          'name': taskName,
-                          'deadline': deadline,
-                          'description': description,
-                          'checked': false,
-                          'image': selectedImage,
-                          'file': selectedFile,
-                          'absen': (siswaData[selectedClass]!.length + 1).toString().padLeft(2, '0'),
-                        });
+                        siswaData[selectedClass]!.add(newTask);
                       });
 
                       // Save tasks after adding new task
@@ -573,7 +591,7 @@ void _addNewTask() {
               padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 22), // Reduced vertical padding
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.blue.shade900, Colors.blue.shade700],
+                  colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),

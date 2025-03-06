@@ -172,14 +172,14 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Batal', style: TextStyle(color: Colors.grey)),
+                child: Text('Batal', style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0))),
               ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                   _confirmSaveAttendance();
                 },
-                child: Text('Simpan'),
+                child: Text('Simpan', style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255))),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 17, 82, 136),
                   shape: RoundedRectangleBorder(

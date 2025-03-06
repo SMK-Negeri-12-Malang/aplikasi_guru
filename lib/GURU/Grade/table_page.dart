@@ -196,11 +196,11 @@ class _TablePageState extends State<TablePage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Batal'),
+              child: Text('Batal', style: TextStyle(color: Colors.black)),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text('Simpan'),
+              child: Text('Simpan', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(255, 76, 175, 101),
               ),
@@ -308,7 +308,7 @@ class _TablePageState extends State<TablePage> {
                     SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: Text('OK'),
+                      child: Text('ok', style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255))),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         minimumSize: Size(100, 40),
@@ -489,11 +489,11 @@ class _TablePageState extends State<TablePage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: Text('Batal'),
+                child: Text('Batal', style: TextStyle(color: Colors.black)),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: Text('Keluar'),
+                child: Text('keluar', style: TextStyle(color: const Color.fromARGB(255, 250, 249, 249))),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                 ),
