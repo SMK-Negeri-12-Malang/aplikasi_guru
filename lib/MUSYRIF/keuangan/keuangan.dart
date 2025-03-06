@@ -59,7 +59,8 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
             title: 'Keuangan Santri',
             icon: Icons.account_balance_wallet,
             textColor: Colors.white, // Explicitly set white text
-            child: Container(), // Empty container since we don't need the centered content anymore
+            child:
+                Container(), // Empty container since we don't need the centered content anymore
             showBackButton: false,
           ),
           SliverToBoxAdapter(
@@ -111,8 +112,13 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
                             margin: EdgeInsets.symmetric(vertical: 4),
                             width: 8,
                             height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
+                            child: Icon(
+                              _currentPage == index
+                                  ? Icons.arrow_drop_up
+                                  : _currentPage == index - 1 ||
+                                          _currentPage == index + 1
+                                      ? Icons.circle
+                                      : Icons.arrow_drop_down,
                               color: _currentPage == index
                                   ? Color(0xFF2E3F7F)
                                   : Colors.grey[300],
@@ -177,7 +183,8 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
                                     ),
                                     SizedBox(width: 16),
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           santri["nama"],
@@ -200,7 +207,8 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
                                 ),
                                 SizedBox(height: 12),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     _buildTransactionInfo(
                                       "Masuk",
@@ -279,7 +287,7 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
               borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
-                  color: isSelected 
+                  color: isSelected
                       ? Color(0xFF2E3F7F).withOpacity(0.3)
                       : Colors.black12,
                   blurRadius: 8,

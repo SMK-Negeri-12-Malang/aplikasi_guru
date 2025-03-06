@@ -133,6 +133,7 @@ class _ActivityTablePageState extends State<ActivityTablePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(
           'Detail Aktivitas',
           style: TextStyle(color: Colors.white),
@@ -154,6 +155,7 @@ class _ActivityTablePageState extends State<ActivityTablePage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Mode edit aktif. Ketuk pada baris yang ingin diedit'),
+                    
                   ),
                 );
               }
