@@ -33,7 +33,8 @@ class _LaporanState extends State<Laporan> {
   final TextEditingController _kamarController = TextEditingController();
   final TextEditingController _tanggalController = TextEditingController();
   final TextEditingController _poinController = TextEditingController();
-  final TextEditingController _iqobController = TextEditingController(); // Add iqob controller
+  final TextEditingController _iqobController =
+      TextEditingController(); // Add iqob controller
   String? _selectedPelanggaran;
 
   final List<String> _pelanggaranList = [
@@ -60,7 +61,8 @@ class _LaporanState extends State<Laporan> {
     'Membolos': 'Menghafal surat pendek',
     'Berkelahi': 'Menulis surat permintaan maaf',
     'Tidak berpakaian rapi': 'Membersihkan kamar',
-    'Menggunakan handphone saat pembelajaran': 'Menyerahkan handphone selama seminggu',
+    'Menggunakan handphone saat pembelajaran':
+        'Menyerahkan handphone selama seminggu',
   };
 
   final List<Map<String, String>> _siswaList = [
@@ -77,7 +79,8 @@ class _LaporanState extends State<Laporan> {
   void _filterSiswa(String query) {
     setState(() {
       _filteredSiswa = _siswaList
-          .where((siswa) => siswa['nama']!.toLowerCase().startsWith(query.toLowerCase()))
+          .where((siswa) =>
+              siswa['nama']!.toLowerCase().startsWith(query.toLowerCase()))
           .toList();
     });
   }
@@ -116,6 +119,20 @@ class _LaporanState extends State<Laporan> {
     }
   }
 
+  void _selectDate(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      setState(() {
+        _tanggalController.text = "${picked.toLocal()}".split(' ')[0];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -151,8 +168,7 @@ class _LaporanState extends State<Laporan> {
                           _filterSiswa(value);
                         },
                       ),
-                      if (_filteredSiswa.isNotEmpty)
-                        _buildSuggestionsList(),
+                      if (_filteredSiswa.isNotEmpty) _buildSuggestionsList(),
                       SizedBox(height: 16),
                       _buildTextField(
                         _kamarController,
@@ -167,6 +183,8 @@ class _LaporanState extends State<Laporan> {
                         _tanggalController,
                         "Tanggal",
                         Icons.calendar_today,
+                        readOnly: true,
+                        onTap: () => _selectDate(context),
                       ),
                       SizedBox(height: 16),
                       _buildTextField(
@@ -197,6 +215,13 @@ class _LaporanState extends State<Laporan> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                //blurRadius: 10.0, agar putih mengkilap
+                                color: Colors.white,
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -217,11 +242,13 @@ class _LaporanState extends State<Laporan> {
     IconData icon, {
     bool readOnly = false,
     void Function(String)? onChanged,
+    void Function()? onTap,
   }) {
     return TextFormField(
       controller: controller,
       readOnly: readOnly,
       onChanged: onChanged,
+      onTap: onTap,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Color(0xFF2E3F7F)),
@@ -244,59 +271,45 @@ class _LaporanState extends State<Laporan> {
   }
 
   Widget _buildDropdownField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: ExpansionTile(
-        leading: Icon(Icons.warning, color: Color(0xFF2E3F7F)),
-        title: Text(
-          _selectedPelanggaran ?? 'Pilih Jenis Pelanggaran',
-          style: TextStyle(
-            color: _selectedPelanggaran != null ? Colors.black87 : Colors.grey[600],
-            fontSize: 16,
-          ),
+    return DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        labelText: 'Pilih Jenis Pelanggaran',
+        prefixIcon: Icon(Icons.warning, color: Color(0xFF2E3F7F)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey[300]!),
         ),
-        children: [
-          Container(
-            height: 200,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: _pelanggaranList.length,
-              itemBuilder: (context, index) {
-                final pelanggaran = _pelanggaranList[index];
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Color(0xFF2E3F7F).withOpacity(0.1),
-                    child: Icon(
-                      Icons.warning,
-                      color: Color(0xFF2E3F7F),
-                      size: 20,
-                    ),
-                  ),
-                  title: Text(pelanggaran),
-                  subtitle: Text(
-                    'Poin: ${_poinPelanggaran[pelanggaran]}',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                    ),
-                  ),
-                  onTap: () {
-                    setState(() {
-                      _selectedPelanggaran = pelanggaran;
-                      _poinController.text = _poinPelanggaran[pelanggaran]!.toString();
-                      _iqobController.text = _iqobPelanggaran[pelanggaran]!;
-                    });
-                  },
-                );
-              },
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Color(0xFF2E3F7F)),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+      ),
+      isExpanded: true, // Ensure text remains within the field
+      value: _selectedPelanggaran,
+      items: _pelanggaranList.map((pelanggaran) {
+        return DropdownMenuItem<String>(
+          value: pelanggaran,
+          child: Text(
+            pelanggaran,
+            style: TextStyle(
+              fontWeight: FontWeight.normal, // Ensure text is not too bold
             ),
           ),
-        ],
-      ),
+        );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _selectedPelanggaran = value;
+          _poinController.text = _poinPelanggaran[value]!.toString();
+          _iqobController.text = _iqobPelanggaran[value]!;
+        });
+      },
     );
   }
 
