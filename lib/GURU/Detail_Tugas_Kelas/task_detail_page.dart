@@ -1,3 +1,4 @@
+import 'package:aplikasi_ortu/SERVISCE/task_manager_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -21,9 +22,10 @@ class TaskDetailPage extends StatefulWidget {
 }
 
 class _TaskDetailPageState extends State<TaskDetailPage> {
+  final TaskManagerService _taskManager = TaskManagerService();
 
   void _showFullImage() {
-    Navigator.push(
+    Navigator.push( 
       context,
       MaterialPageRoute(
         builder: (context) => Scaffold(
@@ -174,14 +176,25 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
 
     if (result != null) {
+      final updatedTask = {
+        ...widget.task,
+        'name': result['name'],
+        'deadline': result['deadline'],
+        'description': result['description'],
+        'image': result['image'],
+        'file': result['file'],
+      };
+
+      await _taskManager.updateTaskInClass(
+        widget.className,
+        widget.task['id'],
+        updatedTask
+      );
+
       setState(() {
-        widget.task['name'] = result['name'];
-        widget.task['deadline'] = result['deadline'];
-        widget.task['description'] = result['description'];
-        widget.task['image'] = result['image'];
-        widget.task['file'] = result['file']; // Add this line
+        widget.task.addAll(updatedTask);
       });
-      widget.onTaskUpdated(widget.task); // Add this to notify parent
+      widget.onTaskUpdated(widget.task);
     }
   }
 

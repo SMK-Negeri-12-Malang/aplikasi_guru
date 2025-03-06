@@ -14,6 +14,7 @@ import 'package:aplikasi_ortu/SERVISCE/jadwal_dihome.dart';
 import '../../SERVISCE/class_service.dart';
 import '../Berita/NewsDetailPage.dart';
 import 'dart:ui';
+import 'dart:convert';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -47,6 +48,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
+    _loadSavedNews();
     initializeDateFormatting('id_ID', null).then((_) {
       _loadProfileData();
     });
@@ -172,12 +174,73 @@ class _DashboardPageState extends State<DashboardPage> {
     super.dispose();
   }
 
+  Future<void> _loadSavedNews() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedNewsString = prefs.getString('saved_news');
+      
+      if (savedNewsString != null) {
+        final List<dynamic> savedNews = json.decode(savedNewsString);
+        setState(() {
+          _newsList = savedNews.map((news) {
+            try {
+              final imagePath = news['imagePath'];
+              final imageFile = File(imagePath);
+              if (imageFile.existsSync()) {
+                return {
+                  'judul': news['judul'],
+                  'deskripsi': news['deskripsi'],
+                  'tempat': news['tempat'],
+                  'tanggal': news['tanggal'],
+                  'waktu': news['waktu'],
+                  'image': imageFile,
+                  'imagePath': imagePath,
+                };
+              }
+            } catch (e) {
+              print('Error loading image: $e');
+            }
+            return null;
+          }).whereType<Map<String, dynamic>>().toList();
+        });
+      }
+    } catch (e) {
+      print('Error loading saved news: $e');
+    }
+  }
+
+  Future<void> _saveNewsToLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final List<Map<String, dynamic>> storableNews = _newsList.map((news) {
+        return {
+          'judul': news['judul'],
+          'deskripsi': news['deskripsi'],
+          'tempat': news['tempat'],
+          'tanggal': news['tanggal'],
+          'waktu': news['waktu'],
+          'imagePath': news['image'].path,
+        };
+      }).toList();
+      
+      await prefs.setString('saved_news', json.encode(storableNews));
+    } catch (e) {
+      print('Error saving news: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menyimpan berita: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   void _addNews(Map<String, dynamic> news) {
     setState(() {
       _newsList.add(news);
     });
+    _saveNewsToLocal(); // Save after adding new news
   }
-
 
   String _getHariBesok() {
     DateTime now = DateTime.now();
@@ -979,6 +1042,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                                 MaterialPageRoute(
                                                   builder: (context) =>
                                                       tugaskelas(
+                                                    className: classData.kelas,
                                                     onTaskAdded:
                                                         (task, className) {
                                                       updateDeadlineNotifications(
@@ -1038,81 +1102,96 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildClassButton(String title, VoidCallback onPressed) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 6), // Reduced from 8
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-            spreadRadius: 0,
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => tugaskelas(
+              className: title, // Pass class name here
+              onTaskAdded: (task, className) {
+                updateDeadlineNotifications(task, title);
+              },
+            ),
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
+        );
+      },
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 6), // Reduced from 8
+        decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(15),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: 16, vertical: 16), // Reduced padding
-            height: 85, // Reduced from 100
-            child: Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(10), // Reduced from 12
-                  decoration: BoxDecoration(
-                    color: Color(0xFF2E3F7F).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(15),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 16), // Reduced padding
+              height: 85, // Reduced from 100
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(10), // Reduced from 12
+                    decoration: BoxDecoration(
+                      color: Color(0xFF2E3F7F).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.class_,
+                      color: Color(0xFF2E3F7F),
+                      size: 26, // Reduced from 30
+                    ),
                   ),
-                  child: Icon(
-                    Icons.class_,
-                    color: Color(0xFF2E3F7F),
-                    size: 26, // Reduced from 30
-                  ),
-                ),
-                SizedBox(width: 16), // Reduced from 20
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          color: Color(0xFF2E3F7F),
-                          fontSize: 16, // Reduced from 18
-                          fontWeight: FontWeight.bold,
+                  SizedBox(width: 16), // Reduced from 20
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            color: Color(0xFF2E3F7F),
+                            fontSize: 16, // Reduced from 18
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 4), // Reduced from 6
-                      Text(
-                        'Lihat detail tugas kelas',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 13, // Reduced from 14
+                        SizedBox(height: 4), // Reduced from 6
+                        Text(
+                          'Lihat detail tugas kelas',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 13, // Reduced from 14
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Color(0xFF2E3F7F).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF2E3F7F).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.arrow_forward_ios,
+                      color: Color(0xFF2E3F7F),
+                      size: 18, // Reduced from 20
+                    ),
                   ),
-                  child: Icon(
-                    Icons.arrow_forward_ios,
-                    color: Color(0xFF2E3F7F),
-                    size: 18, // Reduced from 20
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -1143,11 +1222,11 @@ class _DashboardPageState extends State<DashboardPage> {
       );
     }
 
-    return SizedBox(
-      height: 155,
-      child: Stack(
-        children: [
-          PageView.builder(
+    return Column(  // Changed from SizedBox to Column
+      children: [
+        SizedBox(
+          height: 155,
+          child: PageView.builder(
             controller: _pageController,
             itemCount: _newsList.length,
             onPageChanged: (index) {
@@ -1266,31 +1345,26 @@ class _DashboardPageState extends State<DashboardPage> {
               );
             },
           ),
-          // Add page indicator dots
-          Positioned(
-            bottom: 8,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                _newsList.length,
-                (index) => Container(
-                  margin: EdgeInsets.symmetric(horizontal: 4),
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: index == _currentNewsIndex
-                        ? Colors.white
-                        : Colors.white.withOpacity(0.4),
-                  ),
-                ),
+        ),
+        SizedBox(height: 8), // Add spacing between card and dots
+        Row(  // Moved dots outside the Stack
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            _newsList.length,
+            (index) => Container(
+              margin: EdgeInsets.symmetric(horizontal: 4),
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: index == _currentNewsIndex
+                    ? const Color(0xFF2E3F7F)  // Changed to match theme color
+                    : const Color(0xFF2E3F7F).withOpacity(0.3),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

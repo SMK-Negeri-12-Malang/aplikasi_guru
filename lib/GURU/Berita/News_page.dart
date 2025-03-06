@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 
 class NewsPage extends StatefulWidget {
   final Function(Map<String, dynamic>) onNewsAdded;
@@ -56,25 +57,48 @@ class _NewsPageState extends State<NewsPage> {
     }
   }
 
-  void _submitNews() {
+  void _submitNews() async {
     if (_judulController.text.isNotEmpty &&
         _tempatController.text.isNotEmpty &&
         _deskripsiController.text.isNotEmpty &&
         _selectedImage != null &&
         _tanggalController.text.isNotEmpty &&
         _waktuController.text.isNotEmpty) {
-      final news = {
-        'judul': _judulController.text,
-        'tempat': _tempatController.text,
-        'deskripsi': _deskripsiController.text,
-        'image': _selectedImage,
-        'tanggal': _tanggalController.text,
-        'waktu': _waktuController.text,
-      };
-      widget.onNewsAdded(news);
-      Navigator.pop(context); // Ensure this navigates back to DashboardPage
+      try {
+        // Save image to app's permanent directory
+        final appDir = await getApplicationDocumentsDirectory();
+        final fileName = 'news_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final savedImage = await _selectedImage!.copy('${appDir.path}/$fileName');
+
+        final news = {
+          'judul': _judulController.text,
+          'tempat': _tempatController.text,
+          'deskripsi': _deskripsiController.text,
+          'image': savedImage,
+          'imagePath': savedImage.path,
+          'tanggal': _tanggalController.text,
+          'waktu': _waktuController.text,
+        };
+
+        widget.onNewsAdded(news);
+        Navigator.pop(context);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Berita berhasil ditambahkan'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } catch (e) {
+        print('Error saving news: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan berita'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } else {
-      // Tampilkan pesan error jika ada field yang kosong
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Harap isi semua field dan pilih gambar')),
       );
