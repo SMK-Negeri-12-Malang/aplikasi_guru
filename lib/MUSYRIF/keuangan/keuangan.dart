@@ -106,25 +106,39 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
                       SizedBox(width: 16),
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          kamarList.length,
-                          (index) => Container(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.arrow_upward),
+                            onPressed: () {
+                              if (_currentPage > 0) {
+                                _pageController.previousPage(
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            },
+                          ),
+                          Container(
                             margin: EdgeInsets.symmetric(vertical: 4),
                             width: 8,
                             height: 8,
-                            child: Icon(
-                              _currentPage == index
-                                  ? Icons.arrow_drop_up
-                                  : _currentPage == index - 1 ||
-                                          _currentPage == index + 1
-                                      ? Icons.circle
-                                      : Icons.arrow_drop_down,
-                              color: _currentPage == index
-                                  ? Color(0xFF2E3F7F)
-                                  : Colors.grey[300],
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xFF2E3F7F),
                             ),
                           ),
-                        ),
+                          IconButton(
+                            icon: Icon(Icons.arrow_downward),
+                            onPressed: () {
+                              if (_currentPage < kamarList.length - 1) {
+                                _pageController.nextPage(
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),

@@ -34,7 +34,7 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar> {
         slivers: [
           CustomGradientAppBar(
             title: 'Laporan Santri',
-            icon: Icons.assignment,         
+            icon: Icons.assignment,
             textColor: Colors.white,
             child: Container(),
             showBackButton: false,
@@ -70,7 +70,19 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar> {
                             },
                             scrollDirection: Axis.vertical,
                             itemBuilder: (context, index) {
-                              return _buildRoomCard(index, selectedKamar == kamarList[index]);
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => RoomDetailPage(
+                                          roomName: kamarList[index]),
+                                    ),
+                                  );
+                                },
+                                child: _buildRoomCard(
+                                    index, selectedKamar == kamarList[index]),
+                              );
                             },
                           ),
                         ),
@@ -78,20 +90,39 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar> {
                       SizedBox(width: 16),
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          kamarList.length,
-                          (index) => Container(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.arrow_upward),
+                            onPressed: () {
+                              if (_currentPage > 0) {
+                                _pageController.previousPage(
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            },
+                          ),
+                          Container(
                             margin: EdgeInsets.symmetric(vertical: 4),
                             width: 8,
                             height: 8,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: _currentPage == index
-                                  ? Color(0xFF2E3F7F)
-                                  : Colors.grey[300],
+                              color: Color(0xFF2E3F7F),
                             ),
                           ),
-                        ),
+                          IconButton(
+                            icon: Icon(Icons.arrow_downward),
+                            onPressed: () {
+                              if (_currentPage < kamarList.length - 1) {
+                                _pageController.nextPage(
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -108,9 +139,10 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar> {
 
   Widget _buildRoomCard(int index, bool isSelected) {
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return TweenAnimationBuilder(
-      tween: Tween<double>(begin: isSelected ? 0.0 : 0.3, end: isSelected ? 1.0 : 0.8),
+      tween: Tween<double>(
+          begin: isSelected ? 0.0 : 0.3, end: isSelected ? 1.0 : 0.8),
       duration: Duration(milliseconds: 300),
       curve: Curves.easeInOut,
       builder: (context, double value, child) {
@@ -131,7 +163,7 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar> {
               borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
-                  color: isSelected 
+                  color: isSelected
                       ? Color(0xFF2E3F7F).withOpacity(0.3)
                       : Colors.black12,
                   blurRadius: 8,
@@ -178,41 +210,27 @@ class CategoryList extends StatelessWidget {
     return Column(
       children: [
         _buildCategoryCard(
-          context, 
-          'Pelanggaran',
-          Icons.warning_rounded,
-          'Lihat detail pelanggaran santri',
-          Colors.orange,
-          LaporanDetail(kamar: kamar)
-        ),
+            context,
+            'Pelanggaran',
+            Icons.warning_rounded,
+            'Lihat detail pelanggaran santri',
+            Colors.orange,
+            LaporanDetail(kamar: kamar)),
+        _buildCategoryCard(context, 'Izin', Icons.door_front_door_rounded,
+            'Lihat perizinan santri', Colors.green, IzinDetail(kamar: kamar)),
         _buildCategoryCard(
-          context,
-          'Izin',
-          Icons.door_front_door_rounded,
-          'Lihat perizinan santri',
-          Colors.green,
-          IzinDetail(kamar: kamar)
-        ),
-        _buildCategoryCard(
-          context,
-          'Kesehatan',
-          Icons.medical_services_rounded,
-          'Lihat kesehatan santri',
-          Colors.red,
-          DetailKesehatan(kamar: kamar)
-        ),
+            context,
+            'Kesehatan',
+            Icons.medical_services_rounded,
+            'Lihat kesehatan santri',
+            Colors.red,
+            DetailKesehatan(kamar: kamar)),
       ],
     );
   }
 
-  Widget _buildCategoryCard(
-    BuildContext context, 
-    String title, 
-    IconData icon, 
-    String subtitle,
-    Color iconColor,
-    Widget page
-  ) {
+  Widget _buildCategoryCard(BuildContext context, String title, IconData icon,
+      String subtitle, Color iconColor, Widget page) {
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -269,6 +287,23 @@ class CategoryList extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class RoomDetailPage extends StatelessWidget {
+  final String roomName;
+  const RoomDetailPage({required this.roomName, Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(roomName),
+      ),
+      body: Center(
+        child: Text('Details for $roomName'),
       ),
     );
   }
