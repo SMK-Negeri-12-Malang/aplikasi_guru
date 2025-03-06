@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
-import 'laporan_detail.dart';
+import 'pelanggaran_detail.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/home_musyrif.dart'; // Import halaman dashboard
 
 class LaporanModel {

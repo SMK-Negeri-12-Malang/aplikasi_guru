@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
-import 'laporan.dart';
+import 'pelanggaran.dart';
 
 class LaporanDetail extends StatelessWidget {
   final String kamar;
