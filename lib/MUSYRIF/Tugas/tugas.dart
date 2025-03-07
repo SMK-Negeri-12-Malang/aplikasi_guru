@@ -1,15 +1,14 @@
-import 'package:aplikasi_ortu/MUSYRIF/Tugas/tabel_history.dart';
+
+import 'package:aplikasi_ortu/MUSYRIF/models/student_model.dart';
+import 'package:aplikasi_ortu/MUSYRIF/services/student_service.dart';
 import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'tabel_tugas.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Tugas/tabel_tugas.dart';
 
 class Tugas extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: TugasSantriPage(),
-    );
+    return TugasSantriPage();
   }
 }
 
@@ -27,6 +26,39 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
     initialPage: 0,
   );
   int _currentPage = 0;
+  List<Student> filteredStudents = [];
+  final List<String> sesiList = ['Pagi', 'Sore', 'Malam'];
+
+  TextEditingController dateController = TextEditingController();
+  Student? selectedStudent;
+  String? selectedSesi;
+
+  void updateSelectedStudent(String? newValue) {
+    setState(() {
+      selectedStudent = filteredStudents.firstWhere((student) => student.name == newValue);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    filteredStudents = StudentService.getStudentsByCategory(selectedKamar);
+  }
+
+  void updateFilteredSantri(String kamar) {
+    setState(() {
+      selectedKamar = kamar;
+      filteredStudents = StudentService.getStudentsByCategory(kamar);
+      _clearForm();
+    });
+  }
+
+  void _clearForm() {
+    setState(() {
+      selectedStudent = null;
+      selectedSesi = '';
+    });
+  }
 
   @override
   void dispose() {
@@ -66,31 +98,6 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
                           color: Color(0xFF2E3F7F),
                         ),
                       ),
-                      ElevatedButton.icon(
-                        icon: Icon(Icons.history,
-                        color: Color.fromARGB(255, 255, 255, 255),
-                        ),
-                        label: Text('History',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 255, 255, 255),
-                        ),),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF2E3F7F),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HistoryPage(
-                                kategori: selectedKamar,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
                     ],
                   ),
                   SizedBox(height: screenHeight * 0.02),
@@ -103,15 +110,7 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
                         setState(() {
                           _currentPage = index;
                           selectedKamar = kamarList[index];
-                          // Navigate to ActivityTablePage when category is selected
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ActivityTablePage(
-                                kategori: selectedKamar, studentName: '', date: '', sesi: '',
-                              ),
-                            ),
-                          );
+                          updateFilteredSantri(selectedKamar);
                         });
                       },
                       scrollDirection: Axis.horizontal,
@@ -154,6 +153,52 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
                       ),
                     ),
                   ),
+                  SizedBox(height: 20),
+                  ...filteredStudents.map((student) => Container(
+                    margin: EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text(
+                            "Data Tugas ${student.name}",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2E3F7F),
+                            ),
+                          ),
+                        ),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
+                            columnSpacing: 20,
+                            columns: [
+                              DataColumn(label: Text('Aktivitas')),
+                              DataColumn(label: Text('Kategori')),
+                              DataColumn(label: Text('Dilakukan')),
+                              DataColumn(label: Text('Skor')),
+                              DataColumn(label: Text('Keterangan')),
+                            ],
+                            rows: _getStudentRows(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )).toList(),
                 ],
               ),
             ),
@@ -201,5 +246,47 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
         ),
       ),
     );
+  }
+
+  List<DataRow> _getStudentRows() {
+    // This would normally come from a database or service
+    if (selectedKamar == "Mutabaah") {
+      return [
+        DataRow(cells: [
+          DataCell(Text('Shalat Subuh')),
+          DataCell(Text('Mutabaah')),
+          DataCell(Text('Ya')),
+          DataCell(Text('100')),
+          DataCell(Text('Tepat Waktu')),
+        ]),
+        DataRow(cells: [
+          DataCell(Text('Shalat Dzuhur')),
+          DataCell(Text('Mutabaah')),
+          DataCell(Text('Ya')),
+          DataCell(Text('90')),
+          DataCell(Text('Berjamaah')),
+        ]),
+      ];
+    } else if (selectedKamar == "Tahfidz") {
+      return [
+        DataRow(cells: [
+          DataCell(Text('Hafalan Al-Baqarah')),
+          DataCell(Text('Tahfidz')),
+          DataCell(Text('Ya')),
+          DataCell(Text('85')),
+          DataCell(Text('Lancar')),
+        ]),
+      ];
+    } else {
+      return [
+        DataRow(cells: [
+          DataCell(Text('Praktik Tajwid')),
+          DataCell(Text('Tahsin')),
+          DataCell(Text('Ya')),
+          DataCell(Text('80')),
+          DataCell(Text('Baik')),
+        ]),
+      ];
+    }
   }
 }
