@@ -91,10 +91,12 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
             ),
             child: SafeArea(
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 25, horizontal: 22),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 10, horizontal: 22), // Adjusted vertical padding
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize:
+                      MainAxisSize.min, // Ensure the column takes minimum space
                   children: [
                     Row(
                       children: [
@@ -108,6 +110,8 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
                         const SizedBox(width: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize
+                              .min, // Ensure the column takes minimum space
                           children: [
                             Text(
                               _name,
