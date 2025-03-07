@@ -58,4 +58,32 @@ class TaskManagerService {
       print('Error deleting task: $e');
     }
   }
+
+  Future<void> updateTask(String className, String taskId, Map<String, dynamic> updates) async {
+    try {
+      final tasks = await getTasksForClass(className);
+      final taskIndex = tasks.indexWhere((task) => task['id'] == taskId);
+      
+      if (taskIndex != -1) {
+        tasks[taskIndex] = {...tasks[taskIndex], ...updates};
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_getStorageKey(className), json.encode(tasks));
+      }
+    } catch (e) {
+      print('Error updating task: $e');
+      throw e;
+    }
+  }
+
+  Future<void> deleteTask(String className, String taskId) async {
+    try {
+      final tasks = await getTasksForClass(className);
+      tasks.removeWhere((task) => task['id'] == taskId);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_getStorageKey(className), json.encode(tasks));
+    } catch (e) {
+      print('Error deleting task: $e');
+      throw e;
+    }
+  }
 }

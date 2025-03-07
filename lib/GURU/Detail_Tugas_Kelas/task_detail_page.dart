@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:open_file/open_file.dart';  // Add this import
+import 'package:intl/intl.dart';
 
 class TaskDetailPage extends StatefulWidget {
   final Map<String, dynamic> task;
@@ -31,7 +32,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         builder: (context) => Scaffold(
           appBar: AppBar(
             backgroundColor: Colors.black,
-            iconTheme: IconThemeData(color: Colors.white),
+            iconTheme: IconThemeData(color: const Color.fromARGB(255, 255, 255, 255)),
           ),
           backgroundColor: Colors.black,
           body: Center(
@@ -198,20 +199,113 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     }
   }
 
+  Widget _buildDeadlineInfo() {
+    final now = DateTime.now();
+    final deadline = DateFormat('yyyy-MM-dd').parse(widget.task['deadline']);
+    final difference = deadline.difference(now).inDays;
+    final isDeadlineNear = difference <= 3 && difference >= 0;
+    final isOverdue = difference < 0;
+
+    return Card(
+      elevation: 4,
+      color: isOverdue 
+          ? Colors.red.shade50 
+          : (isDeadlineNear ? Colors.orange.shade50 : Colors.white),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.timer,
+                  color: isOverdue ? Colors.red : (isDeadlineNear ? Colors.orange : Colors.grey),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Deadline',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Text(
+              widget.task['deadline'],
+              style: TextStyle(
+                fontSize: 16,
+                color: isOverdue ? Colors.red : (isDeadlineNear ? Colors.orange : Colors.black),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (isOverdue || isDeadlineNear) ...[
+              SizedBox(height: 8),
+              Text(
+                isOverdue 
+                    ? 'Tugas sudah melewati deadline!'
+                    : 'Deadline segera!',
+                style: TextStyle(
+                  color: isOverdue ? Colors.red : Colors.orange,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Detail Tugas'),
-        backgroundColor: Colors.blue.shade700,
+        toolbarHeight: 80, 
+        iconTheme: IconThemeData(color: Colors.white), 
+        title: Text(
+          'Detail Tugas',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(30),
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(30),
+            ),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF2E3F7F),
+                Color(0xFF4557A4),
+              ],
+            ),
+          ),
+        ),
+        elevation: 4,
         actions: [
           IconButton(
-            icon: Icon(Icons.edit),
+            icon: Icon(Icons.edit, color: Colors.white),
             onPressed: _editTask,
           ),
         ],
       ),
+      backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -219,7 +313,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           children: [
             if (widget.task['image'] != null || widget.task['file'] != null)
               Card(
-                elevation: 4,
+                elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
@@ -232,11 +326,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       Text(
                         'File Tugas',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
+                          color: Color(0xFF2E3F7F),
                         ),
                       ),
-                      SizedBox(height: 10),
                       if (widget.task['image'] != null)
                         GestureDetector(
                           onTap: _showFullImage,
@@ -343,28 +437,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 ),
               ),
             SizedBox(height: 20),
-            if (widget.task['image'] != null)
-              GestureDetector(
-                onTap: _showFullImage,
-                child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: Image.file(
-                      widget.task['image'],
-                      width: double.infinity,
-                      height: 300,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-            SizedBox(height: 20),
             Card(
-              elevation: 4,
+              elevation: 2,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
@@ -376,44 +450,43 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          widget.task['name'],
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Text(
+                            widget.task['name'],
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2E3F7F),
+                            ),
                           ),
                         ),
-                        if (widget.task['checked']) // Only show chip if task is checked
+                        if (widget.task['checked'])
                           Chip(
                             label: Text(
                               'Selesai',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             backgroundColor: Colors.green,
                           ),
                       ],
                     ),
-                    SizedBox(height: 8),
+                    SizedBox(height: 12),
                     Text(
-                      '${widget.className}',
+                      widget.className,
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Deadline: ${widget.task['deadline']}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
                       ),
                     ),
                   ],
                 ),
               ),
             ),
+            SizedBox(height: 20),
+            _buildDeadlineInfo(),
             SizedBox(height: 20),
             Card(
               elevation: 4,

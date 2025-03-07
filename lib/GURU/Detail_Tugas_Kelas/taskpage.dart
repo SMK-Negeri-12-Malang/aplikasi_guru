@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:aplikasi_ortu/utils/task_storage.dart';
 import '../../SERVISCE/task_manager_service.dart';
+import 'package:aplikasi_ortu/SERVISCE/notification_service.dart';
 
 class tugaskelas extends StatefulWidget {
   final Function(Map<String, dynamic>, String)? onTaskAdded;
@@ -30,6 +31,7 @@ class _AbsensiKelasPageState extends State<tugaskelas>
 
   final List<String> kelasList = ['Tugas', 'Ujian'];
   final TaskManagerService _taskManager = TaskManagerService();
+  final NotificationService _notificationService = NotificationService();
   Map<String, List<Map<String, dynamic>>> siswaData = {};
 
   String? selectedClass;
@@ -57,6 +59,10 @@ class _AbsensiKelasPageState extends State<tugaskelas>
   @override
   void initState() {
     super.initState();
+    // Initialize siswaData with empty lists for each category
+    for (var type in kelasList) {
+      siswaData[type] = [];
+    }
     _loadSavedTasks();
     _controller = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -92,17 +98,30 @@ class _AbsensiKelasPageState extends State<tugaskelas>
   Future<void> _loadSavedTasks() async {
     try {
       final tasks = await _taskManager.getTasksForClass(widget.className);
+      
       setState(() {
-        siswaData.clear();
-        // Separate tasks by type (Tugas/Ujian)
+        // Group tasks by type
         for (var type in kelasList) {
           siswaData[type] = tasks.where((task) => 
-            task['type'] == type
+            task['type'] == type && task['className'] == widget.className
           ).toList();
+        }
+        
+        // Update checkedCount for current category
+        if (selectedClass != null) {
+          checkedCount = siswaData[selectedClass]!
+              .where((task) => task['checked'])
+              .length;
         }
       });
     } catch (e) {
       print('Error loading tasks: $e');
+      // Initialize with empty lists if loading fails
+      for (var type in kelasList) {
+        if (siswaData[type] == null) {
+          siswaData[type] = [];
+        }
+      }
     }
   }
 
@@ -114,25 +133,70 @@ class _AbsensiKelasPageState extends State<tugaskelas>
     super.dispose();
   }
 
-  void _toggleCheck(int index) {
+  void _toggleCheck(int index) async {
     HapticFeedback.lightImpact();
-    setState(() {
-      if (selectedClass != null) {
-        siswaData[selectedClass]![index]['checked'] =
-            !siswaData[selectedClass]![index]['checked'];
-        checkedCount = siswaData[selectedClass]!
-            .where((siswa) => siswa['checked'])
-            .length;
-        
-        // Save tasks after toggling check
-        TaskStorage.saveTasks(siswaData);
+    if (selectedClass != null) {
+      final task = siswaData[selectedClass]![index];
+      final newCheckedState = !task['checked'];
+      
+      try {
+        // Update local state
+        setState(() {
+          task['checked'] = newCheckedState;
+          checkedCount = siswaData[selectedClass]!
+              .where((siswa) => siswa['checked'])
+              .length;
+        });
+
+        // Save to service
+        await _taskManager.updateTask(
+          widget.className,
+          task['id'],
+          {'checked': newCheckedState}
+        );
+
+        // Update notification
+        await _notificationService.updateNotification(
+          task['id'],
+          {'isCompleted': newCheckedState}
+        );
+
+        // Save to local storage
+        await TaskStorage.saveTasks(siswaData);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(newCheckedState ? 'Tugas ditandai selesai' : 'Tugas ditandai belum selesai'),
+            duration: Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: newCheckedState ? Colors.green : Colors.blue,
+          ),
+        );
+      } catch (e) {
+        print('Error saving task state: $e');
+        // Revert the change if saving failed
+        setState(() {
+          task['checked'] = !newCheckedState;
+          checkedCount = siswaData[selectedClass]!
+              .where((siswa) => siswa['checked'])
+              .length;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan perubahan'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
-    });
+    }
   }
 
 
 void _addNewTask() async {
-  if (selectedClass != null) {
+  if (selectedClass == null) return;
+    
     File? selectedImage;
     PlatformFile? selectedFile;
     DateTime? selectedDate;
@@ -279,8 +343,9 @@ void _addNewTask() async {
                 ElevatedButton(
                   onPressed: () async {
                     if (taskName.isNotEmpty && deadline.isNotEmpty) {
+                      final taskId = DateTime.now().millisecondsSinceEpoch.toString();
                       final newTask = {
-                        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+                        'id': taskId,
                         'name': taskName,
                         'deadline': deadline,
                         'description': description,
@@ -291,40 +356,56 @@ void _addNewTask() async {
                         'className': widget.className, // Add class name to task
                       };
 
-                      await _taskManager.saveTaskToClass(widget.className, newTask);
-                      await _loadSavedTasks(); // Reload tasks
+                      try {
+                        // Save to service first
+                        await _taskManager.saveTaskToClass(widget.className, newTask);
 
-                      this.setState(() {
-                        siswaData[selectedClass]!.add(newTask);
-                      });
+                        // Create notification with proper deadline
+                        await _notificationService.addNotification({
+                          'taskId': taskId,
+                          'taskName': taskName,
+                          'className': widget.className,
+                          'deadline': deadline,
+                          'isCompleted': false,
+                          'type': 'deadline',
+                          'description': description,
+                        });
 
-                      // Save tasks after adding new task
-                      TaskStorage.saveTasks(siswaData);
+                        // Update local state
+                        this.setState(() {
+                          siswaData[selectedClass]?.add(Map<String, dynamic>.from(newTask));
+                          checkedCount = siswaData[selectedClass]!
+                              .where((task) => task['checked'])
+                              .length;
+                        });
 
-                      // After adding the task to siswaData, notify parent
-                      if (widget.onTaskAdded != null) {
-                        widget.onTaskAdded!(
-                          {
-                            'name': taskName,
-                            'deadline': deadline,
-                            'description': description,
-                            'checked': false,
-                            'image': selectedImage,
-                            'file': selectedFile,
-                          },
-                          selectedClass!,
+                        // Save to local storage
+                        await TaskStorage.saveTasks(siswaData);
+
+                        // Notify parent
+                        if (widget.onTaskAdded != null) {
+                          widget.onTaskAdded!(newTask, selectedClass!);
+                        }
+
+                        Navigator.pop(context);
+                        
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Tugas baru berhasil ditambahkan'),
+                            backgroundColor: Colors.green,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      } catch (e) {
+                        print('Error adding task: $e');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Gagal menambahkan tugas'),
+                            backgroundColor: Colors.red,
+                            behavior: SnackBarBehavior.floating,
+                          ),
                         );
                       }
-
-                      Navigator.pop(context);
-                      
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Tugas baru berhasil ditambahkan'),
-                          backgroundColor: Colors.green,
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -340,7 +421,6 @@ void _addNewTask() async {
       },
     );
   }
-}
 
   void _onTaskUpdated(Map<String, dynamic> updatedTask) {
     setState(() {
@@ -353,6 +433,13 @@ void _addNewTask() async {
         TaskStorage.saveTasks(siswaData);
       }
     });
+  }
+
+  bool _isDeadlineNear(String deadline) {
+    final now = DateTime.now();
+    final deadlineDate = DateFormat('yyyy-MM-dd').parse(deadline);
+    final difference = deadlineDate.difference(now).inDays;
+    return difference <= 3 && difference >= 0; // Show warning for tasks due within 3 days
   }
 
   Widget _buildTaskList() {
@@ -398,13 +485,15 @@ void _addNewTask() async {
         itemCount: filteredTasks.length,
         itemBuilder: (context, index) {
           var task = filteredTasks[index];
+          final isDeadlineNear = _isDeadlineNear(task['deadline']);
+          
           return AnimatedContainer(
             duration: Duration(milliseconds: 300),
             margin: EdgeInsets.symmetric(vertical: 6),
             decoration: BoxDecoration(
               color: task['checked']
                   ? Colors.blue.shade50
-                  : Colors.white,
+                  : (isDeadlineNear ? Colors.red.shade50 : Colors.white),
               borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
@@ -452,11 +541,26 @@ void _addNewTask() async {
                   color: task['checked'] ? Colors.blue.shade900 : Colors.black87,
                 ),
               ),
-              subtitle: Text(
-                'Deadline: ${task['deadline']}',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Deadline: ${task['deadline']}',
+                    style: TextStyle(
+                      color: isDeadlineNear ? Colors.red : Colors.grey.shade600,
+                      fontWeight: isDeadlineNear ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  if (isDeadlineNear && !task['checked'])
+                    Text(
+                      'Deadline segera!',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                ],
               ),
               trailing: Transform.scale(
                 scale: 1.2,
@@ -476,6 +580,24 @@ void _addNewTask() async {
     );
   }
 
+  void _onCategoryChanged(int index) {
+    setState(() {
+      _currentCategoryPage = index;
+      selectedClass = kelasList[index];
+      selectedIndex = index;
+      
+      // Ensure the category exists in siswaData
+      if (selectedClass != null && siswaData[selectedClass] == null) {
+        siswaData[selectedClass!] = [];
+      }
+      
+      // Update checkedCount
+      checkedCount = siswaData[selectedClass]!
+          .where((task) => task['checked'])
+          .length;
+    });
+  }
+
   Widget _buildCategorySelector() {
     return Container(
       height: 180, // Reduced height
@@ -488,16 +610,7 @@ void _addNewTask() async {
               controller: _categoryPageController,
               scrollDirection: Axis.vertical,
               itemCount: kelasList.length,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentCategoryPage = index;
-                  selectedClass = kelasList[index];
-                  selectedIndex = index;
-                  checkedCount = siswaData[selectedClass]!
-                      .where((siswa) => siswa['checked'])
-                      .length;
-                });
-              },
+              onPageChanged: _onCategoryChanged,
               itemBuilder: (context, index) {
                 String kelas = kelasList[index];
                 bool isSelected = selectedIndex == index;
