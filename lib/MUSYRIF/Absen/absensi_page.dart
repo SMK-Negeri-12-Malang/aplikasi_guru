@@ -102,15 +102,6 @@ class _AbsensiKelasPageState extends State<AbsensiPageKamar> {
                               }
                             },
                           ),
-                          Container(
-                            margin: EdgeInsets.symmetric(vertical: 4),
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFF2E3F7F),
-                            ),
-                          ),
                           IconButton(
                             icon: Icon(Icons.arrow_downward),
                             onPressed: () {

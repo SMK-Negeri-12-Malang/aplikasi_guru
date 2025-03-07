@@ -2,6 +2,7 @@ import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/pelanggaran.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Izin/izin.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Widgets/berita_baru.dart';
 import 'Widgets/gallery_section.dart';
@@ -16,11 +17,44 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
   String _name = 'User';
   String _email = 'Teknologi Informasi';
   String? _profileImagePath;
+  ScrollController _scrollController = ScrollController();
+  double _appBarHeight = 0.15;
+  double _profileImageRadius = 15;
+  double _nameFontSize = 24;
+  double _emailFontSize = 16;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_scrollListener);
     _loadProfileData();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.userScrollDirection ==
+        ScrollDirection.reverse) {
+      setState(() {
+        _appBarHeight = 0.1;
+        _profileImageRadius = 20;
+        _nameFontSize = 18;
+        _emailFontSize = 12;
+      });
+    } else if (_scrollController.position.userScrollDirection ==
+        ScrollDirection.forward) {
+      setState(() {
+        _appBarHeight = 0.15;
+        _profileImageRadius = 30;
+        _nameFontSize = 24;
+        _emailFontSize = 16;
+      });
+    }
   }
 
   Future<void> _loadProfileData() async {
@@ -36,7 +70,7 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight =
-        screenHeight * 0.15; // Adjust the height based on screen size
+        screenHeight * _appBarHeight; // Adjust the height based on screen size
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 233, 233, 233),
@@ -58,14 +92,14 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
             child: SafeArea(
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(vertical: 30, horizontal: 22),
+                    const EdgeInsets.symmetric(vertical: 25, horizontal: 22),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
                         CircleAvatar(
-                          radius: 30,
+                          radius: _profileImageRadius,
                           backgroundImage: _profileImagePath != null
                               ? NetworkImage(_profileImagePath!)
                               : AssetImage('assets/default_profile.png')
@@ -77,9 +111,9 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
                           children: [
                             Text(
                               _name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 24,
+                                fontSize: _nameFontSize,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -87,7 +121,7 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
                               _email,
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.9),
-                                fontSize: 16,
+                                fontSize: _emailFontSize,
                               ),
                             ),
                           ],
@@ -104,6 +138,7 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
         ),
       ),
       body: SingleChildScrollView(
+        controller: _scrollController,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
