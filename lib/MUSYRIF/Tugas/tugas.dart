@@ -1,8 +1,6 @@
 import 'package:aplikasi_ortu/MUSYRIF/Tugas/tabel_history.dart';
 import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import '../models/student_model.dart';
-import '../services/student_service.dart';
 import 'tabel_tugas.dart';
 
 class Tugas extends StatelessWidget {
@@ -14,7 +12,7 @@ class Tugas extends StatelessWidget {
     );
   }
 }
-//
+
 class TugasSantriPage extends StatefulWidget {
   @override
   _TugasSantriPageState createState() => _TugasSantriPageState();
@@ -22,7 +20,6 @@ class TugasSantriPage extends StatefulWidget {
 
 class _TugasSantriPageState extends State<TugasSantriPage> {
   String selectedKamar = "Mutabaah";
-  String selectedDate = '';
   List<String> kamarList = ["Mutabaah", "Tahsin", "Tahfidz"];
   
   PageController _pageController = PageController(
@@ -30,60 +27,9 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
     initialPage: 0,
   );
   int _currentPage = 0;
-  List<Student> filteredStudents = [];
-  final List<String> sesiList = ['Pagi', 'Sore', 'Malam'];
-
-  TextEditingController dateController = TextEditingController();
-  Student? selectedStudent;
-  String? selectedSesi;
-
-  void updateSelectedStudent(String? newValue) {
-    setState(() {
-      selectedStudent = filteredStudents.firstWhere((student) => student.name == newValue);
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    filteredStudents = StudentService.getStudentsByCategory(selectedKamar);
-  }
-
-  void updateFilteredSantri(String kamar) {
-    setState(() {
-      selectedKamar = kamar;
-      filteredStudents = StudentService.getStudentsByCategory(kamar);
-      _clearForm();
-    });
-  }
-
-  void _clearForm() {
-    setState(() {
-      dateController.clear();
-      selectedStudent = null;
-      selectedSesi = null;
-      selectedDate = '';
-    });
-  }
-
-  void _pickDate() async {
-    DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (pickedDate != null) {
-      setState(() {
-        selectedDate = "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
-        dateController.text = selectedDate;
-      });
-    }
-  }
 
   @override
   void dispose() {
-    dateController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -157,7 +103,15 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
                         setState(() {
                           _currentPage = index;
                           selectedKamar = kamarList[index];
-                          updateFilteredSantri(selectedKamar);
+                          // Navigate to ActivityTablePage when category is selected
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ActivityTablePage(
+                                kategori: selectedKamar, studentName: '', date: '', sesi: '',
+                              ),
+                            ),
+                          );
                         });
                       },
                       scrollDirection: Axis.horizontal,
@@ -198,127 +152,6 @@ class _TugasSantriPageState extends State<TugasSantriPage> {
                               : Colors.grey[300],
                         ),
                       ),
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.02),
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 10,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        TextField(
-                          controller: dateController,
-                          decoration: InputDecoration(
-                            labelText: 'Tanggal',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            contentPadding: EdgeInsets.all(10),
-                            prefixIcon: Icon(Icons.calendar_today, color: Color(0xFF2E3F7F)),
-                          ),
-                          readOnly: true,
-                          onTap: _pickDate,
-                        ),
-                        SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          value: selectedSesi,
-                          decoration: InputDecoration(
-                            labelText: 'Sesi',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            contentPadding: EdgeInsets.all(10),
-                            prefixIcon: Icon(Icons.access_time, color: Color(0xFF2E3F7F)),
-                          ),
-                          items: sesiList.map((String sesi) {
-                            return DropdownMenuItem<String>(
-                              value: sesi,
-                              child: Text(sesi),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              selectedSesi = newValue;
-                            });
-                          },
-                        ),
-                        SizedBox(height: 16),
-                        Autocomplete<String>(
-                          optionsBuilder: (TextEditingValue textEditingValue) {
-                            return filteredStudents
-                                .map((student) => student.name)
-                                .where((name) => name
-                                    .toLowerCase()
-                                    .contains(textEditingValue.text.toLowerCase()));
-                          },
-                          onSelected: (String selection) {
-                            updateSelectedStudent(selection);
-                          },
-                          fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                            return TextField(
-                              controller: controller,
-                              focusNode: focusNode,
-                              decoration: InputDecoration(
-                                labelText: 'Nama Santri',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                contentPadding: EdgeInsets.all(10),
-                                prefixIcon: Icon(Icons.person, color: Color(0xFF2E3F7F)),
-                              ),
-                            );
-                          },
-                        ),
-                        SizedBox(height: 20),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF2E3F7F),
-                            padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          onPressed: () {
-                            if (selectedStudent != null && selectedDate.isNotEmpty && selectedSesi != null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ActivityTablePage(
-                                    studentName: selectedStudent!.name,
-                                    date: selectedDate,
-                                    sesi: selectedSesi!,
-                                    kategori: selectedKamar,
-                                  ),
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Mohon lengkapi semua data'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          },
-                          child: Text(
-                            'Simpan',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ],
