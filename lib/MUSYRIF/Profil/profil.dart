@@ -52,7 +52,7 @@ class _orofilState extends State<profilmusryf> {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Colors.blue[400]!, Colors.blue[800]!],
+                      colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
                     ),
                   ),
                   child: Column(
@@ -181,7 +181,7 @@ class _orofilState extends State<profilmusryf> {
                           _editProfile(context);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[700],
+                          backgroundColor: const Color.fromARGB(255, 13, 77, 141),
                           minimumSize: Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),

@@ -37,21 +37,26 @@ class _TugasPageState extends State<TugasPage> {
     String sesi = ["Siang", "Sore", "Malam"][_selectedSesi];
 
     return Scaffold(
-      // 🔹 AppBar dengan Gradient & Title Tengah
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(60), // Tinggi AppBar
+        preferredSize: Size.fromHeight(90), // Increased from 60
         child: Container(
+          padding: EdgeInsets.only(top:20), // Increased from 10
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)], // Warna gradasi
+              colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(25),
+              bottomRight: Radius.circular(25),
+            ),
           ),
           child: AppBar(
-            backgroundColor: Colors.transparent, // Agar mengikuti gradient
-            elevation: 0, // Hilangkan shadow
-            centerTitle: true, // 🔹 Title ada di tengah
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            centerTitle: true,
+            automaticallyImplyLeading: false, // This removes the back button
             title: Text(
               "Tugas Santri",
               style: TextStyle(
@@ -59,10 +64,6 @@ class _TugasPageState extends State<TugasPage> {
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
-            ),
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
             ),
           ),
         ),
