@@ -1,318 +1,221 @@
-import 'package:aplikasi_ortu/MUSYRIF/services/activity_service.dart';
+import 'package:aplikasi_ortu/MUSYRIF/Tugas/rekap_tugas.dart';
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+// Import halaman Rekap Harian
 
-import '../models/activity_model.dart';
+class TabelTugas extends StatefulWidget {
+  final String session;
+  final String category;
 
-class ActivityTablePage extends StatefulWidget {
-  final String studentName;
-  final String date;
-  final String sesi;
-  final String kategori;
-
-  ActivityTablePage({
-    required this.studentName,
-    required this.date,
-    required this.sesi,
-    required this.kategori,
-  });
+  TabelTugas({required this.session, required this.category});
 
   @override
-  State<ActivityTablePage> createState() => _ActivityTablePageState();
+  _TabelTugasState createState() => _TabelTugasState();
 }
 
-class _ActivityTablePageState extends State<ActivityTablePage> {
-  late List<Activity> activities;
-  late ActivityDataSource activityDataSource;
-  bool isEditMode = false;
-  final ActivityService _activityService = ActivityService();
+class _TabelTugasState extends State<TabelTugas> {
+  final List<String> allSantri = ["Ahmad", "Ali", "Fatimah", "Zaid"];
+  Map<String, TextEditingController> scoreControllers = {};
+  Map<String, FocusNode> focusNodes = {};
+  Map<String, String> predikatMap = {};
 
   @override
   void initState() {
     super.initState();
-    activities = _activityService.getActivities(
-      widget.date,
-      widget.sesi,
-      widget.studentName,
-    );
-    activityDataSource = ActivityDataSource(activities);
+    _loadSavedScores();
   }
 
-  void _saveActivities() {
-    _activityService.saveActivities(
-      widget.date,
-      widget.sesi,
-      widget.studentName,
-      activities,
-    );
-    setState(() {
-      isEditMode = false;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Perubahan disimpan')),
-    );
-  }
-
-  String getKeteranganFromSkor(int skor) {
-    if (skor >= 91 && skor <= 100) return 'Baik Sekali';
-    if (skor >= 76 && skor <= 90) return 'Baik';
-    if (skor >= 61 && skor <= 75) return 'Cukup';
-    if (skor >= 41 && skor <= 60) return 'Kurang';
-    if (skor >= 21 && skor <= 40) return 'Buruk';
-    if (skor >= 1 && skor <= 20) return 'Sangat Buruk';
-    return 'Invalid';
-  }
-
-  Future<void> _showEditDialog(Activity activity) async {
-    if (!isEditMode) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Aktifkan mode edit terlebih dahulu'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
+  @override
+  void dispose() {
+    for (var controller in scoreControllers.values) {
+      controller.dispose();
     }
+    for (var focus in focusNodes.values) {
+      focus.dispose();
+    }
+    _saveScores();
+    super.dispose();
+  }
 
-    String? newDilakukan = activity.dilakukan;
-    int? newSkor = activity.skor;
+  Future<void> _saveScores() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    Map<String, String> scores = {};
 
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Edit Aktivitas'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            DropdownButtonFormField<String>(
-              value: newDilakukan,
-              items: ['Ya', 'Tidak'].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (value) {
-                newDilakukan = value;
-              },
-              decoration: InputDecoration(labelText: 'Dilakukan'),
-            ),
-            TextFormField(
-              initialValue: newSkor?.toString() ?? '',
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Skor'),
-              onChanged: (value) {
-                newSkor = int.tryParse(value);
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                activity.dilakukan = newDilakukan;
-                activity.skor = newSkor;
-                activity.keterangan = newSkor != null ? getKeteranganFromSkor(newSkor!) : '';
-                activityDataSource = ActivityDataSource(activities);
-              });
-              Navigator.pop(context);
-            },
-            child: Text('Simpan'),
-          ),
-        ],
-      ),
-    );
+    scoreControllers.forEach((key, controller) {
+      scores[key] = controller.text;
+    });
+
+    await prefs.setString(
+        "scores_${widget.session}_${widget.category}", jsonEncode(scores));
+  }
+
+  Future<void> _loadSavedScores() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedData =
+        prefs.getString("scores_${widget.session}_${widget.category}");
+
+    if (savedData != null) {
+      Map<String, dynamic> savedScores = jsonDecode(savedData);
+      setState(() {
+        savedScores.forEach((key, value) {
+          scoreControllers[key] = TextEditingController(text: value);
+          predikatMap[key] = getPredikat(int.tryParse(value) ?? 0);
+        });
+      });
+    }
+  }
+
+  String getPredikat(int skor) {
+    if (skor >= 90) return "Istimewa";
+    if (skor >= 80) return "Baik Sekali";
+    if (skor >= 70) return "Baik";
+    if (skor >= 60) return "Cukup";
+    return "Kurang";
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(
-          'Detail Aktivitas',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Color(0xFF2E3F7F),
-        actions: [
-          IconButton(
-            icon: Icon(
-              isEditMode ? Icons.save : Icons.edit,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              if (isEditMode) {
-                _saveActivities();
-              } else {
-                setState(() {
-                  isEditMode = true;
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Mode edit aktif. Ketuk pada baris yang ingin diedit'),
-                    
-                  ),
-                );
-              }
-            },
-          ),
-        ],
-      ),
-      body: Column(
+    List<String> activities = {
+          "Siang": {
+            "Tahsin": ["Belajar Tajwid", "Latihan Makhraj", "Praktik Bacaan"],
+            "Tahfidz": ["Setoran Hafalan", "Muroja'ah", "Latihan Hafalan"],
+            "Mutabaah": ["Shalat Dzuhur", "Makan Siang", "Kegiatan Siang"],
+          },
+          "Sore": {
+            "Tahsin": [
+              "Latihan Tajwid",
+              "Praktik Makhraj",
+              "Latihan Bacaan Quran"
+            ],
+            "Tahfidz": ["Setoran Hafalan", "Muroja'ah", "Latihan Hafalan"],
+            "Mutabaah": ["Shalat Ashar", "Kegiatan Sore"],
+          },
+          "Malam": {
+            "Tahsin": ["Muroja'ah", "Praktik Tajwid", "Latihan Hafalan"],
+            "Tahfidz": ["Setoran Hafalan", "Muroja'ah"],
+            "Mutabaah": ["Shalat Isya", "Kegiatan Malam"],
+          },
+        }[widget.session]?[widget.category] ??
+        [];
+
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Column(
         children: [
-          // Informasi Santri
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(16),
-            child: Card(
-              elevation: 4,
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Nama Santri: ${widget.studentName}', style: TextStyle(fontSize: 16)),
-                    SizedBox(height: 8),
-                    Text('Tanggal: ${widget.date}', style: TextStyle(fontSize: 16)),
-                    SizedBox(height: 8),
-                    Text('Sesi: ${widget.sesi}', style: TextStyle(fontSize: 16)),
-                    SizedBox(height: 8),
-                    Text('Kategori: ${widget.kategori}', style: TextStyle(fontSize: 16)),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          
-          // Tabel Scrollable dengan Header Berwarna
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                ),
-                child: SfDataGrid(
-                  source: activityDataSource,
-                  columnWidthMode: ColumnWidthMode.auto,
-                  gridLinesVisibility: GridLinesVisibility.both,
-                  headerGridLinesVisibility: GridLinesVisibility.both,
-                  onCellTap: (details) {
-                    if (details.rowColumnIndex.rowIndex != 0) {
-                      final rowIndex = details.rowColumnIndex.rowIndex - 1;
-                      if (rowIndex < activities.length) {
-                        _showEditDialog(activities[rowIndex]);
-                      }
-                    }
-                  },
-                  columns: [
-                    GridColumn(
-                      columnName: 'Aktivitas',
-                      label: _buildHeaderCell('Aktivitas'),
+            child: SingleChildScrollView(
+              child: Column(
+                children: allSantri.map((santri) {
+                  return Card(
+                    margin: EdgeInsets.all(8),
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            santri,
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: DataTable(
+                              columns: [
+                                DataColumn(label: Text("Tanggal")),
+                                DataColumn(label: Text("Aktivitas")),
+                                DataColumn(label: Text("Skor")),
+                                DataColumn(label: Text("Predikat")),
+                              ],
+                              rows: activities.map((activity) {
+                                String key =
+                                    "${widget.session}_${widget.category}_${santri}_${activity}";
+
+                                scoreControllers.putIfAbsent(
+                                    key, () => TextEditingController());
+                                focusNodes.putIfAbsent(key, () => FocusNode());
+                                predikatMap.putIfAbsent(key, () => "-");
+
+                                return DataRow(
+                                  cells: [
+                                    DataCell(Text("08-03-2025")),
+                                    DataCell(Text(activity)),
+                                    DataCell(
+                                      TextFormField(
+                                        controller: scoreControllers[key],
+                                        focusNode: focusNodes[key],
+                                        keyboardType: TextInputType.number,
+                                        textAlign: TextAlign.center,
+                                        decoration: InputDecoration(
+                                          hintText: "0",
+                                          border: InputBorder.none,
+                                        ),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            int skor = int.tryParse(value) ?? 0;
+                                            predikatMap[key] =
+                                                getPredikat(skor);
+                                          });
+                                          _saveScores();
+                                        },
+                                        onFieldSubmitted: (_) {
+                                          _saveScores();
+                                        },
+                                      ),
+                                    ),
+                                    DataCell(Text(predikatMap[key]!)),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    GridColumn(
-                      columnName: 'Kategori',
-                      label: _buildHeaderCell('Kategori'),
-                    ),
-                    GridColumn(
-                      columnName: 'Dilakukan',
-                      label: _buildHeaderCell('Dilakukan'),
-                    ),
-                    GridColumn(
-                      columnName: 'Skor',
-                      label: _buildHeaderCell('Skor'),
-                    ),
-                    GridColumn(
-                      columnName: 'Keterangan',
-                      label: _buildHeaderCell('Keterangan'),
-                    ),
-                  ],
-                ),
+                  );
+                }).toList(),
               ),
             ),
           ),
+          SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  _saveScores();
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("Data disimpan"),
+                  ));
+                },
+                child: Text("Simpan Data"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("Menampilkan history penilaian"),
+                  ));
+                },
+                child: Text("History"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => RekapHarian()),
+                  );
+                },
+                child: Text("Rekap Harian"),
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
         ],
       ),
-    );
-  }
-
-  // Widget untuk Header dengan Warna
-  Widget _buildHeaderCell(String title) {
-    return Container(
-      padding: EdgeInsets.all(10),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Color(0xFF2E3F7F), // Warna latar belakang biru tua
-        border: Border(
-          bottom: BorderSide(color: Colors.black, width: 1),
-        ),
-      ),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
-          color: Colors.white, // Warna teks putih agar kontras
-        ),
-      ),
-    );
-  }
-}
-
-// Data Source untuk SfDataGrid
-class ActivityDataSource extends DataGridSource {
-  List<DataGridRow> _dataGridRows = [];
-
-  ActivityDataSource(List<Activity> activities) {
-    _dataGridRows = activities.map<DataGridRow>((activity) {
-      return DataGridRow(cells: [
-        DataGridCell<String>(columnName: 'Aktivitas', value: activity.aktivitas),
-        DataGridCell<String>(columnName: 'Kategori', value: activity.kategori),
-        DataGridCell<String>(
-          columnName: 'Dilakukan', 
-          value: activity.dilakukan ?? '-'
-        ),
-        DataGridCell<String>(
-          columnName: 'Skor', 
-          value: activity.skor?.toString() ?? '-'
-        ),
-        DataGridCell<String>(
-          columnName: 'Keterangan', 
-          value: activity.keterangan.isEmpty ? '-' : activity.keterangan
-        ),
-      ]);
-    }).toList();
-  }
-
-  @override
-  List<DataGridRow> get rows => _dataGridRows;
-
-  @override
-  DataGridRowAdapter? buildRow(DataGridRow row) {
-    return DataGridRowAdapter(
-      cells: row.getCells().map<Widget>((dataCell) {
-        return Container(
-          padding: EdgeInsets.all(8),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: Colors.grey, width: 0.5),
-            ),
-          ),
-          child: Text(
-            dataCell.value.toString(),
-            style: TextStyle(
-              fontSize: 14,
-              color: dataCell.value == '-' ? Colors.grey : Colors.black
-            )
-          ),
-        );
-      }).toList(),
     );
   }
 }

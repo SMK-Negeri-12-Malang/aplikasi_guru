@@ -109,7 +109,7 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
             });
           },
           children: [
-            Tugas(),
+            TugasPage(),
             Keuangan(),
             DashboardMusyrifPage(),
             AbsensiPageKamar(),    
