@@ -55,13 +55,48 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
       backgroundColor: Color.fromARGB(255, 233, 233, 233),
       body: CustomScrollView(
         slivers: [
-          CustomGradientAppBar(
-            title: 'Keuangan Santri',
-            icon: Icons.account_balance_wallet,
-            textColor: Colors.white, // Explicitly set white text
-            child:
-                Container(), // Empty container since we don't need the centered content anymore
-            showBackButton: false,
+          SliverAppBar(
+            expandedHeight: screenHeight * 0.10,
+            pinned: true,
+            flexibleSpace: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(25),
+                  bottomRight: Radius.circular(25),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: FlexibleSpaceBar(
+                centerTitle: true,
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.account_balance_wallet,
+                        color: Colors.white, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Keuangan Santri',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: screenWidth * 0.045,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
           SliverToBoxAdapter(
             child: Padding(

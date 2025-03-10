@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/pelanggaran.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Izin/izin.dart';
@@ -68,126 +70,122 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final appBarHeight =
-        screenHeight * _appBarHeight; // Adjust the height based on screen size
-
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 233, 233, 233),
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(appBarHeight),
-        child: AppBar(
-          flexibleSpace: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blue.shade900, Colors.blue.shade700],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 10, horizontal: 22), // Adjusted vertical padding
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize:
-                      MainAxisSize.min, // Ensure the column takes minimum space
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: _profileImageRadius,
-                          backgroundImage: _profileImagePath != null
-                              ? NetworkImage(_profileImagePath!)
-                              : AssetImage('assets/default_profile.png')
-                                  as ImageProvider,
-                        ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize
-                              .min, // Ensure the column takes minimum space
-                          children: [
-                            Text(
-                              _name,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: _nameFontSize,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              _email,
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: _emailFontSize,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF2E3F7F),
+              const Color.fromARGB(255, 255, 255, 255),
+            ],
           ),
-          centerTitle: true,
-          elevation: 10.0,
         ),
-      ),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  NewsCarousel(),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(15),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          spreadRadius: 2,
-                          blurRadius: 5,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
+        child: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: _loadProfileData,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                    child: GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 15,
-                      mainAxisSpacing: 15,
+                    child: Column(
                       children: [
-                        _buildMenuCard(Icons.report, 'Pelanggaran'),
-                        _buildMenuCard(Icons.card_travel, 'Perizinan'),
-                        _buildMenuCard(Icons.healing, 'Kesehatan'),
+                        // Profile and notification section
+                        Padding(
+                          padding: EdgeInsets.only(
+                              top: 50, left: 20, right: 20, bottom: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 25,
+                                    backgroundColor: Colors.white,
+                                    backgroundImage: _profileImagePath != null
+                                        ? FileImage(File(_profileImagePath!))
+                                        : AssetImage('assets/default_profile.png')
+                                            as ImageProvider,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _name,
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        _email,
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // News Section and Class Assignments remain the same
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              NewsCarousel(),
+                              const SizedBox(height: 20),
+                              Container(
+                                padding: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(15),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.2),
+                                      spreadRadius: 2,
+                                      blurRadius: 5,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: GridView.count(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  crossAxisCount: 3,
+                                  crossAxisSpacing: 15,
+                                  mainAxisSpacing: 15,
+                                  children: [
+                                    _buildMenuCard(Icons.report, 'Pelanggaran'),
+                                    _buildMenuCard(Icons.card_travel, 'Perizinan'),
+                                    _buildMenuCard(Icons.healing, 'Kesehatan'),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              GallerySection(),
+                              ActivitySection(),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  GallerySection(),
-                  ActivitySection(),
-                ],
-              ),
+                );
+              },
             ),
-            const SizedBox(height: 20),
-          ],
+          ),
         ),
       ),
     );
@@ -244,5 +242,14 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
       default:
         print('Unknown button type');
     }
+  }
+
+  Widget _buildNotificationIcon() {
+    return IconButton(
+      icon: Icon(Icons.notifications, color: Colors.white),
+      onPressed: () {
+        // Handle notification icon press
+      },
+    );
   }
 }

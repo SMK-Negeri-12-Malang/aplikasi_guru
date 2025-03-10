@@ -1,4 +1,4 @@
-import 'package:aplikasi_ortu/MUSYRIF/Absen/absensi_page.dart';
+import 'package:aplikasi_ortu/MUSYRIF/laporan/Laporan_santri.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Tugas/tugas.dart';
 import 'package:aplikasi_ortu/MUSYRIF/keuangan/keuangan.dart';
 import 'package:aplikasi_ortu/MUSYRIF/Home/home_musyrif.dart';
@@ -112,7 +112,7 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
             TugasPage(),
             Keuangan(),
             DashboardMusyrifPage(),
-            AbsensiPageKamar(),    
+            LaporanSantri(),    
             profilmusryf(),
           ],
         ),
