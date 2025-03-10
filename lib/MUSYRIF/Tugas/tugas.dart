@@ -1,292 +1,178 @@
-
-import 'package:aplikasi_ortu/MUSYRIF/models/student_model.dart';
-import 'package:aplikasi_ortu/MUSYRIF/services/student_service.dart';
-import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Tugas/tabel_tugas.dart';
+import 'tabel_tugas.dart'; // Import tabel_tugas.dart
+import 'package:shared_preferences/shared_preferences.dart';
 
-class Tugas extends StatelessWidget {
+class TugasPage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return TugasSantriPage();
-  }
+  _TugasPageState createState() => _TugasPageState();
 }
 
-class TugasSantriPage extends StatefulWidget {
-  @override
-  _TugasSantriPageState createState() => _TugasSantriPageState();
-}
-
-class _TugasSantriPageState extends State<TugasSantriPage> {
-  String selectedKamar = "Mutabaah";
-  List<String> kamarList = ["Mutabaah", "Tahsin", "Tahfidz"];
-  
-  PageController _pageController = PageController(
-    viewportFraction: 0.75,
-    initialPage: 0,
-  );
-  int _currentPage = 0;
-  List<Student> filteredStudents = [];
-  final List<String> sesiList = ['Pagi', 'Sore', 'Malam'];
-
-  TextEditingController dateController = TextEditingController();
-  Student? selectedStudent;
-  String? selectedSesi;
-
-  void updateSelectedStudent(String? newValue) {
-    setState(() {
-      selectedStudent = filteredStudents.firstWhere((student) => student.name == newValue);
-    });
-  }
+class _TugasPageState extends State<TugasPage> {
+  int _selectedSesi = 0;
+  String? _selectedCategory;
+  final List<String> categories = ["Tahsin", "Tahfidz", "Mutabaah"];
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
     super.initState();
-    filteredStudents = StudentService.getStudentsByCategory(selectedKamar);
+    _loadPagePosition();
   }
 
-  void updateFilteredSantri(String kamar) {
+  Future<void> _savePagePosition() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('selectedSesi', _selectedSesi);
+  }
+
+  Future<void> _loadPagePosition() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      selectedKamar = kamar;
-      filteredStudents = StudentService.getStudentsByCategory(kamar);
-      _clearForm();
+      _selectedSesi = prefs.getInt('selectedSesi') ?? 0;
+      _pageController.jumpToPage(_selectedSesi);
     });
-  }
-
-  void _clearForm() {
-    setState(() {
-      selectedStudent = null;
-      selectedSesi = '';
-    });
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    String sesi = ["Siang", "Sore", "Malam"][_selectedSesi];
 
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 233, 233, 233),
-      body: CustomScrollView(
-        slivers: [
-          CustomGradientAppBar(
-            title: 'Tugas Santri',
-            icon: Icons.task_sharp,
-            textColor: Colors.white,
-            child: Container(),
+      // 🔹 AppBar dengan Gradient & Title Tengah
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(60), // Tinggi AppBar
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)], // Warna gradasi
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(screenWidth * 0.04),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Pilih Tugas",
-                        style: TextStyle(
-                          fontSize: screenWidth * 0.045,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2E3F7F),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: screenHeight * 0.02),
-                  Container(
-                    height: screenHeight * 0.15,
-                    child: PageView.builder(
-                      controller: _pageController,
-                      itemCount: kamarList.length,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _currentPage = index;
-                          selectedKamar = kamarList[index];
-                          updateFilteredSantri(selectedKamar);
-                        });
-                      },
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (context, index) {
-                        return AnimatedBuilder(
-                          animation: _pageController,
-                          builder: (context, child) {
-                            double value = 1.0;
-                            if (_pageController.position.haveDimensions) {
-                              value = _pageController.page! - index;
-                              value = (1 - (value.abs() * 0.3)).clamp(0.85, 1.0);
-                            }
-                            return Transform.scale(
-                              scale: value,
-                              child: _buildRoomCard(
-                                index,
-                                selectedKamar == kamarList[index],
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      kamarList.length,
-                      (index) => Container(
-                        margin: EdgeInsets.symmetric(horizontal: 4),
-                        width: 8,
-                        height: 8,
+          child: AppBar(
+            backgroundColor: Colors.transparent, // Agar mengikuti gradient
+            elevation: 0, // Hilangkan shadow
+            centerTitle: true, // 🔹 Title ada di tengah
+            title: Text(
+              "Tugas Santri",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ),
+      ),
+
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          // **📌 PageView Sesi dengan Background Biru**
+          Container(
+            height: 120,
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _selectedSesi = index;
+                });
+                _savePagePosition();
+              },
+              itemCount: 3,
+              itemBuilder: (context, index) {
+                return AnimatedBuilder(
+                  animation: _pageController,
+                  builder: (context, child) {
+                    double value = 1.0;
+                    if (_pageController.position.haveDimensions) {
+                      value = _pageController.page! - index;
+                      value = (1 - (value.abs() * 0.3)).clamp(0.85, 1.0);
+                    }
+                    return Transform.scale(
+                      scale: value,
+                      child: Container(
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _currentPage == index
-                              ? Color(0xFF2E3F7F)
-                              : Colors.grey[300],
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 8,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  ...filteredStudents.map((student) => Container(
-                    margin: EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.all(16),
+                        child: Center(
                           child: Text(
-                            "Data Tugas ${student.name}",
+                            ["Siang", "Sore", "Malam"][index],
                             style: TextStyle(
-                              fontSize: 16,
+                              color: Colors.white,
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF2E3F7F),
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 4,
+                                  color: Colors.black45,
+                                  offset: Offset(2, 2),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            columnSpacing: 20,
-                            columns: [
-                              DataColumn(label: Text('Aktivitas')),
-                              DataColumn(label: Text('Kategori')),
-                              DataColumn(label: Text('Dilakukan')),
-                              DataColumn(label: Text('Skor')),
-                              DataColumn(label: Text('Keterangan')),
-                            ],
-                            rows: _getStudentRows(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )).toList(),
-                ],
-              ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildRoomCard(int index, bool isSelected) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+          // **📌 Dropdown Kategori**
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: DropdownButtonFormField<String>(
+              value: _selectedCategory,
+              decoration: InputDecoration(
+                labelText: "Pilih Kategori",
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                filled: true,
+                fillColor: Colors.white,
+                prefixIcon: Icon(Icons.category, color: Colors.blue),
+              ),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedCategory = newValue;
+                });
+              },
+              items: categories
+                  .map((category) => DropdownMenuItem(
+                        value: category,
+                        child: Text(category,
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                      ))
+                  .toList(),
+            ),
+          ),
 
-    return Container(
-      margin: EdgeInsets.symmetric(
-        vertical: screenHeight * 0.01,
-        horizontal: screenWidth * 0.02,
-      ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isSelected
-              ? [Color(0xFF2E3F7F), Color(0xFF4557A4)]
-              : [Colors.grey[300]!, Colors.grey[400]!],
-        ),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: isSelected 
-                ? Color(0xFF2E3F7F).withOpacity(0.3)
-                : Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 4),
-            spreadRadius: isSelected ? 2 : 0,
+          // **📌 Tabel Data Tugas**
+          Expanded(
+            child: _selectedCategory == null
+                ? Center(child: Text("Silakan pilih kategori"))
+                : TabelTugas(session: sesi, category: _selectedCategory!),
           ),
         ],
       ),
-      child: Center(
-        child: Text(
-          kamarList[index],
-          style: TextStyle(
-            fontSize: screenWidth * 0.045,
-            color: isSelected ? Colors.white : Colors.black87,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
     );
-  }
-
-  List<DataRow> _getStudentRows() {
-    // This would normally come from a database or service
-    if (selectedKamar == "Mutabaah") {
-      return [
-        DataRow(cells: [
-          DataCell(Text('Shalat Subuh')),
-          DataCell(Text('Mutabaah')),
-          DataCell(Text('Ya')),
-          DataCell(Text('100')),
-          DataCell(Text('Tepat Waktu')),
-        ]),
-        DataRow(cells: [
-          DataCell(Text('Shalat Dzuhur')),
-          DataCell(Text('Mutabaah')),
-          DataCell(Text('Ya')),
-          DataCell(Text('90')),
-          DataCell(Text('Berjamaah')),
-        ]),
-      ];
-    } else if (selectedKamar == "Tahfidz") {
-      return [
-        DataRow(cells: [
-          DataCell(Text('Hafalan Al-Baqarah')),
-          DataCell(Text('Tahfidz')),
-          DataCell(Text('Ya')),
-          DataCell(Text('85')),
-          DataCell(Text('Lancar')),
-        ]),
-      ];
-    } else {
-      return [
-        DataRow(cells: [
-          DataCell(Text('Praktik Tajwid')),
-          DataCell(Text('Tahsin')),
-          DataCell(Text('Ya')),
-          DataCell(Text('80')),
-          DataCell(Text('Baik')),
-        ]),
-      ];
-    }
   }
 }
