@@ -1,5 +1,3 @@
-import 'package:aplikasi_ortu/LOGIN/FGpassword.dart';
-import 'package:aplikasi_ortu/LOGIN/register.dart';
 import 'package:aplikasi_ortu/main.dart';
 import 'package:aplikasi_ortu/utils/user_data_manager.dart';
 import 'package:flutter/material.dart';
@@ -191,26 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
 
-                        const SizedBox(height: 10),
 
-                        // Forgot Password Text
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const Fgpassword(),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              'Lupa Password',
-                              style: TextStyle(color: Colors.blue),
-                            ),
-                          ),
-                        ),
 
                         const SizedBox(height: 20),
 
@@ -238,32 +217,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                         ),
 
-                        const SizedBox(height: 20),
-
-                        // Register Text
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text('Belum Punya Akun? '),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const DaftarPage(),
-                                  ),
-                                );
-                              },
-                              child: const Text(
-                                'Daftar',
-                                style: TextStyle(
-                                  color: Colors.blue,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),

@@ -26,7 +26,6 @@ class DetailKeuangan extends StatefulWidget {
 
 class _DetailKeuanganState extends State<DetailKeuangan> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
   DateTime? _selectedDate;
   List<Transaction> _filteredTransactions = [];
   final List<String> months = [
@@ -38,7 +37,6 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
   // Add new variables to track filtered summary
   double _filteredUangMasuk = 0;
   double _filteredUangKeluar = 0;
-  double _filteredSaldo = 0;
 
   // Add new variable for grouped transactions
   Map<String, List<Transaction>> _groupedTransactions = {};
@@ -66,7 +64,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
     super.dispose();
   }
 
-  void _onSearchChanged() {
+  void _onSearchChanged() { 
     filterTransactions();
   }
 
@@ -85,7 +83,6 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
     setState(() {
       _filteredUangMasuk = masuk;
       _filteredUangKeluar = keluar;
-      _filteredSaldo = masuk - keluar;
     });
   }
 

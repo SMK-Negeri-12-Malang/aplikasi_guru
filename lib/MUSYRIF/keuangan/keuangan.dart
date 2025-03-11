@@ -1,6 +1,4 @@
 import 'package:aplikasi_ortu/MUSYRIF/keuangan/detail_keuangan.dart';
-import 'package:aplikasi_ortu/MUSYRIF/models/transaction.dart';
-import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../models/student_data.dart';
 import '../../utils/currency_format.dart';
