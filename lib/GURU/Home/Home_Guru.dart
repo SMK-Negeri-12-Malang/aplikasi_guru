@@ -1,5 +1,5 @@
 import 'package:aplikasi_ortu/GURU/Detail_Tugas_Kelas/taskpage.dart';
-import 'package:aplikasi_ortu/SERVISCE/notification_service.dart';
+import 'package:aplikasi_ortu/SERVICE/notification_service.dart';
 import 'package:aplikasi_ortu/models/class_model.dart';
 import 'package:aplikasi_ortu/models/jadwal_home.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +10,8 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:async';
-import 'package:aplikasi_ortu/SERVISCE/jadwal_dihome.dart';
-import '../../SERVISCE/class_service.dart';
+import 'package:aplikasi_ortu/SERVICE/jadwal_dihome.dart';
+import '../../SERVICE/class_service.dart';
 import '../Berita/NewsDetailPage.dart';
 import 'dart:ui';
 import 'dart:convert';

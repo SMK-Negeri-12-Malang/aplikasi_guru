@@ -3,7 +3,7 @@ import 'package:aplikasi_ortu/LOGIN/register.dart';
 import 'package:aplikasi_ortu/main.dart';
 import 'package:aplikasi_ortu/utils/user_data_manager.dart';
 import 'package:flutter/material.dart';
-import '../SERVISCE/auth_service.dart';
+import '../SERVICE/auth_service.dart';
 import 'package:aplikasi_ortu/MUSYRIF/mainmusrif.dart';
 
 class LoginScreen extends StatefulWidget {

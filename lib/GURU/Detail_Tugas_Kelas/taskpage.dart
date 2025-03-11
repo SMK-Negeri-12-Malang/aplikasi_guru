@@ -7,8 +7,8 @@ import 'dart:io';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:aplikasi_ortu/utils/task_storage.dart';
-import '../../SERVISCE/task_manager_service.dart';
-import 'package:aplikasi_ortu/SERVISCE/notification_service.dart';
+import '../../SERVICE/task_manager_service.dart';
+import 'package:aplikasi_ortu/SERVICE/notification_service.dart';
 
 class tugaskelas extends StatefulWidget {
   final Function(Map<String, dynamic>, String)? onTaskAdded;
