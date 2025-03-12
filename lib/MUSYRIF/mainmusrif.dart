@@ -150,7 +150,7 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
             }),
             currentIndex: _currentIndex,
             selectedItemColor: Colors.blue[700],
-            unselectedItemColor: Colors.black54,
+            unselectedItemColor: Colors.black54, 
             backgroundColor: Colors.white,
             type: BottomNavigationBarType.fixed,
             onTap: _onBottomNavTapped,
