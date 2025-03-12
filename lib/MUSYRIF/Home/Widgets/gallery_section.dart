@@ -1,4 +1,4 @@
-import 'package:aplikasi_ortu/MUSYRIF/Home/Detail_page/Galeri/gallery_list_page.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Detail_page/Galeri/gallery_list_page.dart';
 import 'package:flutter/material.dart';
 
 class GallerySection extends StatelessWidget {

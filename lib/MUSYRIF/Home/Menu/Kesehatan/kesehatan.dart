@@ -1,6 +1,6 @@
-import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan_detail.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Kesehatan/kesehatan_detail.dart';
 import 'package:flutter/material.dart';
-import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
+import 'package:aplikasi_guru/utils/widgets/custom_app_bar.dart';
 
 class Santri {
   final String name;

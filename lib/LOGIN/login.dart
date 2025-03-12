@@ -1,8 +1,8 @@
-import 'package:aplikasi_ortu/main.dart';
-import 'package:aplikasi_ortu/utils/user_data_manager.dart';
+import 'package:aplikasi_guru/main.dart';
+import 'package:aplikasi_guru/utils/user_data_manager.dart';
 import 'package:flutter/material.dart';
 import '../SERVICE/auth_service.dart';
-import 'package:aplikasi_ortu/MUSYRIF/mainmusrif.dart';
+import 'package:aplikasi_guru/MUSYRIF/mainmusrif.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

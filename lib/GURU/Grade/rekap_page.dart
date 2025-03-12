@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:aplikasi_ortu/SERVICE/grade_state_service.dart';
+import 'package:aplikasi_guru/SERVICE/grade_state_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
