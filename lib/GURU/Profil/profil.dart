@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:aplikasi_ortu/LOGIN/login.dart';
+import 'package:aplikasi_guru/LOGIN/login.dart';
 import 'edit_profil.dart';
 import 'dart:io';
-import 'package:aplikasi_ortu/utils/user_data_manager.dart';
+import 'package:aplikasi_guru/utils/user_data_manager.dart';
 import '../../utils/animations.dart';
 
 class ProfileDetailPage extends StatefulWidget {

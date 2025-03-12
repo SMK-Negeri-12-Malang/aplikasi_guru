@@ -1,0 +1,2 @@
+/home/huawei/PKL/aplikasi_guru/android/app/.cxx/Debug/4m454k38/x86/CMakeFiles/edit_cache.dir
+/home/huawei/PKL/aplikasi_guru/android/app/.cxx/Debug/4m454k38/x86/CMakeFiles/rebuild_cache.dir

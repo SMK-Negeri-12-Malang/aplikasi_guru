@@ -1,8 +1,8 @@
-import 'package:aplikasi_ortu/MUSYRIF/laporan/Laporan_santri.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Tugas/tugas.dart';
-import 'package:aplikasi_ortu/MUSYRIF/keuangan/keuangan.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Home/home_musyrif.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Profil/profil.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/home_musyrif.dart';
+import 'package:aplikasi_guru/MUSYRIF/Profil/profil.dart';
+import 'package:aplikasi_guru/MUSYRIF/Tugas/tugas.dart';
+import 'package:aplikasi_guru/MUSYRIF/keuangan/keuangan.dart';
+import 'package:aplikasi_guru/MUSYRIF/laporan/Laporan_santri.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

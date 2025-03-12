@@ -1,4 +1,4 @@
-import 'package:aplikasi_ortu/MUSYRIF/Detail_Kamar/studentpage.dart';
+import 'package:aplikasi_guru/MUSYRIF/Detail_Kamar/studentpage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';

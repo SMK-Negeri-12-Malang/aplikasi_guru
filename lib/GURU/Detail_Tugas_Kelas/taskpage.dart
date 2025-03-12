@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
-import 'package:aplikasi_ortu/GURU/Detail_Tugas_Kelas/task_detail_page.dart';
+import 'package:aplikasi_guru/GURU/Detail_Tugas_Kelas/task_detail_page.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'package:aplikasi_ortu/utils/task_storage.dart';
+import 'package:aplikasi_guru/utils/task_storage.dart';
 import '../../SERVICE/task_manager_service.dart';
-import 'package:aplikasi_ortu/SERVICE/notification_service.dart';
+import 'package:aplikasi_guru/SERVICE/notification_service.dart';
 
 class tugaskelas extends StatefulWidget {
   final Function(Map<String, dynamic>, String)? onTaskAdded;

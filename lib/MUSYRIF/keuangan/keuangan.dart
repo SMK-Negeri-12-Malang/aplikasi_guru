@@ -1,4 +1,4 @@
-import 'package:aplikasi_ortu/MUSYRIF/keuangan/detail_keuangan.dart';
+import 'package:aplikasi_guru/MUSYRIF/keuangan/detail_keuangan.dart';
 import 'package:flutter/material.dart';
 import '../models/student_data.dart';
 import '../../utils/currency_format.dart';

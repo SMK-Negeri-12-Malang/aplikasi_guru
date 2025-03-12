@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Izin/izin_detail.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan_detail.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/pelanggaran_detail.dart';
-import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Izin/izin_detail.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Kesehatan/kesehatan_detail.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Laporan/pelanggaran_detail.dart';
+
 
 class LaporanSantri extends StatefulWidget {
   const LaporanSantri({super.key});
