@@ -19,6 +19,7 @@ class _TabelTugasState extends State<TabelTugas> {
   Map<String, TextEditingController> scoreControllers = {};
   Map<String, FocusNode> focusNodes = {};
   Map<String, String> predikatMap = {};
+  bool isEditing = false;
 
   @override
   void initState() {
@@ -117,10 +118,24 @@ class _TabelTugasState extends State<TabelTugas> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            santri,
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                santri,
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              IconButton(
+                                icon:
+                                    Icon(isEditing ? Icons.check : Icons.edit),
+                                onPressed: () {
+                                  setState(() {
+                                    isEditing = !isEditing;
+                                  });
+                                },
+                              ),
+                            ],
                           ),
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
@@ -154,6 +169,7 @@ class _TabelTugasState extends State<TabelTugas> {
                                           hintText: "0",
                                           border: InputBorder.none,
                                         ),
+                                        enabled: isEditing,
                                         onChanged: (value) {
                                           setState(() {
                                             int skor = int.tryParse(value) ?? 0;
