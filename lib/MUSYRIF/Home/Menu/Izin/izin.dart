@@ -1,7 +1,5 @@
-import 'package:aplikasi_ortu/utils/widgets/custom_app_bar.dart';
+import 'package:aplikasi_guru/utils/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'izin_detail.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Home/home_musyrif.dart';
 
 class IzinModel {
   final String nama;

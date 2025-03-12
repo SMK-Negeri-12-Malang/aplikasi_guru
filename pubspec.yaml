@@ -1,4 +1,4 @@
-name: aplikasi_ortu
+name: aplikasi_guru
 
 description: "A new Flutter project."
 publish_to: 'none' 
@@ -39,6 +39,13 @@ flutter_native_splash:
     image: assets/splash_logo.png
     icon_background_color: "#ffffff"
 
+flutter_launcher_icons:
+  android: true  # Mengubah "launcher_icon" menjadi true
+  ios: true
+  image_path: "assets/logo/logoibs.jpeg"
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/logo/logoibs.jpeg"
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -48,3 +55,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/logo/
+    - assets/

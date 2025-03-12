@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Kesehatan/kesehatan.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Laporan/pelanggaran.dart';
-import 'package:aplikasi_ortu/MUSYRIF/Home/Menu/Izin/izin.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Kesehatan/kesehatan.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Laporan/pelanggaran.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Izin/izin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:shared_preferences/shared_preferences.dart';
