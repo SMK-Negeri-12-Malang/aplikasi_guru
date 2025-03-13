@@ -21,15 +21,21 @@ List<IzinModel> izinList = [
   IzinModel(
       nama: 'Ahmad',
       tanggal: '01-02-2025 to 05-02-2025',
-      kamar: 'Kelas A',
+      kamar: 'Kamar A',
       halaqo: 'Halaqo 1',
       musyrif: 'Ustadz Ali'),
   IzinModel(
       nama: 'Aisyah',
       tanggal: '02-02-2025 to 06-02-2025',
-      kamar: 'Kelas A',
+      kamar: 'Kamar B',
       halaqo: 'Halaqo 2',
       musyrif: 'Ustadzah Fatimah'),
+  IzinModel(
+      nama: 'Fatimah',
+      tanggal: '03-02-2025 to 07-02-2025',
+      kamar: 'Kamar C',
+      halaqo: 'Halaqo 3',
+      musyrif: 'Ustadzah Zainab'),
 ];
 
 class IzinPage extends StatefulWidget {
@@ -39,41 +45,53 @@ class IzinPage extends StatefulWidget {
 
 class _IzinState extends State<IzinPage> {
   final TextEditingController _namaController = TextEditingController();
-  final TextEditingController _tanggalMulaiController = TextEditingController();
-  final TextEditingController _tanggalKembaliController =
-      TextEditingController();
+  final TextEditingController _tanggalController = TextEditingController();
   final TextEditingController _kamarController = TextEditingController();
   final TextEditingController _halaqoController = TextEditingController();
   final TextEditingController _musyrifController = TextEditingController();
 
-  Future<void> _selectDate(
-      BuildContext context, TextEditingController controller) async {
-    DateTime? picked = await showDatePicker(
+  final List<IzinModel> _namaSantriList =
+      izinList; // Use izinList for autocomplete
+  bool _showDropdown = false;
+
+  Future<void> _selectDateRange(BuildContext context) async {
+    DateTimeRange? picked = await showDateRangePicker(
       context: context,
-      initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
+      initialDateRange: DateTimeRange(
+        start: DateTime.now(),
+        end: DateTime.now().add(Duration(days: 1)),
+      ),
     );
     if (picked != null) {
       setState(() {
-        controller.text = "${picked.day}-${picked.month}-${picked.year}";
+        _tanggalController.text =
+            "${picked.start.day}-${picked.start.month}-${picked.start.year} to ${picked.end.day}-${picked.end.month}-${picked.end.year}";
       });
     }
   }
 
   void _submitIzin() {
     if (_namaController.text.isNotEmpty &&
-        _tanggalMulaiController.text.isNotEmpty &&
-        _tanggalKembaliController.text.isNotEmpty &&
+        _tanggalController.text.isNotEmpty &&
         _kamarController.text.isNotEmpty &&
         _halaqoController.text.isNotEmpty &&
         _musyrifController.text.isNotEmpty) {
+      // Ensure 'Kamar' does not contain the word 'Kelas'
+      if (_kamarController.text.contains('Kelas')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Nama kamar tidak boleh mengandung kata "Kelas"!')),
+        );
+        return;
+      }
+
       setState(() {
         izinList.add(
           IzinModel(
             nama: _namaController.text,
-            tanggal:
-                "${_tanggalMulaiController.text} to ${_tanggalKembaliController.text}",
+            tanggal: _tanggalController.text,
             kamar: _kamarController.text,
             halaqo: _halaqoController.text,
             musyrif: _musyrifController.text,
@@ -82,13 +100,12 @@ class _IzinState extends State<IzinPage> {
       });
 
       _namaController.clear();
-      _tanggalMulaiController.clear();
-      _tanggalKembaliController.clear();
+      _tanggalController.clear();
       _kamarController.clear();
       _halaqoController.clear();
       _musyrifController.clear();
 
-      Navigator.pop(context);
+      Navigator.pop(context, true); // Pass true to indicate data was saved
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Harap isi semua data!')),
@@ -99,6 +116,11 @@ class _IzinState extends State<IzinPage> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final filteredSantriList = _namaSantriList
+        .where((santri) => santri.nama
+            .toLowerCase()
+            .contains(_namaController.text.toLowerCase()))
+        .toList();
 
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 233, 233, 233),
@@ -124,26 +146,22 @@ class _IzinState extends State<IzinPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildTextField(
-                          _namaController, 'Nama Santri', Icons.person),
+                          _namaController, 'Nama Santri', Icons.person,
+                          onTap: () {
+                        setState(() {
+                          _showDropdown = true;
+                        });
+                      }, onChange: (value) {
+                        setState(() {});
+                      }),
+                      if (_showDropdown && filteredSantriList.isNotEmpty)
+                        _buildSuggestionsList(filteredSantriList),
                       SizedBox(height: 16),
-                      Column(
-                        children: [
-                          _buildDateField(
-                            _tanggalMulaiController,
-                            'Tanggal keluar',
-                            () => _selectDate(context, _tanggalMulaiController),
-                          ),
-                          SizedBox(height: 16),
-                          _buildDateField(
-                            _tanggalKembaliController,
-                            'Tanggal Kembali',
-                            () =>
-                                _selectDate(context, _tanggalKembaliController),
-                          ),
-                        ],
-                      ),
+                      _buildDateField(_tanggalController, 'Tanggal Izin',
+                          Icons.calendar_today, () => _selectDateRange(context)),
                       SizedBox(height: 16),
-                      _buildTextField(_kamarController, 'Kamar', Icons.room),
+                      _buildTextField(_kamarController, 'Kamar', Icons.room,
+                          readOnly: true),
                       SizedBox(height: 16),
                       _buildTextField(_halaqoController, 'Halaqo', Icons.group),
                       SizedBox(height: 16),
@@ -187,9 +205,17 @@ class _IzinState extends State<IzinPage> {
   }
 
   Widget _buildTextField(
-      TextEditingController controller, String label, IconData icon) {
+      TextEditingController controller, String label, IconData icon,
+      {bool readOnly = false,
+      int? maxLines,
+      VoidCallback? onTap,
+      Function(String)? onChange}) {
     return TextFormField(
       controller: controller,
+      readOnly: readOnly,
+      maxLines: maxLines ?? 1,
+      onTap: onTap,
+      onChanged: onChange,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Color(0xFF2E3F7F)),
@@ -211,15 +237,15 @@ class _IzinState extends State<IzinPage> {
     );
   }
 
-  Widget _buildDateField(
-      TextEditingController controller, String label, VoidCallback onTap) {
+  Widget _buildDateField(TextEditingController controller, String label,
+      IconData icon, VoidCallback onTap) {
     return TextFormField(
       controller: controller,
       readOnly: true,
       onTap: onTap,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(Icons.calendar_today, color: Color(0xFF2E3F7F)),
+        prefixIcon: Icon(icon, color: Color(0xFF2E3F7F)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: Colors.grey[300]!),
@@ -234,6 +260,49 @@ class _IzinState extends State<IzinPage> {
         ),
         filled: true,
         fillColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildSuggestionsList(List<IzinModel> filteredList) {
+    return Card(
+      elevation: 4,
+      margin: EdgeInsets.only(top: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Container(
+        constraints: BoxConstraints(maxHeight: 200),
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: filteredList.length,
+          itemBuilder: (context, index) {
+            final santri = filteredList[index];
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Color(0xFF2E3F7F).withOpacity(0.1),
+                child: Text(
+                  santri.nama[0],
+                  style: TextStyle(
+                    color: Color(0xFF2E3F7F),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              title: Text(santri.nama),
+              subtitle: Text(santri.kamar),
+              onTap: () {
+                setState(() {
+                  _namaController.text = santri.nama;
+                  _kamarController.text = santri.kamar;
+                  _halaqoController.text = santri.halaqo;
+                  _musyrifController.text = santri.musyrif;
+                  _showDropdown = false;
+                });
+              },
+            );
+          },
+        ),
       ),
     );
   }
