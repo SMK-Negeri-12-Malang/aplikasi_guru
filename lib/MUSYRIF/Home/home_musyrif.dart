@@ -20,10 +20,6 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
   String _email = 'Teknologi Informasi';
   String? _profileImagePath;
   ScrollController _scrollController = ScrollController();
-  double _appBarHeight = 0.15;
-  double _profileImageRadius = 15;
-  double _nameFontSize = 24;
-  double _emailFontSize = 16;
 
   @override
   void initState() {
@@ -43,18 +39,10 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
     if (_scrollController.position.userScrollDirection ==
         ScrollDirection.reverse) {
       setState(() {
-        _appBarHeight = 0.1;
-        _profileImageRadius = 20;
-        _nameFontSize = 18;
-        _emailFontSize = 12;
       });
     } else if (_scrollController.position.userScrollDirection ==
         ScrollDirection.forward) {
       setState(() {
-        _appBarHeight = 0.15;
-        _profileImageRadius = 30;
-        _nameFontSize = 24;
-        _emailFontSize = 16;
       });
     }
   }
@@ -244,12 +232,4 @@ class _DashboardPageState extends State<DashboardMusyrifPage> {
     }
   }
 
-  Widget _buildNotificationIcon() {
-    return IconButton(
-      icon: Icon(Icons.notifications, color: Colors.white),
-      onPressed: () {
-        // Handle notification icon press
-      },
-    );
-  }
 }

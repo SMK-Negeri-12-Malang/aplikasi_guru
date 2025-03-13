@@ -3,15 +3,6 @@ import 'package:flutter/material.dart';
 import '../models/student_data.dart';
 import '../../utils/currency_format.dart';
 
-class Keuangan extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: KeuanganSantriPage(),
-    );
-  }
-}
 
 class KeuanganSantriPage extends StatefulWidget {
   @override
@@ -54,6 +45,7 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
+            backgroundColor: Colors.grey[100],
             expandedHeight: screenHeight * 0.10,
             pinned: true,
             flexibleSpace: Container(

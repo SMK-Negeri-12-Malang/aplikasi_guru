@@ -33,6 +33,7 @@ class _AbsensiKelasPageState extends State<LaporanSantri> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
+            backgroundColor: Colors.grey[100],
             expandedHeight: screenHeight * 0.10,
             pinned: true,
             flexibleSpace: Container(
@@ -106,13 +107,7 @@ class _AbsensiKelasPageState extends State<LaporanSantri> {
                             itemBuilder: (context, index) {
                               return GestureDetector(
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => RoomDetailPage(
-                                          roomName: kamarList[index]),
-                                    ),
-                                  );
+                                  
                                 },
                                 child: _buildRoomCard(
                                     index, selectedKamar == kamarList[index]),

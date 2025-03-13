@@ -1,4 +1,3 @@
-import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Kesehatan/kesehatan_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:aplikasi_guru/utils/widgets/custom_app_bar.dart';
 
@@ -31,7 +30,6 @@ class _KesehatanPageState extends State<Kesehatan> {
   final TextEditingController _keluhanController = TextEditingController();
   String? _selectedKamar;
   bool _showDropdown = false;
-  bool _showAllNames = false;
 
   final List<Santri> _santriList = [
     Santri("Ahmad", "Kamar A"),
