@@ -2,14 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_guru/utils/widgets/custom_app_bar.dart';
 import 'izin.dart';
 
-class IzinDetail extends StatelessWidget {
+class IzinDetail extends StatefulWidget {
   final String kamar;
 
   const IzinDetail({required this.kamar, Key? key}) : super(key: key);
 
   @override
+  _IzinDetailState createState() => _IzinDetailState();
+}
+
+class _IzinDetailState extends State<IzinDetail> {
+  @override
   Widget build(BuildContext context) {
-    final filteredList = izinList.where((data) => data.kamar == kamar).toList();
+    final filteredList = izinList
+        .where((data) =>
+            data.kamar == widget.kamar && !data.kamar.contains('Kelas'))
+        .toList();
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -18,8 +26,9 @@ class IzinDetail extends StatelessWidget {
         slivers: [
           CustomGradientAppBar(
             title: 'Detail Izin',
-            subtitle: kamar,  // Added subtitle instead of concatenating with title
-            titleSize: 18.0,  // Smaller title size
+            subtitle: widget
+                .kamar, // Added subtitle instead of concatenating with title
+            titleSize: 18.0, // Smaller title size
             icon: Icons.assignment_ind,
             height: 100.0,
             textColor: Colors.white,
@@ -41,7 +50,7 @@ class IzinDetail extends StatelessWidget {
                           ),
                           SizedBox(height: 16),
                           Text(
-                            'Belum ada data izin yang masuk\nuntuk $kamar.',
+                            'Belum ada data izin yang masuk\nuntuk ${widget.kamar}.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
@@ -56,7 +65,9 @@ class IzinDetail extends StatelessWidget {
                 : Padding(
                     padding: EdgeInsets.all(screenWidth * 0.04),
                     child: Column(
-                      children: filteredList.map((data) => _buildIzinCard(data)).toList(),
+                      children: filteredList
+                          .map((data) => _buildIzinCard(data))
+                          .toList(),
                     ),
                   ),
           ),
