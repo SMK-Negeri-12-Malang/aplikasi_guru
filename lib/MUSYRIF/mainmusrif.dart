@@ -110,7 +110,7 @@ class _DashboardPageState extends State<homemusryf> with SingleTickerProviderSta
           },
           children: [
             TugasPage(),
-            Keuangan(),
+            KeuanganSantriPage(),
             DashboardMusyrifPage(),
             LaporanSantri(),    
             profilmusryf(),

@@ -282,338 +282,342 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
 
   @override
   Widget build(BuildContext context) {
-    // Get latest financial summary
     final summary = StudentData.getStudentSummary(widget.virtualAccount);
     
-    return Scaffold(
-      backgroundColor: Color(0xFFF5F6F8),
-      body: Stack(
-        children: [
-          // Curved App Bar
-          Container(
-            height: 395,
-            decoration: BoxDecoration(
-              color: Color(0xFF2E3F7F),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
+    return MaterialApp( // Wrap with MaterialApp to make independent
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        extendBody: true,
+        resizeToAvoidBottomInset: false,
+        backgroundColor: Color(0xFFF5F6F8),
+        body: Stack(
+          children: [
+            // Curved App Bar
+            Container(
+              height: 395,
+              decoration: BoxDecoration(
+                color: Color(0xFF2E3F7F),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
               ),
             ),
-          ),
-          
-          SafeArea(
-            child: Column(
-              children: [
-                // App Bar
-                Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      Text(
-                        'Detail Keuangan',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Bank Card Style
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color.fromARGB(255, 47, 95, 224), Color.fromARGB(255, 124, 124, 124)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          offset: Offset(0, 4),
-                          blurRadius: 10,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            
+            SafeArea(
+              child: Column(
+                children: [
+                  // App Bar
+                  Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Row(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Virtual Account',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
-                            ),
-                            Icon(
-                              Icons.credit_card,
-                              color: Colors.white70,
-                            ),
-                          ],
+                        IconButton(
+                          icon: Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
                         ),
-                        SizedBox(height: 8),
                         Text(
-                          widget.virtualAccount,
+                          'Detail Keuangan',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            letterSpacing: 2,
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        Text(
-                          widget.namaSantri,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Rp ${CurrencyFormat.formatRupiah(summary["saldo"])}', // Always show total saldo
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
 
-                SizedBox(height: 20),
-
-                // Transaction Summary
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildTransactionSummary(
-                          'Uang Masuk',
-                          _selectedDate != null ? _filteredUangMasuk : summary["uangMasuk"],
-                          Icons.arrow_upward,
-                          Colors.green,
+                  // Bank Card Style
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color.fromARGB(255, 47, 95, 224), Color.fromARGB(255, 124, 124, 124)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: _buildTransactionSummary(
-                          'Uang Keluar',
-                          _selectedDate != null ? _filteredUangKeluar : summary["uangKeluar"],
-                          Icons.arrow_downward,
-                          Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: 20),
-
-                // Transaction History Title
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Riwayat Transaksi',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            offset: Offset(0, 4),
+                            blurRadius: 10,
                           ),
-                          Spacer(),
-                          // Date Filter Button
-                          _buildFilterButton(),
                         ],
                       ),
-                      SizedBox(height: 8),
-                      // Search Bar
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            hintText: 'Cari transaksi...',
-                            border: InputBorder.none,
-                            icon: Icon(Icons.search),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: 12),
-
-                // Transaction History List
-                Expanded(
-                  child: _filteredTransactions.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Icon(Icons.receipt_long, size: 64, color: Colors.grey[400]),
-                              SizedBox(height: 16),
                               Text(
-                                'Tidak ada transaksi',
+                                'Virtual Account',
                                 style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 16,
+                                  color: Colors.white70,
+                                  fontSize: 14,
                                 ),
+                              ),
+                              Icon(
+                                Icons.credit_card,
+                                color: Colors.white70,
                               ),
                             ],
                           ),
-                        )
-                      : ListView.builder(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: _groupedTransactions.length,
-                          itemBuilder: (context, index) {
-                            final monthYear = _groupedTransactions.keys.elementAt(index);
-                            final transactions = _groupedTransactions[monthYear]!;
-                            
-                            return Container(
-                              margin: EdgeInsets.only(bottom: 16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 10,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Month header
-                                  Container(
-                                    padding: EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Color(0xFF2E3F7F).withOpacity(0.1),
-                                      borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(16),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.calendar_month,
-                                          color: Color(0xFF2E3F7F),
-                                          size: 20,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          monthYear,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF2E3F7F),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  // Transactions list
-                                  ...transactions.map((transaction) => Container(
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color: Colors.grey.withOpacity(0.1),
-                                          width: 1,
-                                        ),
-                                      ),
-                                    ),
-                                    child: ListTile(
-                                      leading: Container(
-                                        padding: EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: transaction.type == 'masuk'
-                                              ? Colors.green.withOpacity(0.1)
-                                              : Colors.red.withOpacity(0.1),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Icon(
-                                          transaction.type == 'masuk'
-                                              ? Icons.add
-                                              : Icons.remove,
-                                          color: transaction.type == 'masuk'
-                                              ? Colors.green
-                                              : Colors.red,
-                                        ),
-                                      ),
-                                      title: Row(
-                                        children: [
-                                          Text(
-                                            'Rp ${CurrencyFormat.formatRupiah(transaction.amount)}',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: transaction.type == 'masuk'
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      subtitle: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(transaction.description),
-                                          Text(
-                                            '${transaction.date.day} ${getMonthName(transaction.date.month)} ${transaction.date.year}',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey[600],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      isThreeLine: true,
-                                    ),
-                                  )).toList(),
-                                ],
-                              ),
-                            );
-                          },
+                          SizedBox(height: 8),
+                          Text(
+                            widget.virtualAccount,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                          SizedBox(height: 20),
+                          Text(
+                            widget.namaSantri,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Rp ${CurrencyFormat.formatRupiah(summary["saldo"])}', // Always show total saldo
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 20),
+
+                  // Transaction Summary
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildTransactionSummary(
+                            'Uang Masuk',
+                            _selectedDate != null ? _filteredUangMasuk : summary["uangMasuk"],
+                            Icons.arrow_upward,
+                            Colors.green,
+                          ),
                         ),
-                ),
-              ],
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: _buildTransactionSummary(
+                            'Uang Keluar',
+                            _selectedDate != null ? _filteredUangKeluar : summary["uangKeluar"],
+                            Icons.arrow_downward,
+                            Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: 20),
+
+                  // Transaction History Title
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Riwayat Transaksi',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Spacer(),
+                            // Date Filter Button
+                            _buildFilterButton(),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        // Search Bar
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              hintText: 'Cari transaksi...',
+                              border: InputBorder.none,
+                              icon: Icon(Icons.search),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: 12),
+
+                  // Transaction History List
+                  Expanded(
+                    child: _filteredTransactions.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.receipt_long, size: 64, color: Colors.grey[400]),
+                                SizedBox(height: 16),
+                                Text(
+                                  'Tidak ada transaksi',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: _groupedTransactions.length,
+                            itemBuilder: (context, index) {
+                              final monthYear = _groupedTransactions.keys.elementAt(index);
+                              final transactions = _groupedTransactions[monthYear]!;
+                              
+                              return Container(
+                                margin: EdgeInsets.only(bottom: 16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 10,
+                                      offset: Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Month header
+                                    Container(
+                                      padding: EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF2E3F7F).withOpacity(0.1),
+                                        borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(16),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.calendar_month,
+                                            color: Color(0xFF2E3F7F),
+                                            size: 20,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            monthYear,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF2E3F7F),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    // Transactions list
+                                    ...transactions.map((transaction) => Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            color: Colors.grey.withOpacity(0.1),
+                                            width: 1,
+                                          ),
+                                        ),
+                                      ),
+                                      child: ListTile(
+                                        leading: Container(
+                                          padding: EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: transaction.type == 'masuk'
+                                                ? Colors.green.withOpacity(0.1)
+                                                : Colors.red.withOpacity(0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            transaction.type == 'masuk'
+                                                ? Icons.add
+                                                : Icons.remove,
+                                            color: transaction.type == 'masuk'
+                                                ? Colors.green
+                                                : Colors.red,
+                                          ),
+                                        ),
+                                        title: Row(
+                                          children: [
+                                            Text(
+                                              'Rp ${CurrencyFormat.formatRupiah(transaction.amount)}',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: transaction.type == 'masuk'
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        subtitle: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(transaction.description),
+                                            Text(
+                                              '${transaction.date.day} ${getMonthName(transaction.date.month)} ${transaction.date.year}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        isThreeLine: true,
+                                      ),
+                                    )).toList(),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

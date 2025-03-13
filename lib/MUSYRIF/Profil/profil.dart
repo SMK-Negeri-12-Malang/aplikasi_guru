@@ -40,6 +40,7 @@ class _orofilState extends State<profilmusryf> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
+            backgroundColor: Colors.grey[100],
             expandedHeight: 200.0,
             floating: false,
             pinned: true,
