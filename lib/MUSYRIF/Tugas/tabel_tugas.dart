@@ -104,133 +104,166 @@ class _TabelTugasState extends State<TabelTugas> {
       onTap: () {
         FocusScope.of(context).unfocus();
       },
-      child: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: allSantri.map((santri) {
-                  return Card(
-                    margin: EdgeInsets.all(8),
-                    elevation: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          double columnWidth = constraints.maxWidth / 4;
+
+          return Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: allSantri.map((santri) {
+                      return Card(
+                        margin: EdgeInsets.all(8),
+                        elevation: 4,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                santri,
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    santri,
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                        isEditing ? Icons.check : Icons.edit),
+                                    onPressed: () {
+                                      setState(() {
+                                        isEditing = !isEditing;
+                                      });
+                                    },
+                                  ),
+                                ],
                               ),
-                              IconButton(
-                                icon:
-                                    Icon(isEditing ? Icons.check : Icons.edit),
-                                onPressed: () {
-                                  setState(() {
-                                    isEditing = !isEditing;
-                                  });
-                                },
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: DataTable(
+                                  columnSpacing: columnWidth / 2,
+                                  columns: [
+                                    DataColumn(
+                                        label: Container(
+                                            width: columnWidth,
+                                            child: Text("Tanggal"))),
+                                    DataColumn(
+                                        label: Container(
+                                            width: columnWidth,
+                                            child: Text("Aktivitas"))),
+                                    DataColumn(
+                                        label: Container(
+                                            width: columnWidth,
+                                            child: Text("Skor"))),
+                                    DataColumn(
+                                        label: Container(
+                                            width: columnWidth,
+                                            child: Text("Predikat"))),
+                                  ],
+                                  rows: activities.map((activity) {
+                                    String key =
+                                        "${widget.session}_${widget.category}_${santri}_${activity}";
+
+                                    scoreControllers.putIfAbsent(
+                                        key, () => TextEditingController());
+                                    focusNodes.putIfAbsent(
+                                        key, () => FocusNode());
+                                    predikatMap.putIfAbsent(key, () => "-");
+
+                                    return DataRow(
+                                      cells: [
+                                        DataCell(Container(
+                                            width: columnWidth,
+                                            child: Text("08-03-2025"))),
+                                        DataCell(Container(
+                                            width: columnWidth,
+                                            child: Text(activity))),
+                                        DataCell(
+                                          Container(
+                                            width: columnWidth,
+                                            child: TextFormField(
+                                              controller: scoreControllers[key],
+                                              focusNode: focusNodes[key],
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              textAlign: TextAlign.center,
+                                              decoration: InputDecoration(
+                                                hintText: "0",
+                                                border: InputBorder.none,
+                                              ),
+                                              enabled: isEditing,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  int skor =
+                                                      int.tryParse(value) ?? 0;
+                                                  predikatMap[key] =
+                                                      getPredikat(skor);
+                                                });
+                                                _saveScores();
+                                              },
+                                              onFieldSubmitted: (_) {
+                                                _saveScores();
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(Container(
+                                            width: columnWidth,
+                                            child: Text(predikatMap[key]!))),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
                               ),
                             ],
                           ),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: DataTable(
-                              columns: [
-                                DataColumn(label: Text("Tanggal")),
-                                DataColumn(label: Text("Aktivitas")),
-                                DataColumn(label: Text("Skor")),
-                                DataColumn(label: Text("Predikat")),
-                              ],
-                              rows: activities.map((activity) {
-                                String key =
-                                    "${widget.session}_${widget.category}_${santri}_${activity}";
-
-                                scoreControllers.putIfAbsent(
-                                    key, () => TextEditingController());
-                                focusNodes.putIfAbsent(key, () => FocusNode());
-                                predikatMap.putIfAbsent(key, () => "-");
-
-                                return DataRow(
-                                  cells: [
-                                    DataCell(Text("08-03-2025")),
-                                    DataCell(Text(activity)),
-                                    DataCell(
-                                      TextFormField(
-                                        controller: scoreControllers[key],
-                                        focusNode: focusNodes[key],
-                                        keyboardType: TextInputType.number,
-                                        textAlign: TextAlign.center,
-                                        decoration: InputDecoration(
-                                          hintText: "0",
-                                          border: InputBorder.none,
-                                        ),
-                                        enabled: isEditing,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            int skor = int.tryParse(value) ?? 0;
-                                            predikatMap[key] =
-                                                getPredikat(skor);
-                                          });
-                                          _saveScores();
-                                        },
-                                        onFieldSubmitted: (_) {
-                                          _saveScores();
-                                        },
-                                      ),
-                                    ),
-                                    DataCell(Text(predikatMap[key]!)),
-                                  ],
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
-            ),
-          ),
-          SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  _saveScores();
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text("Data disimpan"),
-                  ));
-                },
-                child: Text("Simpan Data"),
+              SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      _saveScores();
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text("Data disimpan"),
+                      ));
+                    },
+                    child: Text("Simpan Data"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text("Menampilkan history penilaian"),
+                      ));
+                    },
+                    child: Text("History"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => RekapHarian()),
+                      );
+                    },
+                    child: Text("Rekap Harian"),
+                  ),
+                ],
               ),
-              ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text("Menampilkan history penilaian"),
-                  ));
-                },
-                child: Text("History"),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => RekapHarian()),
-                  );
-                },
-                child: Text("Rekap Harian"),
-              ),
+              SizedBox(height: 20),
             ],
-          ),
-          SizedBox(height: 20),
-        ],
+          );
+        },
       ),
     );
   }
