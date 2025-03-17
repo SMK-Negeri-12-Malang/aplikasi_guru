@@ -61,8 +61,7 @@ class _TugasPageState extends State<TugasPage> {
               "Tugas Santri",
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+                fontSize: 25,
               ),
             ),
           ),
@@ -72,7 +71,6 @@ class _TugasPageState extends State<TugasPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // **📌 PageView Sesi dengan Background Biru**
           Container(
             height: 120,
             child: PageView.builder(
@@ -138,7 +136,6 @@ class _TugasPageState extends State<TugasPage> {
             ),
           ),
 
-          // **📌 Dropdown Kategori**
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: DropdownButtonFormField<String>(
@@ -166,7 +163,6 @@ class _TugasPageState extends State<TugasPage> {
             ),
           ),
 
-          // **📌 Tabel Data Tugas**
           Expanded(
             child: _selectedCategory == null
                 ? Center(child: Text("Silakan pilih kategori"))

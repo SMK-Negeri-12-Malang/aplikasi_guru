@@ -24,8 +24,13 @@ class AllNewsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Semua Berita'),
-        backgroundColor: const Color(0xFF2B4BF2),
+        title: const Text('Semua Berita',
+        style: TextStyle(
+          color: Color.fromARGB(255, 255, 255, 255),
+        ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor:  const Color(0xFF2E3F7F),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),

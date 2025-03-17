@@ -9,7 +9,8 @@ class GalleryDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2B4BF2),
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor:  const Color(0xFF2E3F7F),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),

@@ -14,8 +14,13 @@ class GalleryListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Galeri'),
-        backgroundColor: const Color(0xFF2B4BF2),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Galeri',
+        style: TextStyle(
+          color: Color.fromARGB(255, 255, 255, 255),
+        ),
+        ),
+        backgroundColor:  const Color(0xFF2E3F7F),
       ),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
