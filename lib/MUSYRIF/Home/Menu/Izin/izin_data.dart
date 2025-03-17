@@ -1,3 +1,4 @@
+import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Izin/izin_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:aplikasi_guru/utils/widgets/custom_app_bar.dart';
 import 'izin.dart';
@@ -77,63 +78,73 @@ class _IzinDetailState extends State<IzinDetail> {
   }
 
   Widget _buildIzinCard(IzinModel data) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => IzinDetailPage(data: data),
           ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: Color(0xFF2E3F7F),
-                  child: Text(
-                    data.nama[0].toUpperCase(),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        data.nama,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2E3F7F),
-                        ),
-                      ),
-                      Text(
-                        data.tanggal,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+        );
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 10,
+              offset: Offset(0, 4),
             ),
-            Divider(height: 24),
-            _buildInfoRow(Icons.room, 'Kamar', data.kamar),
-            _buildInfoRow(Icons.group, 'Halaqo', data.halaqo),
-            _buildInfoRow(Icons.person, 'Musyrif', data.musyrif),
           ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Color(0xFF2E3F7F),
+                    child: Text(
+                      data.nama[0].toUpperCase(),
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          data.nama,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2E3F7F),
+                          ),
+                        ),
+                        Text(
+                          data.tanggal,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              Divider(height: 24),
+              _buildInfoRow(Icons.room, 'Kamar', data.kamar),
+              _buildInfoRow(Icons.group, 'Halaqo', data.halaqo),
+              _buildInfoRow(Icons.person, 'Musyrif', data.musyrif),
+            ],
+          ),
         ),
       ),
     );

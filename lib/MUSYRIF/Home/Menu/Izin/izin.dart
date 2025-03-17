@@ -87,25 +87,39 @@ class _IzinState extends State<IzinPage> {
         return;
       }
 
-      setState(() {
-        izinList.add(
-          IzinModel(
-            nama: _namaController.text,
-            tanggal: _tanggalController.text,
-            kamar: _kamarController.text,
-            halaqo: _halaqoController.text,
-            musyrif: _musyrifController.text,
-          ),
+      // Check for duplicates
+      bool isDuplicate = izinList.any((izin) =>
+          izin.nama == _namaController.text &&
+          izin.tanggal == _tanggalController.text &&
+          izin.kamar == _kamarController.text &&
+          izin.halaqo == _halaqoController.text &&
+          izin.musyrif == _musyrifController.text);
+
+      if (!isDuplicate) {
+        setState(() {
+          izinList.add(
+            IzinModel(
+              nama: _namaController.text,
+              tanggal: _tanggalController.text,
+              kamar: _kamarController.text,
+              halaqo: _halaqoController.text,
+              musyrif: _musyrifController.text,
+            ),
+          );
+        });
+
+        _namaController.clear();
+        _tanggalController.clear();
+        _kamarController.clear();
+        _halaqoController.clear();
+        _musyrifController.clear();
+
+        Navigator.pop(context, true); // Pass true to indicate data was saved
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Data izin sudah ada!')),
         );
-      });
-
-      _namaController.clear();
-      _tanggalController.clear();
-      _kamarController.clear();
-      _halaqoController.clear();
-      _musyrifController.clear();
-
-      Navigator.pop(context, true); // Pass true to indicate data was saved
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Harap isi semua data!')),
@@ -157,8 +171,11 @@ class _IzinState extends State<IzinPage> {
                       if (_showDropdown && filteredSantriList.isNotEmpty)
                         _buildSuggestionsList(filteredSantriList),
                       SizedBox(height: 16),
-                      _buildDateField(_tanggalController, 'Tanggal Izin',
-                          Icons.calendar_today, () => _selectDateRange(context)),
+                      _buildDateField(
+                          _tanggalController,
+                          'Tanggal Izin',
+                          Icons.calendar_today,
+                          () => _selectDateRange(context)),
                       SizedBox(height: 16),
                       _buildTextField(_kamarController, 'Kamar', Icons.room,
                           readOnly: true),
