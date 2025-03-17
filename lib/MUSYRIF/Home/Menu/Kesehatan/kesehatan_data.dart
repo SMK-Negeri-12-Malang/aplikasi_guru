@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_guru/utils/widgets/custom_app_bar.dart';
 import 'kesehatan.dart';
+import 'kesehatan_detail.dart';
 
 class KesehatanSantri {
   final String name;
@@ -72,7 +73,8 @@ class DetailKesehatan extends StatelessWidget {
                     padding: EdgeInsets.all(screenWidth * 0.04),
                     child: Column(
                       children: filteredList
-                          .map((data) => _buildKesehatanCard(data as KesehatanSantri))
+                          .map((data) => _buildKesehatanCard(
+                              context, data as KesehatanSantri))
                           .toList(),
                     ),
                   ),
@@ -82,92 +84,102 @@ class DetailKesehatan extends StatelessWidget {
     );
   }
 
-  Widget _buildKesehatanCard(KesehatanSantri data) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+  Widget _buildKesehatanCard(BuildContext context, KesehatanSantri data) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => KesehatanDetail(data: data),
           ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: Color(0xFF2E3F7F),
-                  child: Text(
-                    data.name[0].toUpperCase(),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        data.name,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2E3F7F),
-                        ),
-                      ),
-                      Text(
-                        data.kamar,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            Divider(height: 24),
-            Text(
-              'Tanggal Sakit:',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              data.tanggal,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black87,
-              ),
-            ),
-            Divider(height: 24),
-            Text(
-              'Keluhan:',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              data.keluhan,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black87,
-              ),
+        );
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 10,
+              offset: Offset(0, 4),
             ),
           ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Color(0xFF2E3F7F),
+                    child: Text(
+                      data.name[0].toUpperCase(),
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          data.name,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2E3F7F),
+                          ),
+                        ),
+                        Text(
+                          data.kamar,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              Divider(height: 24),
+              Text(
+                'Tanggal Sakit:',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                data.tanggal,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
+              Divider(height: 24),
+              Text(
+                'Keluhan:',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                data.keluhan,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

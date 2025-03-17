@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_guru/utils/widgets/custom_app_bar.dart';
 
-
 class LaporanModel {
   final String nama;
   final String kamar;
@@ -91,26 +90,39 @@ class _LaporanState extends State<Laporan> {
         _tanggalController.text.isNotEmpty &&
         _poinController.text.isNotEmpty &&
         _iqobController.text.isNotEmpty) {
-      setState(() {
-        laporanList.add(
-          LaporanModel(
-            nama: _namaController.text,
-            kamar: _kamarController.text,
-            pelanggaran: _selectedPelanggaran!,
-            tanggal: _tanggalController.text,
-            poin: _poinController.text,
-            iqob: _iqobController.text, // Add iqob field
-          ),
+      // Check for duplicates
+      bool isDuplicate = laporanList.any((laporan) =>
+          laporan.nama == _namaController.text &&
+          laporan.kamar == _kamarController.text &&
+          laporan.pelanggaran == _selectedPelanggaran &&
+          laporan.tanggal == _tanggalController.text);
+
+      if (!isDuplicate) {
+        setState(() {
+          laporanList.add(
+            LaporanModel(
+              nama: _namaController.text,
+              kamar: _kamarController.text,
+              pelanggaran: _selectedPelanggaran!,
+              tanggal: _tanggalController.text,
+              poin: _poinController.text,
+              iqob: _iqobController.text, // Add iqob field
+            ),
+          );
+        });
+
+        _namaController.clear();
+        _kamarController.clear();
+        _iqobController.clear(); // Clear iqob controller
+        _tanggalController.clear();
+        _poinController.clear();
+
+        Navigator.pop(context); // Navigate back to the previous page
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Data pelanggaran sudah ada!')),
         );
-      });
-
-      _namaController.clear();
-      _kamarController.clear();
-      _iqobController.clear(); // Clear iqob controller
-      _tanggalController.clear();
-      _poinController.clear();
-
-      Navigator.pop(context); // Navigate back to the previous page
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Harap isi semua data!')),
