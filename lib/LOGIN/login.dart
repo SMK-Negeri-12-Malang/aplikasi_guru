@@ -18,6 +18,36 @@ class _LoginScreenState extends State<LoginScreen> {
   final _authService = AuthService();
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _checkExistingLogin();
+  }
+
+  Future<void> _checkExistingLogin() async {
+    final isLoggedIn = await UserDataManager.isLoggedIn();
+    if (isLoggedIn) {
+      final email = await UserDataManager.getUserEmail();
+      final password = await UserDataManager.getUserPassword();
+      
+      if (email != null && password != null) {
+        final response = await _authService.login(email, password);
+        
+        if (response.$1 != null) { // Guru login
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => homeview()),
+          );
+        } else if (response.$2 != null) { // Musyrif login
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => homemusryf()),
+          );
+        }
+      }
+    }
+  }
+
   Future<void> _handleLogin() async {
     setState(() => _isLoading = true);
 
@@ -31,7 +61,8 @@ class _LoginScreenState extends State<LoginScreen> {
         // Login sebagai guru berhasil
         await UserDataManager.saveUserData(
             guru.name, // Use name from response
-            guru.email // Use email from response
+            guru.email, // Use email from response
+            _passwordController.text // Simpan password
             );
         Navigator.pushReplacement(
           context,
@@ -41,7 +72,8 @@ class _LoginScreenState extends State<LoginScreen> {
         // Login sebagai musyrif berhasil
         await UserDataManager.saveUserData(
             musyrif.name, // Use name from response
-            musyrif.email // Use email from response
+            musyrif.email, // Use email from response
+            _passwordController.text // Simpan password
             );
         Navigator.pushReplacement(
           context,
