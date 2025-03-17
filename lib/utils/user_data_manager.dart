@@ -1,35 +1,43 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserDataManager {
-  static final String NAME_KEY = 'user_name';
-  static final String EMAIL_KEY = 'user_email';
+  static const String _nameKey = 'user_name';
+  static const String _emailKey = 'user_email';
+  static const String _passwordKey = 'user_password';
+  static const String _isLoggedInKey = 'is_logged_in';
 
   static Future<void> saveUserData(String name, String email, String password) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(NAME_KEY, name);
-    await prefs.setString(EMAIL_KEY, email);
-    await prefs.setString('user_password', password); // Tambah password
-    await prefs.setBool('is_logged_in', true);
+    await prefs.setString(_nameKey, name);
+    await prefs.setString(_emailKey, email);
+    await prefs.setString(_passwordKey, password);
+    await prefs.setBool(_isLoggedInKey, true);
   }
 
-  static Future<Map<String, String>> getUserData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return {
-      'name': prefs.getString(NAME_KEY) ?? 'User',
-      'email': prefs.getString(EMAIL_KEY) ?? 'user@example.com',
-    };
-  }
-  
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
-    final email = prefs.getString('email');
-    return email != null;
+    return prefs.getBool(_isLoggedInKey) ?? false;
   }
 
-  static getUserEmail() {}
+  static Future<String?> getUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_nameKey);
+  }
+
+  static Future<String?> getUserEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_emailKey);
+  }
 
   static Future<String?> getUserPassword() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('user_password');
+    return prefs.getString(_passwordKey);
   }
+
+  static Future<void> clearUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
+
+  static getUserData() {}
 }
