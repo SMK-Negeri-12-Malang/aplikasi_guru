@@ -2,7 +2,7 @@ import 'package:aplikasi_guru/MUSYRIF/Tugas/rekap_tugas.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-// Import halaman Rekap Harian
+import 'package:aplikasi_guru/MUSYRIF/Tugas/history_tugas.dart';
 
 class TabelTugas extends StatefulWidget {
   final String session;
@@ -29,13 +29,13 @@ class _TabelTugasState extends State<TabelTugas> {
 
   @override
   void dispose() {
+    _saveScores();
     for (var controller in scoreControllers.values) {
       controller.dispose();
     }
     for (var focus in focusNodes.values) {
       focus.dispose();
     }
-    _saveScores();
     super.dispose();
   }
 
@@ -112,119 +112,61 @@ class _TabelTugasState extends State<TabelTugas> {
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  child: Column(
-                    children: allSantri.map((santri) {
-                      return Card(
-                        margin: EdgeInsets.all(8),
-                        elevation: 4,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    santri,
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                        isEditing ? Icons.check : Icons.edit),
-                                    onPressed: () {
-                                      setState(() {
-                                        isEditing = !isEditing;
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: DataTable(
-                                  columnSpacing: columnWidth / 2,
-                                  columns: [
-                                    DataColumn(
-                                        label: Container(
-                                            width: columnWidth,
-                                            child: Text("Tanggal"))),
-                                    DataColumn(
-                                        label: Container(
-                                            width: columnWidth,
-                                            child: Text("Aktivitas"))),
-                                    DataColumn(
-                                        label: Container(
-                                            width: columnWidth,
-                                            child: Text("Skor"))),
-                                    DataColumn(
-                                        label: Container(
-                                            width: columnWidth,
-                                            child: Text("Predikat"))),
-                                  ],
-                                  rows: activities.map((activity) {
-                                    String key =
-                                        "${widget.session}_${widget.category}_${santri}_${activity}";
+                  scrollDirection: Axis.horizontal,
+                  child: SingleChildScrollView(
+                    child: DataTable(
+                      columnSpacing: columnWidth / 2,
+                      columns: [
+                        DataColumn(label: Text("Santri")),
+                        DataColumn(label: Text("Tanggal")),
+                        DataColumn(label: Text("Aktivitas")),
+                        DataColumn(label: Text("Skor")),
+                        DataColumn(label: Text("Predikat")),
+                      ],
+                      rows: allSantri.expand((santri) {
+                        return activities.map((activity) {
+                          String key =
+                              "${widget.session}_${widget.category}_${santri}_${activity}";
 
-                                    scoreControllers.putIfAbsent(
-                                        key, () => TextEditingController());
-                                    focusNodes.putIfAbsent(
-                                        key, () => FocusNode());
-                                    predikatMap.putIfAbsent(key, () => "-");
+                          scoreControllers.putIfAbsent(
+                              key, () => TextEditingController());
+                          focusNodes.putIfAbsent(key, () => FocusNode());
+                          predikatMap.putIfAbsent(key, () => "-");
 
-                                    return DataRow(
-                                      cells: [
-                                        DataCell(Container(
-                                            width: columnWidth,
-                                            child: Text("08-03-2025"))),
-                                        DataCell(Container(
-                                            width: columnWidth,
-                                            child: Text(activity))),
-                                        DataCell(
-                                          Container(
-                                            width: columnWidth,
-                                            child: TextFormField(
-                                              controller: scoreControllers[key],
-                                              focusNode: focusNodes[key],
-                                              keyboardType:
-                                                  TextInputType.number,
-                                              textAlign: TextAlign.center,
-                                              decoration: InputDecoration(
-                                                hintText: "0",
-                                                border: InputBorder.none,
-                                              ),
-                                              enabled: isEditing,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  int skor =
-                                                      int.tryParse(value) ?? 0;
-                                                  predikatMap[key] =
-                                                      getPredikat(skor);
-                                                });
-                                                _saveScores();
-                                              },
-                                              onFieldSubmitted: (_) {
-                                                _saveScores();
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                        DataCell(Container(
-                                            width: columnWidth,
-                                            child: Text(predikatMap[key]!))),
-                                      ],
-                                    );
-                                  }).toList(),
+                          return DataRow(
+                            cells: [
+                              DataCell(Text(santri)),
+                              DataCell(Text("08-03-2025")),
+                              DataCell(Text(activity)),
+                              DataCell(
+                                TextFormField(
+                                  controller: scoreControllers[key],
+                                  focusNode: focusNodes[key],
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  decoration: InputDecoration(
+                                    hintText: "0",
+                                    border: InputBorder.none,
+                                  ),
+                                  enabled: isEditing,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      int skor = int.tryParse(value) ?? 0;
+                                      predikatMap[key] = getPredikat(skor);
+                                    });
+                                    _saveScores();
+                                  },
+                                  onFieldSubmitted: (_) {
+                                    _saveScores();
+                                  },
                                 ),
                               ),
+                              DataCell(Text(predikatMap[key]!)),
                             ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                          );
+                        }).toList();
+                      }).toList(),
+                    ),
                   ),
                 ),
               ),
@@ -243,9 +185,10 @@ class _TabelTugasState extends State<TabelTugas> {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text("Menampilkan history penilaian"),
-                      ));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => HistoryTugas()),
+                      );
                     },
                     child: Text("History"),
                   ),

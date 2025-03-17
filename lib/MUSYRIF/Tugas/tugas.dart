@@ -17,11 +17,13 @@ class _TugasPageState extends State<TugasPage> {
   void initState() {
     super.initState();
     _loadPagePosition();
+    _loadSelectedCategory();
   }
 
   Future<void> _savePagePosition() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('selectedSesi', _selectedSesi);
+    await prefs.setString('selectedCategory', _selectedCategory ?? '');
   }
 
   Future<void> _loadPagePosition() async {
@@ -29,6 +31,13 @@ class _TugasPageState extends State<TugasPage> {
     setState(() {
       _selectedSesi = prefs.getInt('selectedSesi') ?? 0;
       _pageController.jumpToPage(_selectedSesi);
+    });
+  }
+
+  Future<void> _loadSelectedCategory() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _selectedCategory = prefs.getString('selectedCategory');
     });
   }
 
@@ -40,7 +49,7 @@ class _TugasPageState extends State<TugasPage> {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90), // Increased from 60
         child: Container(
-          padding: EdgeInsets.only(top:20), // Increased from 10
+          padding: EdgeInsets.only(top: 20), // Increased from 10
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
@@ -67,7 +76,6 @@ class _TugasPageState extends State<TugasPage> {
           ),
         ),
       ),
-
       backgroundColor: Colors.white,
       body: Column(
         children: [
@@ -135,7 +143,6 @@ class _TugasPageState extends State<TugasPage> {
               },
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: DropdownButtonFormField<String>(
@@ -152,6 +159,7 @@ class _TugasPageState extends State<TugasPage> {
                 setState(() {
                   _selectedCategory = newValue;
                 });
+                _savePagePosition();
               },
               items: categories
                   .map((category) => DropdownMenuItem(
@@ -162,7 +170,6 @@ class _TugasPageState extends State<TugasPage> {
                   .toList(),
             ),
           ),
-
           Expanded(
             child: _selectedCategory == null
                 ? Center(child: Text("Silakan pilih kategori"))
