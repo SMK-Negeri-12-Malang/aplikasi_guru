@@ -2,13 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_guru/utils/widgets/custom_app_bar.dart';
 import 'kesehatan.dart';
 
+class KesehatanSantri {
+  final String name;
+  final String kamar;
+  final String keluhan;
+  final String tanggal; // New field
+
+  KesehatanSantri({
+    required this.name,
+    required this.kamar,
+    required this.keluhan,
+    required this.tanggal, // New field
+  });
+}
+
 class DetailKesehatan extends StatelessWidget {
   final String kamar;
   const DetailKesehatan({required this.kamar, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final filteredList = kesehatanList.where((data) => data.kamar == kamar).toList();
+    final filteredList =
+        kesehatanList.where((data) => data.kamar == kamar).toList();
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -17,8 +32,9 @@ class DetailKesehatan extends StatelessWidget {
         slivers: [
           CustomGradientAppBar(
             title: 'Detail Kesehatan',
-            subtitle: kamar,  // Added subtitle instead of concatenating with title
-            titleSize: 18.0,  // Smaller title size
+            subtitle:
+                kamar, // Added subtitle instead of concatenating with title
+            titleSize: 18.0, // Smaller title size
             icon: Icons.medical_services,
             height: 100.0,
             textColor: Colors.white,
@@ -55,7 +71,9 @@ class DetailKesehatan extends StatelessWidget {
                 : Padding(
                     padding: EdgeInsets.all(screenWidth * 0.04),
                     child: Column(
-                      children: filteredList.map((data) => _buildKesehatanCard(data)).toList(),
+                      children: filteredList
+                          .map((data) => _buildKesehatanCard(data as KesehatanSantri))
+                          .toList(),
                     ),
                   ),
           ),
@@ -116,6 +134,22 @@ class DetailKesehatan extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            Divider(height: 24),
+            Text(
+              'Tanggal Sakit:',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              data.tanggal,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black87,
+              ),
             ),
             Divider(height: 24),
             Text(

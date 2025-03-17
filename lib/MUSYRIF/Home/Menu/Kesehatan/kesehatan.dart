@@ -28,6 +28,8 @@ class Kesehatan extends StatefulWidget {
 class _KesehatanPageState extends State<Kesehatan> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _keluhanController = TextEditingController();
+  final TextEditingController _dateController =
+      TextEditingController(); // New controller
   String? _selectedKamar;
   bool _showDropdown = false;
 
@@ -56,8 +58,10 @@ class _KesehatanPageState extends State<Kesehatan> {
     String nama = _nameController.text;
     String kamar = _selectedKamar ?? "-";
     String keluhan = _keluhanController.text;
+    String tanggal = _dateController.text; // New date field
 
-    if (nama.isEmpty || keluhan.isEmpty) {
+    if (nama.isEmpty || keluhan.isEmpty || tanggal.isEmpty) {
+      // Check if date is empty
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Harap isi semua data")),
       );
@@ -69,12 +73,15 @@ class _KesehatanPageState extends State<Kesehatan> {
         .add(KesehatanSantri(name: nama, kamar: kamar, keluhan: keluhan));
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Data disimpan: $nama - $kamar - $keluhan")),
+      SnackBar(
+          content: Text(
+              "Data disimpan: $nama - $kamar - $keluhan - $tanggal")), // Include date in message
     );
 
     // Kosongkan input setelah simpan
     _nameController.clear();
     _keluhanController.clear();
+    _dateController.clear(); // Clear date field
     setState(() {
       _selectedKamar = null;
     });
@@ -138,6 +145,26 @@ class _KesehatanPageState extends State<Kesehatan> {
                         "Kamar",
                         Icons.room,
                         readOnly: true,
+                      ),
+                      SizedBox(height: 16),
+                      _buildTextField(
+                        _dateController,
+                        "Tanggal Sakit",
+                        Icons.calendar_today,
+                        onTap: () async {
+                          DateTime? pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2101),
+                          );
+                          if (pickedDate != null) {
+                            setState(() {
+                              _dateController.text =
+                                  "${pickedDate.toLocal()}".split(' ')[0];
+                            });
+                          }
+                        },
                       ),
                       SizedBox(height: 16),
                       _buildTextField(
