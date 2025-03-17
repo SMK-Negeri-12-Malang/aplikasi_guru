@@ -31,18 +31,31 @@ class _LoginScreenState extends State<LoginScreen> {
       final password = await UserDataManager.getUserPassword();
       
       if (email != null && password != null) {
-        final response = await _authService.login(email, password);
+        setState(() => _isLoading = true);
         
-        if (response.$1 != null) { // Guru login
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => homeview()),
-          );
-        } else if (response.$2 != null) { // Musyrif login
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => homemusryf()),
-          );
+        try {
+          final response = await _authService.login(email, password);
+          
+          if (response.$1 != null) { // Guru login
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => homeview()),
+            );
+            return; // Add return to prevent further execution
+          } else if (response.$2 != null) { // Musyrif login
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => homemusryf()),
+            );
+            return; // Add return to prevent further execution
+          }
+        } catch (e) {
+          // If auto-login fails, we'll just show the login screen
+          await UserDataManager.clearUserData(); // Clear invalid credentials
+        } finally {
+          if (mounted) {
+            setState(() => _isLoading = false);
+          }
         }
       }
     }
@@ -58,31 +71,28 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (guru != null) {
-        // Login sebagai guru berhasil
         await UserDataManager.saveUserData(
-            guru.name, // Use name from response
-            guru.email, // Use email from response
-            _passwordController.text // Simpan password
-            );
+          guru.name,
+          guru.email,
+          _passwordController.text
+        );
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => homeview()),
         );
       } else if (musyrif != null) {
-        // Login sebagai musyrif berhasil
         await UserDataManager.saveUserData(
-            musyrif.name, // Use name from response
-            musyrif.email, // Use email from response
-            _passwordController.text // Simpan password
-            );
+          musyrif.name,
+          musyrif.email,
+          _passwordController.text
+        );
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => homemusryf()),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Login gagal. Periksa email dan password')),
+          const SnackBar(content: Text('Login gagal. Periksa email dan password')),
         );
       }
     } catch (e) {
