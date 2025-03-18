@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class HistoryTugas extends StatelessWidget {
+  String getCurrentDate() {
+    return DateFormat('yyyy-MM-dd').format(DateTime.now());
+  }
+
   @override
   Widget build(BuildContext context) {
+    String currentDate = getCurrentDate();
+
     return Scaffold(
       appBar: AppBar(
         title: Text('History Tugas'),
@@ -10,7 +17,7 @@ class HistoryTugas extends StatelessWidget {
       body: ListView(
         children: <Widget>[
           ListTile(
-            title: Text('Tanggal: 2023-10-01'),
+            title: Text('Tanggal: $currentDate'),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -23,7 +30,7 @@ class HistoryTugas extends StatelessWidget {
           ),
           Divider(),
           ListTile(
-            title: Text('Tanggal: 2023-10-02'),
+            title: Text('Tanggal: $currentDate'),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
