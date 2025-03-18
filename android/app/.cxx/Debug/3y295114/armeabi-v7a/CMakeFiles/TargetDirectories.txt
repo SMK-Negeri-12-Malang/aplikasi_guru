@@ -1,0 +1,2 @@
+C:/Project/aplikasi_guru/android/app/.cxx/Debug/3y295114/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Project/aplikasi_guru/android/app/.cxx/Debug/3y295114/armeabi-v7a/CMakeFiles/rebuild_cache.dir
