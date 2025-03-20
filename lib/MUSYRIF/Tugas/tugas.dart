@@ -13,6 +13,7 @@ class _TugasPageState extends State<TugasPage> {
   final List<String> categories = ["Tahsin", "Tahfidz", "Mutabaah"];
   final PageController _pageController = PageController();
   DateTime selectedDate = DateTime.now();
+  String searchQuery = ""; // Add search query state variable
 
   @override
   void initState() {
@@ -55,6 +56,7 @@ class _TugasPageState extends State<TugasPage> {
     String sesi = ["Siang", "Sore", "Malam"][_selectedSesi];
 
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90), // Increased from 60
         child: Container(
@@ -85,7 +87,7 @@ class _TugasPageState extends State<TugasPage> {
           ),
         ),
       ),
-      backgroundColor: Colors.white,
+     
       body: Column(
         children: [
           Container(
@@ -154,67 +156,90 @@ class _TugasPageState extends State<TugasPage> {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedCategory,
-                    decoration: InputDecoration(
-                      labelText: "Pilih Kategori",
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      filled: true,
-                      fillColor: Colors.white,
-                      prefixIcon: Icon(Icons.category, color: Colors.blue),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedCategory,
+                        decoration: InputDecoration(
+                          labelText: "Pilih Kategori",
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        ),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedCategory = newValue;
+                          });
+                          _savePagePosition();
+                        },
+                        items: categories
+                            .map((category) => DropdownMenuItem(
+                                  value: category,
+                                  child: Text(category,
+                                      style:
+                                          TextStyle(fontWeight: FontWeight.bold)),
+                                ))
+                            .toList(),
+                      ),
                     ),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedCategory = newValue;
-                      });
-                      _savePagePosition();
-                    },
-                    items: categories
-                        .map((category) => DropdownMenuItem(
-                              value: category,
-                              child: Text(category,
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                            ))
-                        .toList(),
-                  ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      flex: 1,
+                      child: TextFormField(
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: "Pilih Tanggal",
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        ),
+                        onTap: () async {
+                          DateTime? pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2101),
+                          );
+                          if (pickedDate != null && pickedDate != selectedDate) {
+                            setState(() {
+                              selectedDate = pickedDate;
+                              _resetScores();
+                            });
+                            _savePagePosition();
+                          }
+                        },
+                        controller: TextEditingController(
+                          text: "${selectedDate.toLocal()}".split(' ')[0],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 8),
-                Expanded(
-                  child: TextFormField(
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      labelText: "Pilih Tanggal",
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      filled: true,
-                      fillColor: Colors.white,
-                      prefixIcon:
-                          Icon(Icons.calendar_today, color: Colors.blue),
-                    ),
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: selectedDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                      );
-                      if (pickedDate != null && pickedDate != selectedDate) {
-                        setState(() {
-                          selectedDate = pickedDate;
-                          _resetScores();
-                        });
-                        _savePagePosition();
-                      }
-                    },
-                    controller: TextEditingController(
-                      text: "${selectedDate.toLocal()}".split(' ')[0],
-                    ),
+                SizedBox(height: 8),
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: "Cari Nama Santri",
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    suffixIcon: Icon(Icons.search, size: 20),
+                    hintText: "Masukkan nama santri",
                   ),
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value;
+                    });
+                  },
                 ),
               ],
             ),
@@ -225,7 +250,8 @@ class _TugasPageState extends State<TugasPage> {
                 : TabelTugas(
                     session: sesi,
                     category: _selectedCategory!,
-                    selectedDate: selectedDate, // Add this line
+                    selectedDate: selectedDate,
+                    searchQuery: searchQuery, // Pass search query to TabelTugas
                   ),
           ),
         ],

@@ -2,18 +2,20 @@ import 'package:aplikasi_guru/MUSYRIF/Tugas/rekap_tugas.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'package:aplikasi_guru/MUSYRIF/Tugas/history_tugas.dart';
 import 'package:aplikasi_guru/models/tugassantri_model.dart'; // Import the model
 
 class TabelTugas extends StatefulWidget {
   final String session;
   final String category;
-  final DateTime selectedDate; // Add this line
+  final DateTime selectedDate;
+  final String searchQuery; // Add this parameter
 
-  TabelTugas(
-      {required this.session,
-      required this.category,
-      required this.selectedDate}); // Update constructor
+  TabelTugas({
+    required this.session,
+    required this.category,
+    required this.selectedDate,
+    this.searchQuery = "", // Default to empty string
+  });
 
   @override
   _TabelTugasState createState() => _TabelTugasState();
@@ -125,21 +127,31 @@ class _TabelTugasState extends State<TabelTugas>
       }
     }
 
+    // Filter students based on searchQuery
+    List<String> filteredSantri = allSantri.where((santri) {
+      return santri.toLowerCase().contains(widget.searchQuery.toLowerCase());
+    }).toList();
+
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       body: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
         },
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: 16.0), // Add padding to the sides
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
-              children: allSantri.map((santri) {
+              children: filteredSantri.map((santri) {
                 return Card(
                   margin: EdgeInsets.symmetric(vertical: 8),
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(color: Colors.grey.shade300, width: 1),
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(12.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -150,91 +162,79 @@ class _TabelTugasState extends State<TabelTugas>
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 8),
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            double columnWidth = constraints.maxWidth / 4;
-                            return SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: DataTable(
-                                columnSpacing: columnWidth / 2,
-                                columns: [
-                                  DataColumn(
-                                      label: Container(
-                                          width: columnWidth,
-                                          child: Text("Tanggal"))),
-                                  DataColumn(
-                                      label: Container(
-                                          width: columnWidth,
-                                          child: Text("Aktivitas"))),
-                                  DataColumn(
-                                      label: Container(
-                                          width: columnWidth,
-                                          child: Text("Skor"))),
-                                  DataColumn(
-                                      label: Container(
-                                          width: columnWidth,
-                                          child: Text("Predikat"))),
-                                ],
-                                rows: activities.map((activity) {
-                                  String key =
-                                      "${widget.session}_${widget.category}_${santri}_${activity}";
-
+                        SizedBox(height: 12),
+                        // Excel-like table
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade400, width: 1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Column(
+                            children: [
+                              // Header row
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Color(0xFF2E3F7F),
+                                  border: Border(
+                                    bottom: BorderSide(color: Colors.grey.shade400, width: 1),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Date column header removed
+                                    _buildHeaderCell("Aktivitas", 1),
+                                    _buildHeaderCell("Skor", 1),
+                                    _buildHeaderCell("Predikat", 1),
+                                  ],
+                                ),
+                              ),
+                              // Data rows
+                              Column(
+                                children: activities.map((activity) {
+                                  String key = "${widget.session}_${widget.category}_${santri}_${activity}";
+                                  
                                   scoreControllers.putIfAbsent(
                                       key, () => TextEditingController());
                                   focusNodes.putIfAbsent(
                                       key, () => FocusNode());
                                   predikatMap.putIfAbsent(key, () => "-");
-
-                                  return DataRow(
-                                    cells: [
-                                      DataCell(Container(
-                                          width: columnWidth,
-                                          child: Text(
-                                              "${widget.selectedDate.toLocal()}"
-                                                      .split(' ')[
-                                                  0]))), // Update this line
-                                      DataCell(Container(
-                                          width: columnWidth,
-                                          child: Text(activity))),
-                                      DataCell(
-                                        Container(
-                                          width: columnWidth,
-                                          child: TextFormField(
-                                            controller: scoreControllers[key],
-                                            focusNode: focusNodes[key],
-                                            keyboardType: TextInputType.number,
-                                            textAlign: TextAlign.center,
-                                            decoration: InputDecoration(
-                                              hintText: "0",
-                                              border: InputBorder.none,
-                                            ),
-                                            enabled: isEditing,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                int skor =
-                                                    int.tryParse(value) ?? 0;
-                                                predikatMap[key] =
-                                                    getPredikat(skor);
-                                              });
-                                              _saveScores();
-                                            },
-                                            onFieldSubmitted: (_) {
-                                              _saveScores();
-                                              _moveFocusToNextField(key);
-                                            },
-                                          ),
-                                        ),
+                                  
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(color: Colors.grey.shade400, width: 1),
                                       ),
-                                      DataCell(Container(
-                                          width: columnWidth,
-                                          child: Text(predikatMap[key]!))),
-                                    ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        // Date column removed
+                                        _buildDataCell(activity, 1, false),
+                                        _buildDataCell(
+                                          "",
+                                          1,
+                                          true,
+                                          controller: scoreControllers[key],
+                                          focusNode: focusNodes[key],
+                                          onChanged: (value) {
+                                            setState(() {
+                                              int skor = int.tryParse(value) ?? 0;
+                                              predikatMap[key] = getPredikat(skor);
+                                            });
+                                            _saveScores();
+                                          },
+                                          onSubmitted: (_) {
+                                            _saveScores();
+                                            _moveFocusToNextField(key);
+                                          },
+                                        ),
+                                        _buildDataCell(predikatMap[key]!, 1, false),
+                                      ],
+                                    ),
                                   );
                                 }).toList(),
                               ),
-                            );
-                          },
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -251,16 +251,6 @@ class _TabelTugasState extends State<TabelTugas>
           ScaleTransition(
             scale: _animation,
             alignment: Alignment.bottomCenter,
-            child: FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => HistoryTugas()),
-                );
-              },
-              child: Icon(Icons.history),
-              backgroundColor: Colors.orange,
-            ),
           ),
           SizedBox(height: 16),
           ScaleTransition(
@@ -287,8 +277,8 @@ class _TabelTugasState extends State<TabelTugas>
                   MaterialPageRoute(builder: (context) => RekapHarian()),
                 );
               },
-              child: Icon(Icons.assessment),
-              backgroundColor: Colors.red,
+              child: Icon(Icons.assessment, color: Colors.blue.shade700),
+              backgroundColor: const Color.fromARGB(255, 244, 168, 54),
             ),
           ),
           SizedBox(height: 16),
@@ -302,14 +292,88 @@ class _TabelTugasState extends State<TabelTugas>
                   _controller.reverse();
                 }
               },
-              child: Icon(Icons.more_vert),
-              backgroundColor: Colors.grey,
+              child: Icon(Icons.more_vert,color: Colors.blue.shade700),
+              backgroundColor: Colors.blue.shade50,
             ),
           ),
-          SizedBox(
-            height: 1,
-          ), // Add some space to avoid overflow
+          SizedBox(height: 1),
         ],
+      ),
+    );
+  }
+
+  // Helper method to build header cells for the Excel-like table
+  Widget _buildHeaderCell(String text, int flex) {
+    return Expanded(
+      flex: flex,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          border: Border(
+            right: BorderSide(color: Colors.grey.shade400, width: 1),
+          ),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
+  // Helper method to build data cells for the Excel-like table
+  Widget _buildDataCell(String text, int flex, bool isEditable, {
+    TextEditingController? controller,
+    FocusNode? focusNode,
+    Function(String)? onChanged,
+    Function(String)? onSubmitted,
+  }) {
+    return Expanded(
+      flex: flex,
+      child: Container(
+        height: 40,
+        decoration: BoxDecoration(
+          border: Border(
+            right: BorderSide(color: Colors.grey.shade400, width: 1),
+          ),
+          color: Colors.white,
+        ),
+        child: isEditable && isEditing
+            ? TextField(
+                controller: controller,
+                focusNode: focusNode,
+                textAlign: TextAlign.center,
+                keyboardType: TextInputType.number,
+                style: TextStyle(fontSize: 14),
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.symmetric(horizontal: 4),
+                  border: InputBorder.none,
+                  hintText: "0",
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                ),
+                onChanged: onChanged,
+                onSubmitted: onSubmitted,
+              )
+            : isEditable && !isEditing
+                ? Center(
+                    child: Text(
+                      controller?.text ?? "0",
+                      style: TextStyle(fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                  )
+                : Center(
+                    child: Text(
+                      text,
+                      style: TextStyle(fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
       ),
     );
   }
