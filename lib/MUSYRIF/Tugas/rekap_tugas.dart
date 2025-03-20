@@ -104,3 +104,56 @@ class _RekapHarianState extends State<RekapHarian> {
     );
   }
 }
+
+class RekapTugas extends StatefulWidget {
+  final String session;
+  final String category;
+  final DateTime selectedDate; // Add this line
+
+  RekapTugas({required this.session, required this.category, required this.selectedDate}); // Update constructor
+
+  @override
+  _RekapTugasState createState() => _RekapTugasState();
+}
+
+class _RekapTugasState extends State<RekapTugas> {
+  Map<String, String> scores = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadScores();
+  }
+
+  Future<void> _loadScores() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedData = prefs.getString(
+        "scores_${widget.session}_${widget.category}_${widget.selectedDate.toIso8601String()}");
+
+    if (savedData != null) {
+      setState(() {
+        scores = Map<String, String>.from(jsonDecode(savedData));
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Rekap Tugas"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ListView(
+          children: scores.entries.map((entry) {
+            return ListTile(
+              title: Text(entry.key),
+              trailing: Text(entry.value),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+}

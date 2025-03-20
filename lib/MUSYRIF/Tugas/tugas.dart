@@ -12,6 +12,7 @@ class _TugasPageState extends State<TugasPage> {
   String? _selectedCategory;
   final List<String> categories = ["Tahsin", "Tahfidz", "Mutabaah"];
   final PageController _pageController = PageController();
+  DateTime selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -24,6 +25,7 @@ class _TugasPageState extends State<TugasPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('selectedSesi', _selectedSesi);
     await prefs.setString('selectedCategory', _selectedCategory ?? '');
+    await prefs.setString('selectedDate', selectedDate.toIso8601String());
   }
 
   Future<void> _loadPagePosition() async {
@@ -31,6 +33,8 @@ class _TugasPageState extends State<TugasPage> {
     setState(() {
       _selectedSesi = prefs.getInt('selectedSesi') ?? 0;
       _pageController.jumpToPage(_selectedSesi);
+      selectedDate = DateTime.parse(
+          prefs.getString('selectedDate') ?? DateTime.now().toIso8601String());
     });
   }
 
@@ -39,6 +43,11 @@ class _TugasPageState extends State<TugasPage> {
     setState(() {
       _selectedCategory = prefs.getString('selectedCategory');
     });
+  }
+
+  void _resetScores() {
+    // Notify TabelTugas to reset scores
+    setState(() {});
   }
 
   @override
@@ -145,35 +154,79 @@ class _TugasPageState extends State<TugasPage> {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: DropdownButtonFormField<String>(
-              value: _selectedCategory,
-              decoration: InputDecoration(
-                labelText: "Pilih Kategori",
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                filled: true,
-                fillColor: Colors.white,
-                prefixIcon: Icon(Icons.category, color: Colors.blue),
-              ),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedCategory = newValue;
-                });
-                _savePagePosition();
-              },
-              items: categories
-                  .map((category) => DropdownMenuItem(
-                        value: category,
-                        child: Text(category,
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                      ))
-                  .toList(),
+            child: Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedCategory,
+                    decoration: InputDecoration(
+                      labelText: "Pilih Kategori",
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      filled: true,
+                      fillColor: Colors.white,
+                      prefixIcon: Icon(Icons.category, color: Colors.blue),
+                    ),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedCategory = newValue;
+                      });
+                      _savePagePosition();
+                    },
+                    items: categories
+                        .map((category) => DropdownMenuItem(
+                              value: category,
+                              child: Text(category,
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                            ))
+                        .toList(),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: TextFormField(
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: "Pilih Tanggal",
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      filled: true,
+                      fillColor: Colors.white,
+                      prefixIcon:
+                          Icon(Icons.calendar_today, color: Colors.blue),
+                    ),
+                    onTap: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                      );
+                      if (pickedDate != null && pickedDate != selectedDate) {
+                        setState(() {
+                          selectedDate = pickedDate;
+                          _resetScores();
+                        });
+                        _savePagePosition();
+                      }
+                    },
+                    controller: TextEditingController(
+                      text: "${selectedDate.toLocal()}".split(' ')[0],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
             child: _selectedCategory == null
                 ? Center(child: Text("Silakan pilih kategori"))
-                : TabelTugas(session: sesi, category: _selectedCategory!),
+                : TabelTugas(
+                    session: sesi,
+                    category: _selectedCategory!,
+                    selectedDate: selectedDate, // Add this line
+                  ),
           ),
         ],
       ),
