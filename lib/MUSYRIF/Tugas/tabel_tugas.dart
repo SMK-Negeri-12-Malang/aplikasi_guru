@@ -8,8 +8,12 @@ import 'package:aplikasi_guru/models/tugassantri_model.dart'; // Import the mode
 class TabelTugas extends StatefulWidget {
   final String session;
   final String category;
+  final DateTime selectedDate; // Add this line
 
-  TabelTugas({required this.session, required this.category});
+  TabelTugas(
+      {required this.session,
+      required this.category,
+      required this.selectedDate}); // Update constructor
 
   @override
   _TabelTugasState createState() => _TabelTugasState();
@@ -42,6 +46,14 @@ class _TabelTugasState extends State<TabelTugas>
   }
 
   @override
+  void didUpdateWidget(TabelTugas oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedDate != oldWidget.selectedDate) {
+      _loadSavedScores();
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     _saveScores();
@@ -63,21 +75,29 @@ class _TabelTugasState extends State<TabelTugas>
     });
 
     await prefs.setString(
-        "scores_${widget.session}_${widget.category}", jsonEncode(scores));
+        "scores_${widget.session}_${widget.category}_${widget.selectedDate.toIso8601String()}",
+        jsonEncode(scores));
   }
 
   Future<void> _loadSavedScores() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? savedData =
-        prefs.getString("scores_${widget.session}_${widget.category}");
+    String? savedData = prefs.getString(
+        "scores_${widget.session}_${widget.category}_${widget.selectedDate.toIso8601String()}");
 
     if (savedData != null) {
       Map<String, dynamic> savedScores = jsonDecode(savedData);
       setState(() {
+        scoreControllers.clear();
+        predikatMap.clear();
         savedScores.forEach((key, value) {
           scoreControllers[key] = TextEditingController(text: value);
           predikatMap[key] = getPredikat(int.tryParse(value) ?? 0);
         });
+      });
+    } else {
+      setState(() {
+        scoreControllers.clear();
+        predikatMap.clear();
       });
     }
   }
@@ -170,7 +190,10 @@ class _TabelTugasState extends State<TabelTugas>
                                     cells: [
                                       DataCell(Container(
                                           width: columnWidth,
-                                          child: Text("08-03-2025"))),
+                                          child: Text(
+                                              "${widget.selectedDate.toLocal()}"
+                                                      .split(' ')[
+                                                  0]))), // Update this line
                                       DataCell(Container(
                                           width: columnWidth,
                                           child: Text(activity))),
@@ -283,7 +306,8 @@ class _TabelTugasState extends State<TabelTugas>
               backgroundColor: Colors.grey,
             ),
           ),
-          SizedBox(height: 1,
+          SizedBox(
+            height: 1,
           ), // Add some space to avoid overflow
         ],
       ),
