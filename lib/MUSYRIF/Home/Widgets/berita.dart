@@ -1,4 +1,4 @@
-import 'package:aplikasi_guru/MUSYRIF/Home/Detail_page/Berita/all_news_page.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Detail_page/Berita/berita_list.dart';
 import 'package:flutter/material.dart';
 
 class ActivitySection extends StatelessWidget {

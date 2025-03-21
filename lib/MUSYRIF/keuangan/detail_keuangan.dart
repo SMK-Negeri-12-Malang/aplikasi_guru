@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/transaction.dart';
 import '../models/student_data.dart';
-import '../../utils/currency_format.dart';
+import '../../ANIMASI/currency_format.dart';
 
 class DetailKeuangan extends StatefulWidget {
   final String namaSantri;
@@ -34,11 +34,11 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
     'September', 'Oktober', 'November', 'Desember'
   ];
   
-  // Add new variables to track filtered summary
+  
   double _filteredUangMasuk = 0;
   double _filteredUangKeluar = 0;
 
-  // Add new variable for grouped transactions
+  
   Map<String, List<Transaction>> _groupedTransactions = {};
 
   String getMonthName(int month) {
@@ -48,14 +48,14 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
   @override
   void initState() {
     super.initState();
-    // Set current month as default filter
+    
     _selectedDate = DateTime(
       DateTime.now().year,
       DateTime.now().month,
     );
     _filteredTransactions = widget.transactions;
     _searchController.addListener(_onSearchChanged);
-    filterTransactions(); // This will apply current month filter
+    filterTransactions(); 
   }
 
   @override
@@ -89,7 +89,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
   void _groupTransactionsByMonth() {
     _groupedTransactions.clear();
     
-    // Sort transactions by date descending first
+    
     final sortedTransactions = List<Transaction>.from(_filteredTransactions)
       ..sort((a, b) => b.date.compareTo(a.date));
     
@@ -119,9 +119,9 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
         return matchesSearch;
       }).toList();
 
-      // Update only uang masuk and keluar summaries
+      
       _updateFilteredSummary(_filteredTransactions);
-      // Group transactions by month
+      
       _groupTransactionsByMonth();
     });
   }
@@ -165,7 +165,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
                 width: double.maxFinite,
                 child: Row(
                   children: [
-                    // Years Column
+                    
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
@@ -216,7 +216,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
                       ),
                     ),
                     SizedBox(width: 8),
-                    // Months Column
+                    
                     Expanded(
                       flex: 2,
                       child: Container(
@@ -284,7 +284,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
   Widget build(BuildContext context) {
     final summary = StudentData.getStudentSummary(widget.virtualAccount);
     
-    return MaterialApp( // Wrap with MaterialApp to make independent
+    return MaterialApp( 
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         extendBody: true,
@@ -292,7 +292,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
         backgroundColor: Color(0xFFF5F6F8),
         body: Stack(
           children: [
-            // Curved App Bar
+            
             Container(
               height: 395,
               decoration: BoxDecoration(
@@ -307,7 +307,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
             SafeArea(
               child: Column(
                 children: [
-                  // App Bar
+                  
                   Padding(
                     padding: EdgeInsets.all(16),
                     child: Row(
@@ -328,7 +328,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
                     ),
                   ),
 
-                  // Bank Card Style
+                  
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Container(
@@ -388,7 +388,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Rp ${CurrencyFormat.formatRupiah(summary["saldo"])}', // Always show total saldo
+                            'Rp ${CurrencyFormat.formatRupiah(summary["saldo"])}', 
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 24,
@@ -402,7 +402,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
 
                   SizedBox(height: 20),
 
-                  // Transaction Summary
+                  
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
@@ -430,7 +430,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
 
                   SizedBox(height: 20),
 
-                  // Transaction History Title
+                  
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
@@ -446,12 +446,12 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
                               ),
                             ),
                             Spacer(),
-                            // Date Filter Button
+                            
                             _buildFilterButton(),
                           ],
                         ),
                         SizedBox(height: 8),
-                        // Search Bar
+                        
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
@@ -480,7 +480,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
 
                   SizedBox(height: 12),
 
-                  // Transaction History List
+                  
                   Expanded(
                     child: _filteredTransactions.isEmpty
                         ? Center(
@@ -522,7 +522,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Month header
+                                    
                                     Container(
                                       padding: EdgeInsets.all(16),
                                       decoration: BoxDecoration(
@@ -550,7 +550,7 @@ class _DetailKeuanganState extends State<DetailKeuangan> {
                                         ],
                                       ),
                                     ),
-                                    // Transactions list
+                                    
                                     ...transactions.map((transaction) => Container(
                                       decoration: BoxDecoration(
                                         border: Border(

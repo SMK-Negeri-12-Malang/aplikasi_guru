@@ -1,13 +1,13 @@
 import 'package:aplikasi_guru/GURU/Absen/absensi_page.dart';
-import 'package:aplikasi_guru/GURU/Grade/class_selection_page.dart';
+import 'package:aplikasi_guru/GURU/Grade/grade_home.dart';
 import 'package:aplikasi_guru/GURU/Jadwal/jadwal_page.dart';
-import 'package:aplikasi_guru/GURU/Home/Home_Guru.dart';
+import 'package:aplikasi_guru/GURU/Home/home_guru.dart';
 import 'package:aplikasi_guru/GURU/Profil/profil.dart';
-import 'package:aplikasi_guru/splashscreen.dart';
+import 'package:aplikasi_guru/SPLASHSCREEN/splashscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'utils/page_transitions.dart';
-import 'utils/animations.dart';
+import 'ANIMASI/page_transitions.dart';
+import 'ANIMASI/animations.dart';
 
 void main() {
   runApp(MyApp());
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       title: 'Aplikasi Guru',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Color(0xFFF5F5F7), // Add this line
+        scaffoldBackgroundColor: Color(0xFFF5F5F7), 
         pageTransitionsTheme: PageTransitionsTheme(
           builders: {
             TargetPlatform.android: CustomPageTransitionBuilder(),
@@ -78,7 +78,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
   
-    // Initialize slide animation controller
+    
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -92,7 +92,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
       curve: Curves.easeOutQuart,
     ));
 
-    // Start animation after frame is built
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _slideController.forward();
     });
@@ -149,7 +149,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
         ),
         body: PageView(
           controller: _pageController,
-          physics: NeverScrollableScrollPhysics(), // Disable page swiping
+          physics: NeverScrollableScrollPhysics(), 
           onPageChanged: (index) {
             setState(() {
               _currentIndex = index;
@@ -157,7 +157,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
           },
           children: [
             ClassSelectionPage(),
-            JadwalPage(), // Replace empty Container with JadwalPage
+            JadwalPage(), 
             DashboardPage(),
             AbsensiKelasPage(),    
             ProfileDetailPage(),
