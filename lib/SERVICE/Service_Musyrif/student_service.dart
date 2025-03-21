@@ -1,4 +1,4 @@
-import '../../MUSYRIF/models/student_model.dart';
+import '../../MODELS/models_musyrif/models/student_model.dart';
 
 class StudentService {
   static final Map<String, List<Student>> _studentsByCategory = {

@@ -1,6 +1,6 @@
 import 'package:aplikasi_guru/MUSYRIF/keuangan/detail_keuangan.dart';
 import 'package:flutter/material.dart';
-import '../models/student_data.dart';
+import '../../MODELS/models_musyrif/models/student_data.dart';
 import '../../ANIMASI/currency_format.dart';
 
 

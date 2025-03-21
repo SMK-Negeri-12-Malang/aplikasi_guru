@@ -1,4 +1,4 @@
-import '../../MUSYRIF/models/activity_model.dart';
+import '../../MODELS/models_musyrif/models/activity_model.dart';
 
 class ActivityService {
   static final ActivityService _instance = ActivityService._internal();
