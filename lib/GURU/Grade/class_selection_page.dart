@@ -370,7 +370,8 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                   ],
                 ),
                 IconButton(
-                  icon: Icon(Icons.assessment, color: const Color.fromARGB(255, 21, 84, 136)),
+                  icon: Icon(Icons.assessment, color: const Color.fromARGB(255, 44, 180, 90)),
+                  iconSize: 30,
                   onPressed: () => _navigateToRekapPage(className),
                 ),
               ],
@@ -516,7 +517,7 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 22),
+              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 22), // reduced vertical padding
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
@@ -545,22 +546,22 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                         'Daftar Kelas',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 28,
+                          fontSize: 24, // reduced font size
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: 4), // reduced spacing
                   Text(
                     'Pilih kelas untuk melihat nilai serta merekap nilai',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.9),
-                      fontSize: 16,
+                      fontSize: 14, // reduced font size
                     ),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 10), // reduced spacing
                   // Add Subject Dropdown
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 12),

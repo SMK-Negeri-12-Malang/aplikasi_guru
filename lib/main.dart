@@ -112,7 +112,7 @@ class _DashboardPageState extends State<homeview> with SingleTickerProviderState
   @override
   void dispose() {
     _pageController.dispose();
-    _slideController.dispose();
+    _slideController.dispose();   
     super.dispose();
   }
 
