@@ -1,7 +1,6 @@
-import 'package:aplikasi_guru/MODELS/models_musyrif/news_item.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-
+import '../Models/news_item.dart';
 
 class NewsCarousel extends StatefulWidget {
   @override

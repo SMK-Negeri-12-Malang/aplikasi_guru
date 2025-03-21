@@ -1,4 +1,4 @@
-import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Detail_page/Berita/berita_list.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Detail_page/Berita/all_news_page.dart';
 import 'package:flutter/material.dart';
 // Add this import for the detail page we'll create
 import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Detail_page/Berita/news_detail_page.dart';

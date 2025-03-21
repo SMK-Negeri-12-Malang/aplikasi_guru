@@ -1,4 +1,4 @@
-import 'package:aplikasi_guru/MODELS/jadwal_home.dart';
+import 'package:aplikasi_guru/models/jadwal_home.dart';
 import 'package:intl/intl.dart';
 
 class ScheduleService {

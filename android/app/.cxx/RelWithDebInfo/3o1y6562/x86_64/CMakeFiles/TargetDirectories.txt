@@ -1,2 +1,0 @@
-C:/alhamrah_mobile_guru/aplikasi_guru/android/app/.cxx/RelWithDebInfo/3o1y6562/x86_64/CMakeFiles/edit_cache.dir
-C:/alhamrah_mobile_guru/aplikasi_guru/android/app/.cxx/RelWithDebInfo/3o1y6562/x86_64/CMakeFiles/rebuild_cache.dir
