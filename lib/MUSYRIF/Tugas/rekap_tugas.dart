@@ -1,318 +1,580 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class RekapHarian extends StatefulWidget {
-  const RekapHarian({super.key});
+  final DateTime selectedDate;
+
+  RekapHarian({required this.selectedDate});
 
   @override
-  State<RekapHarian> createState() => _RekapHarianState();
+  _RekapHarianState createState() => _RekapHarianState();
 }
 
 class _RekapHarianState extends State<RekapHarian> {
-  final List<String> sessions = ["Pagi", "Siang", "Sore", "Malam"];
-  final List<String> activities = [
-    "Tahsin",
-    "Tahfidz",
-    "Mutabaah",
-    "Muhadoroh"
-  ];
-  final List<String> santriList = [
-    "Ahmad",
-    "Ali",
-    "Fatimah",
-    "Zaid",
-    "Hamzah",
-    "Bilal"
-  ];
-
-  // Simulated data - in a real app this would come from a database or SharedPreferences
-  Map<String, Map<String, Map<String, double>>> scoreData = {};
+  final List<String> sessions = ["Siang", "Sore", "Malam"];
+  final List<String> categories = ["Tahsin", "Tahfidz", "Mutabaah"];
+  final List<String> allSantri = ["Ahmad", "Ali", "Fatimah", "Zaid"];
+  Map<String, Map<String, int>> totalScores =
+      {}; // Map untuk menyimpan total skor
+  Map<String, Map<String, int>> countScores =
+      {}; // Map untuk menyimpan jumlah entri skor
 
   @override
   void initState() {
     super.initState();
-    _generateDummyData();
+    _loadRekapData();
   }
 
-  void _generateDummyData() {
-    // Generate random scores for demonstration
-    for (var santri in santriList) {
-      scoreData[santri] = {};
-      for (var session in sessions) {
-        scoreData[santri]![session] = {};
-        for (var activity in activities) {
-          // Generate random score between 50 and 100
-          double score =
-              50 + (50 * (DateTime.now().millisecondsSinceEpoch % 100) / 100);
-          scoreData[santri]![session]![activity] =
-              double.parse(score.toStringAsFixed(1));
+  void clearAndReloadData() {
+    setState(() {
+      totalScores.clear();
+      countScores.clear();
+    });
+    _loadRekapData();
+  }
+
+  @override
+  void didUpdateWidget(RekapHarian oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedDate != oldWidget.selectedDate) {
+      clearAndReloadData();
+    }
+  }
+
+  Future<void> _loadRekapData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    Map<String, Map<String, List<int>>> scores =
+        {}; // Changed to store list of scores
+    Map<String, Map<String, int>> counts = {};
+
+    // Initialize maps for each santri
+    for (String santri in allSantri) {
+      scores[santri] = {};
+      counts[santri] = {};
+      for (String category in categories) {
+        scores[santri]![category] = [];
+        counts[santri]![category] = 0;
+      }
+    }
+
+    // Load scores for each session and category
+    for (String session in sessions) {
+      for (String category in categories) {
+        String? savedData = prefs.getString(
+            "scores_${session}_${category}_${widget.selectedDate.toIso8601String()}");
+
+        if (savedData != null) {
+          Map<String, dynamic> sessionScores = jsonDecode(savedData);
+
+          sessionScores.forEach((key, value) {
+            List<String> parts = key.split("_");
+            if (parts.length >= 3) {
+              String santri = parts[2];
+              if (allSantri.contains(santri)) {
+                int score = int.tryParse(value.toString()) ?? 0;
+                scores[santri]?[category]?.add(score);
+                counts[santri]?[category] =
+                    (counts[santri]?[category] ?? 0) + 1;
+              }
+            }
+          });
         }
       }
     }
-  }
 
-  // Calculate average score for a santri per session
-  double getSessionAverage(String santri, String session) {
-    if (!scoreData.containsKey(santri) ||
-        !scoreData[santri]!.containsKey(session)) {
-      return 0.0;
-    }
+    // Calculate averages and update state
+    Map<String, Map<String, int>> totalScoresResult = {};
+    Map<String, Map<String, int>> countScoresResult = {};
 
-    double total = 0.0;
-    int count = 0;
+    scores.forEach((santri, categories) {
+      totalScoresResult[santri] = {};
+      countScoresResult[santri] = {};
 
-    scoreData[santri]![session]!.forEach((_, score) {
-      total += score;
-      count++;
-    });
-
-    return count > 0 ? total / count : 0.0;
-  }
-
-  // Calculate average score for a santri per activity across all sessions
-  double getActivityAverage(String santri, String activity) {
-    if (!scoreData.containsKey(santri)) {
-      return 0.0;
-    }
-
-    double total = 0.0;
-    int count = 0;
-
-    scoreData[santri]!.forEach((_, activityMap) {
-      if (activityMap.containsKey(activity)) {
-        total += activityMap[activity]!;
-        count++;
-      }
-    });
-
-    return count > 0 ? total / count : 0.0;
-  }
-
-  // Calculate overall average for a santri
-  double getOverallAverage(String santri) {
-    if (!scoreData.containsKey(santri)) {
-      return 0.0;
-    }
-
-    double total = 0.0;
-    int count = 0;
-
-    scoreData[santri]!.forEach((_, activityMap) {
-      activityMap.forEach((_, score) {
-        total += score;
-        count++;
+      categories.forEach((category, scoresList) {
+        if (scoresList.isNotEmpty) {
+          totalScoresResult[santri]![category] =
+              scoresList.reduce((a, b) => a + b);
+          countScoresResult[santri]![category] = scoresList.length;
+        } else {
+          totalScoresResult[santri]![category] = 0;
+          countScoresResult[santri]![category] = 1;
+        }
       });
     });
 
-    return count > 0 ? total / count : 0.0;
+    setState(() {
+      totalScores = totalScoresResult;
+      countScores = countScoresResult;
+    });
   }
 
-  // Calculate daily average score for a santri per activity
-  double getDailyActivityAverage(String santri, String activity) {
-    if (!scoreData.containsKey(santri)) {
-      return 0.0;
-    }
-
-    double total = 0.0;
-    int count = 0;
-
-    // Calculate average across all sessions for today
-    for (var session in sessions) {
-      if (scoreData[santri]!.containsKey(session) &&
-          scoreData[santri]![session]!.containsKey(activity)) {
-        total += scoreData[santri]![session]![activity]!;
-        count++;
-      }
-    }
-
-    return count > 0 ? total / count : 0.0;
-  }
-
-  String getGrade(double score) {
-    if (score >= 90) return "Istimewa";
-    if (score >= 80) return "Baik";
-    if (score >= 70) return "Cukup";
-    if (score >= 60) return "Kurang";
-    return "Sangat Kurang";
+  String getPredikat(double skor) {
+    if (skor >= 90) return "Istimewa";
+    if (skor >= 80) return "Baik Sekali";
+    if (skor >= 70) return "Baik";
+    if (skor >= 60) return "Cukup";
+    return "Kurang";
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: const Color(0xFF2E3F7F),
-        title: const Text(
-          "Rekap Nilai Santri",
-          style: TextStyle(
-            color: Colors.white,
+        title: Text("Rekap Harian"),
+        actions: [
+          TextButton(
+            onPressed: () => _loadRekapData(),
+            child: Text('Refresh', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            columns: [
+              DataColumn(label: Text("Santri")),
+              DataColumn(label: Text("Tahsin")),
+              DataColumn(label: Text("Tahfidz")),
+              DataColumn(label: Text("Mutabaah")),
+              DataColumn(label: Text("Rata-rata")),
+              DataColumn(label: Text("Predikat")),
+            ],
+            rows: allSantri.map((santri) {
+              double tahsinAvg = (totalScores[santri]?["Tahsin"] ?? 0) /
+                  (countScores[santri]?["Tahsin"] ?? 1);
+              double tahfidzAvg = (totalScores[santri]?["Tahfidz"] ?? 0) /
+                  (countScores[santri]?["Tahfidz"] ?? 1);
+              double mutabaahAvg = (totalScores[santri]?["Mutabaah"] ?? 0) /
+                  (countScores[santri]?["Mutabaah"] ?? 1);
+
+              double totalAvg = (tahsinAvg + tahfidzAvg + mutabaahAvg) / 3;
+              String predikat = getPredikat(totalAvg);
+
+              return DataRow(cells: [
+                DataCell(Text(santri)),
+                DataCell(Text(tahsinAvg.toStringAsFixed(1))),
+                DataCell(Text(tahfidzAvg.toStringAsFixed(1))),
+                DataCell(Text(mutabaahAvg.toStringAsFixed(1))),
+                DataCell(Text(totalAvg.toStringAsFixed(1))),
+                DataCell(Text(predikat)),
+              ]);
+            }).toList(),
           ),
         ),
-        elevation: 2,
       ),
-      body: SingleChildScrollView(
+    );
+  }
+}
+
+class RekapTugas extends StatefulWidget {
+  final String session;
+  final String category;
+  final DateTime selectedDate; // Add this line
+
+  RekapTugas(
+      {required this.session,
+      required this.category,
+      required this.selectedDate}); // Update constructor
+
+  @override
+  _RekapTugasState createState() => _RekapTugasState();
+}
+
+class _RekapTugasState extends State<RekapTugas> {
+  Map<String, String> scores = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadScores();
+  }
+
+  Future<void> _loadScores() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedData = prefs.getString(
+        "scores_${widget.session}_${widget.category}_${widget.selectedDate.toIso8601String()}");
+
+    if (savedData != null) {
+      setState(() {
+        scores = Map<String, String>.from(jsonDecode(savedData));
+      });
+    }
+  }
+
+  // Helper method to filter scores by session and category
+  Map<String, String> getFilteredScores() {
+    // Already filtered by session and category when loading
+    return scores;
+  }
+
+  // Helper method to extract santri name from the key
+  String getSantriName(String key) {
+    List<String> parts = key.split("_");
+    return parts.length >= 3 ? parts[2] : key;
+  }
+
+  // Helper method to extract activity details from the key
+  String getActivityDetails(String key) {
+    List<String> parts = key.split("_");
+    if (parts.length > 3) {
+      // Get all parts after santri name to represent the activity details
+      return parts.sublist(3).join(" ");
+    }
+    return "";
+  }
+
+  String formatDate(DateTime date) {
+    return "${date.day}-${date.month}-${date.year}";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filteredScores = getFilteredScores();
+    final hasData = filteredScores.isNotEmpty;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Rekap ${widget.category} - ${widget.session}"),
+      ),
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Rekap Nilai Harian",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            Text(
+              "Tanggal: ${formatDate(widget.selectedDate)}",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DataTable(
-                  headingRowColor:
-                      MaterialStateProperty.all(const Color(0xFF2E3F7F),),
-                  // Fixed dataRowColor implementation
-                  dataRowColor: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
-                      // Get the index from the DataRow directly
-                      final rowIndex = santriList.indexOf(
-                        santriList.firstWhere(
-                          (name) => states.contains(MaterialState.selected),
-                          orElse: () => santriList[0],
-                        ),
-                      );
-
-                      // Return alternating colors based on index
-                      return rowIndex.isEven
-                          ? Colors.grey.shade50
-                          : Colors.white;
-                    },
-                  ),
-                  border: TableBorder.all(
-                    color: Colors.grey.shade300,
-                    width: 1,
-                    style: BorderStyle.solid,
-                  ),
-                  columnSpacing: 16,
-                  // Header columns
-                  columns: [
-                    const DataColumn(
-                      label: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          'Santri',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    // Activity columns only (removed session columns)
-                    ...activities.map((activity) => DataColumn(
-                          label: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              activity,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                            ),
-                          ),
-                        )),
-                    const DataColumn(
-                      label: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          'Rata-rata',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    const DataColumn(
-                      label: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          'Grade',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ],
-                  rows: List.generate(
-                    santriList.length,
-                    (index) {
-                      final santri = santriList[index];
-                      // Calculate overall average for this santri
-                      double overallAvg = getOverallAverage(santri);
-                      String grade = getGrade(overallAvg);
-
-                      return DataRow(
-                        // Set color based on index instead of using the callback
-                        color: MaterialStateProperty.all(
-                            index.isEven ? Colors.grey.shade50 : Colors.white),
-                        cells: [
-                          // Santri name
-                          DataCell(
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                santri,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                          // Daily activity averages (instead of overall activity averages)
-                          ...activities.map((activity) {
-                            double activityAvg =
-                                getDailyActivityAverage(santri, activity);
-                            return DataCell(
-                              Container(
-                                padding: const EdgeInsets.all(8.0),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  activityAvg.toStringAsFixed(1),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
-                          // Overall average
-                          DataCell(
-                            Container(
-                              padding: const EdgeInsets.all(8.0),
-                              alignment: Alignment.center,
-                              child: Text(
-                                overallAvg.toStringAsFixed(1),
-                                style: const TextStyle(
+            SizedBox(height: 8),
+            Text(
+              "Sesi: ${widget.session} - Kategori: ${widget.category}",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+            SizedBox(height: 16),
+            hasData
+                ? Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columns: [
+                          DataColumn(
+                              label: Text("Santri",
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(
+                              label: Text("Aktivitas",
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(
+                              label: Text("Nilai",
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
+                        ],
+                        rows: filteredScores.entries.map((entry) {
+                          return DataRow(cells: [
+                            DataCell(Text(getSantriName(entry.key))),
+                            DataCell(Text(getActivityDetails(entry.key))),
+                            DataCell(Text(
+                              entry.value,
+                              style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Grade
-                          DataCell(
-                            Container(
-                              padding: const EdgeInsets.all(8.0),
-                              alignment: Alignment.center,
-                              child: Text(
-                                grade,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
+                                  color: int.tryParse(entry.value) != null &&
+                                          int.parse(entry.value) >= 80
+                                      ? Colors.green
+                                      : (int.tryParse(entry.value) != null &&
+                                              int.parse(entry.value) < 60
+                                          ? Colors.red
+                                          : Colors.black)),
+                            )),
+                          ]);
+                        }).toList(),
+                      ),
+                    ),
+                  )
+                : Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.info_outline,
+                              size: 48, color: Colors.grey),
+                          SizedBox(height: 16),
+                          Text(
+                            "Tidak ada data untuk ${widget.category} pada sesi ${widget.session}",
+                            style: TextStyle(
+                                fontSize: 16, color: Colors.grey[700]),
+                            textAlign: TextAlign.center,
                           ),
                         ],
-                      );
-                    },
+                      ),
+                    ),
                   ),
-                ),
-              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class RekapHarianSesi extends StatefulWidget {
+  final DateTime selectedDate;
+
+  RekapHarianSesi({required this.selectedDate});
+
+  @override
+  _RekapHarianSesiState createState() => _RekapHarianSesiState();
+}
+
+class _RekapHarianSesiState extends State<RekapHarianSesi> {
+  final List<String> sessions = ["Siang", "Sore", "Malam"];
+  final List<String> categories = ["Tahsin", "Tahfidz", "Mutabaah"];
+  final List<String> allSantri = ["Ahmad", "Ali", "Fatimah", "Zaid"];
+
+  Map<String, Map<String, Map<String, String>>> allScores = {};
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAllScores();
+  }
+
+  @override
+  void didUpdateWidget(RekapHarianSesi oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedDate != oldWidget.selectedDate) {
+      setState(() {
+        allScores.clear();
+        isLoading = true;
+      });
+      _loadAllScores();
+    }
+  }
+
+  Future<void> _loadAllScores() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    Map<String, Map<String, Map<String, String>>> result = {};
+
+    // Initialize the nested map structure
+    for (String santri in allSantri) {
+      result[santri] = {};
+      for (String session in sessions) {
+        result[santri]![session] = {};
+        for (String category in categories) {
+          result[santri]![session]![category] = "-";
+        }
+      }
+    }
+
+    // Load data for each session and category
+    for (String session in sessions) {
+      for (String category in categories) {
+        String? savedData = prefs.getString(
+            "scores_${session}_${category}_${widget.selectedDate.toIso8601String()}");
+
+        if (savedData != null) {
+          Map<String, dynamic> sessionScores = jsonDecode(savedData);
+
+          sessionScores.forEach((key, value) {
+            List<String> parts = key.split("_");
+            if (parts.length >= 3) {
+              String santri = parts[2];
+              if (allSantri.contains(santri)) {
+                result[santri]?[session]?[category] = value.toString();
+              }
+            }
+          });
+        }
+      }
+    }
+
+    setState(() {
+      allScores = result;
+      isLoading = false;
+    });
+  }
+
+  String formatDate(DateTime date) {
+    return "${date.day}-${date.month}-${date.year}";
+  }
+
+  // Calculate average for a santri across all categories in a session
+  String calculateSessionAverage(String santri, String session) {
+    int total = 0;
+    int count = 0;
+
+    categories.forEach((category) {
+      String scoreStr = allScores[santri]?[session]?[category] ?? "-";
+      if (scoreStr != "-") {
+        total += int.tryParse(scoreStr) ?? 0;
+        count++;
+      }
+    });
+
+    if (count == 0) return "-";
+    return (total / count).toStringAsFixed(1);
+  }
+
+  // Calculate daily average for a santri across all sessions
+  String calculateDailyAverage(String santri) {
+    int total = 0;
+    int count = 0;
+
+    sessions.forEach((session) {
+      categories.forEach((category) {
+        String scoreStr = allScores[santri]?[session]?[category] ?? "-";
+        if (scoreStr != "-") {
+          total += int.tryParse(scoreStr) ?? 0;
+          count++;
+        }
+      });
+    });
+
+    if (count == 0) return "-";
+    return (total / count).toStringAsFixed(1);
+  }
+
+  String getPredikat(String averageStr) {
+    if (averageStr == "-") return "-";
+
+    double average = double.tryParse(averageStr) ?? 0;
+    if (average >= 90) return "Istimewa";
+    if (average >= 80) return "Baik Sekali";
+    if (average >= 70) return "Baik";
+    if (average >= 60) return "Cukup";
+    return "Kurang";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Rekap Harian Semua Sesi"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Tanggal: ${formatDate(widget.selectedDate)}",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 16),
+            isLoading
+                ? Center(child: CircularProgressIndicator())
+                : Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SingleChildScrollView(
+                        child: DataTable(
+                          columns: [
+                            DataColumn(
+                                label: Text("Santri",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold))),
+                            DataColumn(
+                                label: Text("Sesi",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold))),
+                            ...categories
+                                .map((category) => DataColumn(
+                                    label: Text(category,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold))))
+                                .toList(),
+                            DataColumn(
+                                label: Text("Rata-rata",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold))),
+                          ],
+                          rows: [
+                            for (String santri in allSantri)
+                              for (String session in sessions)
+                                DataRow(
+                                  cells: [
+                                    // Show santri name only for the first session row
+                                    DataCell(session == sessions.first
+                                        ? Text(santri,
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold))
+                                        : Text("")),
+                                    // Session name
+                                    DataCell(Text(session)),
+                                    // Category scores
+                                    ...categories.map((category) {
+                                      final score = allScores[santri]?[session]
+                                              ?[category] ??
+                                          "-";
+                                      Color textColor = Colors.black;
+                                      if (score != "-") {
+                                        int scoreValue =
+                                            int.tryParse(score) ?? 0;
+                                        if (scoreValue >= 80) {
+                                          textColor = Colors.green;
+                                        } else if (scoreValue < 60) {
+                                          textColor = Colors.red;
+                                        }
+                                      }
+                                      return DataCell(Text(score,
+                                          style: TextStyle(
+                                              color: textColor,
+                                              fontWeight: FontWeight.w500)));
+                                    }).toList(),
+                                    // Session average
+                                    DataCell(Text(
+                                        calculateSessionAverage(
+                                            santri, session),
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold))),
+                                  ],
+                                ),
+                            // Add a summary row for each santri with daily average and predikat
+                            for (String santri in allSantri)
+                              DataRow(
+                                color:
+                                    MaterialStateProperty.all(Colors.grey[200]),
+                                cells: [
+                                  DataCell(Text(santri,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                                  DataCell(Text("Rata-rata Harian",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                                  ...categories
+                                      .map((_) => DataCell(Text("")))
+                                      .toList(),
+                                  DataCell(Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(calculateDailyAverage(santri),
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                      Text(
+                                          getPredikat(
+                                              calculateDailyAverage(santri)),
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              fontStyle: FontStyle.italic,
+                                              color: Colors.blue[700])),
+                                    ],
+                                  )),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
           ],
         ),
       ),

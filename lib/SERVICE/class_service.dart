@@ -1,4 +1,4 @@
-import 'package:aplikasi_guru/MODELS/class_model.dart';
+import 'package:aplikasi_guru/models/class_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
