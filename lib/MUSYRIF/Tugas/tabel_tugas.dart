@@ -262,8 +262,8 @@ class _TabelTugasState extends State<TabelTugas>
                   isEditing = !isEditing;
                 });
               },
-              child: Icon(isEditing ? Icons.save : Icons.edit),
-              backgroundColor: isEditing ? Colors.green : Colors.blue,
+              child: Icon(isEditing ? Icons.save : Icons.edit, color: const Color.fromARGB(255, 255, 255, 255)),
+              backgroundColor: isEditing ? Colors.green : Color(0xFF4557A4),
             ),
           ),
           SizedBox(height: 16),
@@ -277,8 +277,8 @@ class _TabelTugasState extends State<TabelTugas>
                   MaterialPageRoute(builder: (context) => RekapHarian()),
                 );
               },
-              child: Icon(Icons.assessment, color: Colors.blue.shade700),
-              backgroundColor: const Color.fromARGB(255, 244, 168, 54),
+              child: Icon(Icons.assessment, color: const Color.fromARGB(255, 255, 255, 255)),
+              backgroundColor:  Color(0xFF4557A4),
             ),
           ),
           SizedBox(height: 16),
