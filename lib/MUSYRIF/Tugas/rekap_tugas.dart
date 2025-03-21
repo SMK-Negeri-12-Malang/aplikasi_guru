@@ -11,8 +11,10 @@ class _RekapHarianState extends State<RekapHarian> {
   final List<String> sessions = ["Siang", "Sore", "Malam"];
   final List<String> categories = ["Tahsin", "Tahfidz", "Mutabaah"];
   final List<String> allSantri = ["Ahmad", "Ali", "Fatimah", "Zaid"];
-  Map<String, Map<String, int>> totalScores = {}; // Map untuk menyimpan total skor
-  Map<String, Map<String, int>> countScores = {}; // Map untuk menyimpan jumlah entri skor
+  Map<String, Map<String, int>> totalScores =
+      {}; // Map untuk menyimpan total skor
+  Map<String, Map<String, int>> countScores =
+      {}; // Map untuk menyimpan jumlah entri skor
 
   @override
   void initState() {
@@ -23,7 +25,8 @@ class _RekapHarianState extends State<RekapHarian> {
   Future<void> _loadRekapData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     Map<String, Map<String, int>> scores = {}; // Skor total per santri
-    Map<String, Map<String, int>> counts = {}; // Jumlah tugas yang dinilai per santri
+    Map<String, Map<String, int>> counts =
+        {}; // Jumlah tugas yang dinilai per santri
 
     for (String session in sessions) {
       for (String category in categories) {
@@ -40,8 +43,10 @@ class _RekapHarianState extends State<RekapHarian> {
             scores.putIfAbsent(santri, () => {});
             counts.putIfAbsent(santri, () => {});
 
-            scores[santri]?.update(category, (val) => val + score, ifAbsent: () => score);
-            counts[santri]?.update(category, (val) => val + 1, ifAbsent: () => 1);
+            scores[santri]
+                ?.update(category, (val) => val + score, ifAbsent: () => score);
+            counts[santri]
+                ?.update(category, (val) => val + 1, ifAbsent: () => 1);
           });
         }
       }
@@ -110,7 +115,10 @@ class RekapTugas extends StatefulWidget {
   final String category;
   final DateTime selectedDate; // Add this line
 
-  RekapTugas({required this.session, required this.category, required this.selectedDate}); // Update constructor
+  RekapTugas(
+      {required this.session,
+      required this.category,
+      required this.selectedDate}); // Update constructor
 
   @override
   _RekapTugasState createState() => _RekapTugasState();
