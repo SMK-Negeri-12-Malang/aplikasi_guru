@@ -51,6 +51,10 @@ class _TabelTugasState extends State<TabelTugas>
   void didUpdateWidget(TabelTugas oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.selectedDate != oldWidget.selectedDate) {
+      setState(() {
+        scoreControllers.clear();
+        predikatMap.clear();
+      });
       _loadSavedScores();
     }
   }
@@ -166,7 +170,8 @@ class _TabelTugasState extends State<TabelTugas>
                         // Excel-like table
                         Container(
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade400, width: 1),
+                            border: Border.all(
+                                color: Colors.grey.shade400, width: 1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Column(
@@ -176,7 +181,8 @@ class _TabelTugasState extends State<TabelTugas>
                                 decoration: BoxDecoration(
                                   color: Color(0xFF2E3F7F),
                                   border: Border(
-                                    bottom: BorderSide(color: Colors.grey.shade400, width: 1),
+                                    bottom: BorderSide(
+                                        color: Colors.grey.shade400, width: 1),
                                   ),
                                 ),
                                 child: Row(
@@ -191,18 +197,21 @@ class _TabelTugasState extends State<TabelTugas>
                               // Data rows
                               Column(
                                 children: activities.map((activity) {
-                                  String key = "${widget.session}_${widget.category}_${santri}_${activity}";
-                                  
+                                  String key =
+                                      "${widget.session}_${widget.category}_${santri}_${activity}";
+
                                   scoreControllers.putIfAbsent(
                                       key, () => TextEditingController());
                                   focusNodes.putIfAbsent(
                                       key, () => FocusNode());
                                   predikatMap.putIfAbsent(key, () => "-");
-                                  
+
                                   return Container(
                                     decoration: BoxDecoration(
                                       border: Border(
-                                        bottom: BorderSide(color: Colors.grey.shade400, width: 1),
+                                        bottom: BorderSide(
+                                            color: Colors.grey.shade400,
+                                            width: 1),
                                       ),
                                     ),
                                     child: Row(
@@ -217,8 +226,10 @@ class _TabelTugasState extends State<TabelTugas>
                                           focusNode: focusNodes[key],
                                           onChanged: (value) {
                                             setState(() {
-                                              int skor = int.tryParse(value) ?? 0;
-                                              predikatMap[key] = getPredikat(skor);
+                                              int skor =
+                                                  int.tryParse(value) ?? 0;
+                                              predikatMap[key] =
+                                                  getPredikat(skor);
                                             });
                                             _saveScores();
                                           },
@@ -227,7 +238,8 @@ class _TabelTugasState extends State<TabelTugas>
                                             _moveFocusToNextField(key);
                                           },
                                         ),
-                                        _buildDataCell(predikatMap[key]!, 1, false),
+                                        _buildDataCell(
+                                            predikatMap[key]!, 1, false),
                                       ],
                                     ),
                                   );
@@ -274,7 +286,11 @@ class _TabelTugasState extends State<TabelTugas>
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => RekapHarian()),
+                  MaterialPageRoute(
+                    builder: (context) => RekapHarian(
+                      selectedDate: widget.selectedDate,
+                    ),
+                  ),
                 );
               },
               child: Icon(Icons.assessment, color: Colors.blue.shade700),
@@ -292,7 +308,7 @@ class _TabelTugasState extends State<TabelTugas>
                   _controller.reverse();
                 }
               },
-              child: Icon(Icons.more_vert,color: Colors.blue.shade700),
+              child: Icon(Icons.more_vert, color: Colors.blue.shade700),
               backgroundColor: Colors.blue.shade50,
             ),
           ),
@@ -327,7 +343,10 @@ class _TabelTugasState extends State<TabelTugas>
   }
 
   // Helper method to build data cells for the Excel-like table
-  Widget _buildDataCell(String text, int flex, bool isEditable, {
+  Widget _buildDataCell(
+    String text,
+    int flex,
+    bool isEditable, {
     TextEditingController? controller,
     FocusNode? focusNode,
     Function(String)? onChanged,
