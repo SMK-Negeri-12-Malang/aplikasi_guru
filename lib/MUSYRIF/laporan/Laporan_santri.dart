@@ -29,7 +29,7 @@ class _AbsensiKelasPageState extends State<LaporanSantri> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 233, 233, 233),
+      backgroundColor: Colors.grey[100],
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
