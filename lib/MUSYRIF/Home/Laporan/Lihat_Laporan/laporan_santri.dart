@@ -1,33 +1,21 @@
-import 'package:aplikasi_guru/MUSYRIF/keuangan/detail_keuangan.dart';
 import 'package:flutter/material.dart';
-import '../models/student_data.dart';
-import '../../ANIMASI/currency_format.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Menu/Izin/izin_data.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Menu/Kesehatan/kesehatan_data.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Menu/Pelanggaran/pelanggaran_data.dart';
 
 
-class KeuanganSantriPage extends StatefulWidget {
+class LaporanSantri extends StatefulWidget {
+  const LaporanSantri({super.key});
+
   @override
-  _KeuanganSantriPageState createState() => _KeuanganSantriPageState();
+  _AbsensiKelasPageState createState() => _AbsensiKelasPageState();
 }
 
-class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
+class _AbsensiKelasPageState extends State<LaporanSantri> {
+  final List<String> kamarList = ['Kamar A', 'Kamar B', 'Kamar C', 'Kamar D'];
   String selectedKamar = "Kamar A";
-  List<String> kamarList = StudentData.getAvailableRooms();
   PageController _pageController = PageController(viewportFraction: 0.9);
   int _currentPage = 0;
-  List<Map<String, dynamic>> filteredSantri = [];
-
-  @override
-  void initState() {
-    super.initState();
-    filteredSantri = StudentData.getSantriByKamar(selectedKamar);
-  }
-
-  void updateFilteredSantri(String kamar) {
-    setState(() {
-      selectedKamar = kamar;
-      filteredSantri = StudentData.getSantriByKamar(kamar);
-    });
-  }
 
   @override
   void dispose() {
@@ -41,7 +29,7 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 233, 233, 233),
+      backgroundColor: Colors.grey[100],
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -73,11 +61,9 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.account_balance_wallet,
-                        color: Colors.white, size: 20),
                     SizedBox(width: 8),
                     Text(
-                      'Keuangan Santri',
+                      'Laporan Santri',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: screenWidth * 0.045,
@@ -115,14 +101,16 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
                               setState(() {
                                 _currentPage = index;
                                 selectedKamar = kamarList[index];
-                                updateFilteredSantri(selectedKamar);
                               });
                             },
                             scrollDirection: Axis.vertical,
                             itemBuilder: (context, index) {
-                              return _buildRoomCard(
-                                index,
-                                selectedKamar == kamarList[index],
+                              return GestureDetector(
+                                onTap: () {
+                                  
+                                },
+                                child: _buildRoomCard(
+                                    index, selectedKamar == kamarList[index]),
                               );
                             },
                           ),
@@ -181,106 +169,7 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
                     ],
                   ),
                   SizedBox(height: screenHeight * 0.02),
-                  ListView.builder(
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: filteredSantri.length,
-                    itemBuilder: (context, index) {
-                      final santri = filteredSantri[index];
-                      return Container(
-                        margin: EdgeInsets.only(bottom: screenHeight * 0.015),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DetailKeuangan(
-                                  namaSantri: santri["nama"],
-                                  virtualAccount: santri["virtualAccount"],
-                                  saldo: santri["saldo"],
-                                  uangMasuk: santri["uangMasuk"],
-                                  uangKeluar: santri["uangKeluar"],
-                                  transactions: santri["transactions"],
-                                ),
-                              ),
-                            );
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      backgroundColor: Color(0xFF2E3F7F),
-                                      child: Text(
-                                        santri["nama"][0].toUpperCase(),
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 16),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          santri["nama"],
-                                          style: TextStyle(
-                                            fontSize: screenWidth * 0.04,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF2E3F7F),
-                                          ),
-                                        ),
-                                        Text(
-                                          "Saldo: Rp ${CurrencyFormat.formatRupiah(santri["saldo"])}",
-                                          style: TextStyle(
-                                            fontSize: screenWidth * 0.035,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    _buildTransactionInfo(
-                                      "Masuk",
-                                      santri["uangMasuk"],
-                                      Colors.green,
-                                    ),
-                                    _buildTransactionInfo(
-                                      "Keluar",
-                                      santri["uangKeluar"],
-                                      Colors.red,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                  CategoryList(kamar: selectedKamar),
                 ],
               ),
             ),
@@ -290,16 +179,12 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
     );
   }
 
-
   Widget _buildRoomCard(int index, bool isSelected) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
 
     return TweenAnimationBuilder(
       tween: Tween<double>(
-        begin: isSelected ? 0.0 : 0.3,
-        end: isSelected ? 1.0 : 0.8,
-      ),
+          begin: isSelected ? 0.0 : 0.3, end: isSelected ? 1.0 : 0.8),
       duration: Duration(milliseconds: 300),
       curve: Curves.easeInOut,
       builder: (context, double value, child) {
@@ -310,10 +195,7 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
             ..scale(value),
           alignment: Alignment.center,
           child: Container(
-            margin: EdgeInsets.symmetric(
-              vertical: screenHeight * 0.01,
-              horizontal: screenWidth * 0.02,
-            ),
+            margin: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isSelected
@@ -347,27 +229,124 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
       },
     );
   }
+}
 
-  Widget _buildTransactionInfo(String label, double amount, Color color) {
+class CategoryList extends StatelessWidget {
+  final String kamar;
+  const CategoryList({required this.kamar, Key? key}) : super(key: key);
+
+  void _navigateToDetail(BuildContext context, Widget page) {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => page,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
-        Text(
-          "Rp ${CurrencyFormat.formatRupiah(amount)}",
-          style: TextStyle(
-            fontSize: 14,
-            color: color,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        _buildCategoryCard(
+            context,
+            'Pelanggaran',
+            Icons.warning_rounded,
+            'Lihat detail pelanggaran santri',
+            Colors.orange,
+            LaporanDetail(kamar: kamar)),
+        _buildCategoryCard(context, 'Izin', Icons.door_front_door_rounded,
+            'Lihat perizinan santri', Colors.green, IzinDetail(kamar: kamar)),
+        _buildCategoryCard(
+            context,
+            'Kesehatan',
+            Icons.medical_services_rounded,
+            'Lihat kesehatan santri',
+            Colors.red,
+            DetailKesehatan(kamar: kamar)),
       ],
+    );
+  }
+
+  Widget _buildCategoryCard(BuildContext context, String title, IconData icon,
+      String subtitle, Color iconColor, Widget page) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () => _navigateToDetail(context, page),
+        borderRadius: BorderRadius.circular(15),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: iconColor, size: 24),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2E3F7F),
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class RoomDetailPage extends StatelessWidget {
+  final String roomName;
+  const RoomDetailPage({required this.roomName, Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(roomName),
+      ),
+      body: Center(
+        child: Text('Details for $roomName'),
+      ),
     );
   }
 }
