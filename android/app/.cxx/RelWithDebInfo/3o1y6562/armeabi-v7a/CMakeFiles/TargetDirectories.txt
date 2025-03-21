@@ -1,0 +1,2 @@
+C:/alhamrah_mobile_guru/aplikasi_guru/android/app/.cxx/RelWithDebInfo/3o1y6562/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/alhamrah_mobile_guru/aplikasi_guru/android/app/.cxx/RelWithDebInfo/3o1y6562/armeabi-v7a/CMakeFiles/rebuild_cache.dir
