@@ -1207,12 +1207,12 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.info_outline, size: 50, color: Colors.grey),
+              Icon(Icons.info_outline, size: 50, color: Colors.white),
               SizedBox(height: 10),
               Text(
                 'Tidak ada berita',
                 style: TextStyle(
-                  color: Colors.grey,
+                  color: Colors.white,
                   fontSize: 16,
                 ),
               ),
