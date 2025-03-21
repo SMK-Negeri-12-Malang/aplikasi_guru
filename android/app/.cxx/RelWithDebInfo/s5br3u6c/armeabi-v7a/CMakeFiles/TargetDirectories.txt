@@ -1,0 +1,2 @@
+/home/huawei/PKL/baru/aplikasi_guru/android/app/.cxx/RelWithDebInfo/s5br3u6c/armeabi-v7a/CMakeFiles/edit_cache.dir
+/home/huawei/PKL/baru/aplikasi_guru/android/app/.cxx/RelWithDebInfo/s5br3u6c/armeabi-v7a/CMakeFiles/rebuild_cache.dir

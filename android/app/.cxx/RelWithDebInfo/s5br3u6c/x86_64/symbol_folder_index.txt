@@ -1,0 +1,1 @@
+/home/huawei/PKL/baru/aplikasi_guru/build/app/intermediates/cxx/RelWithDebInfo/s5br3u6c/obj/x86_64

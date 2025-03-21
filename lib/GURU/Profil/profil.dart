@@ -56,6 +56,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> with SingleTicker
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
+            backgroundColor: Colors.grey[100],
             expandedHeight: 200.0,
             floating: false,
             pinned: true,
