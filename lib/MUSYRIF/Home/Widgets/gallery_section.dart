@@ -1,5 +1,5 @@
-import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Detail_page/Galeri/galeri_list.dart';
 import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Detail_page/Galeri/galeri_detail.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Aktivitas/gallery_list.dart';
 import 'package:flutter/material.dart';
 
 class GallerySection extends StatelessWidget {
@@ -47,7 +47,7 @@ class GallerySection extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => GalleryListPage(),
+                      builder: (context) => GalleryListPage(galleryItems: [],),
                     ),
                   );
                 },
