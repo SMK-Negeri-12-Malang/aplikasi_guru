@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'jadwaldetail_page.dart';
+import 'detail_jadwal.dart';
 
 class JadwalPage extends StatefulWidget {
   @override

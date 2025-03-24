@@ -1,5 +1,5 @@
-import 'package:aplikasi_guru/utils/animations.dart';
-import 'package:aplikasi_guru/utils/widgets/animated_list_item.dart';
+import 'package:aplikasi_guru/ANIMASI/animations.dart';
+import 'package:aplikasi_guru/ANIMASI/widgets/animated_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';

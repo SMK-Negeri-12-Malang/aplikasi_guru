@@ -1,5 +1,5 @@
-import 'package:aplikasi_guru/models/guru_model.dart';
-import 'package:aplikasi_guru/models/musyrif_model.dart';
+import 'package:aplikasi_guru/MODELS/guru_model.dart';
+import 'package:aplikasi_guru/MODELS/musyrif_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 

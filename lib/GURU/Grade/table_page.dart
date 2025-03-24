@@ -281,7 +281,7 @@ class _TablePageState extends State<TablePage> {
                 padding: EdgeInsets.all(20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: [    
                     Container(
                       width: 60,
                       height: 60,

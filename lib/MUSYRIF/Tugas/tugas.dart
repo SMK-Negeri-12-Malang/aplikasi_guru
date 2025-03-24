@@ -154,6 +154,24 @@ class _TugasPageState extends State<TugasPage> {
               },
             ),
           ),
+          // Add dot indicators here
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(3, (index) {
+              return Container(
+                margin: EdgeInsets.symmetric(horizontal: 4),
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _selectedSesi == index 
+                      ? Color(0xFF2E3F7F) 
+                      : Colors.grey.shade300,
+                ),
+              );
+            }),
+          ),
+          SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
