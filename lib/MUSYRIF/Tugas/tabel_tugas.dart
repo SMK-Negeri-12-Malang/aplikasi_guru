@@ -112,7 +112,7 @@ class _TabelTugasState extends State<TabelTugas>
     return "Kurang";
   }
 
-  @override
+  @override//
   Widget build(BuildContext context) {
     List<String> activities = [];
     for (var sesi in SesiData.sesiList) {
