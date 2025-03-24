@@ -1,3 +1,4 @@
+import 'package:aplikasi_guru/GURU_QURAN/Home/home_quran.dart';
 import 'package:aplikasi_guru/main.dart';
 import 'package:aplikasi_guru/ANIMASI/user_data_manager.dart';
 import 'package:flutter/material.dart';
@@ -45,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
           } else if (response.$2 != null) { // Musyrif login
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => homemusryf()),
+              MaterialPageRoute(builder: (context) => HomeQuran()),
             );
             return; // Add return to prevent further execution
           }
