@@ -1,5 +1,5 @@
-import 'package:aplikasi_guru/MODELS/tugassantri_model.dart';
 import 'package:aplikasi_guru/MUSYRIF/Tugas/rekap_tugas.dart';
+import 'package:aplikasi_guru/models/tugassantri_model.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
