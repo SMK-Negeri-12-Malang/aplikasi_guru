@@ -1,14 +1,14 @@
 import 'dart:io';
-
-import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Kesehatan/kesehatan.dart';
-import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Pelanggaran/pelanggaran.dart';
-import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Izin/izin.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Menu/Izin/izin.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Menu/Kesehatan/kesehatan.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Menu/Pelanggaran/pelanggaran.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Widgets/berita.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Widgets/berita_baru.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'Widgets/berita_baru.dart';
 import 'Widgets/gallery_section.dart';
-import 'Widgets/berita.dart';
+
 
 class DashboardMusyrifPage extends StatefulWidget {
   @override

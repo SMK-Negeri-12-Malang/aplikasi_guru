@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:aplikasi_guru/models/grade_model.dart';
+import 'package:aplikasi_guru/MODELS/grade_model.dart';
 import 'package:http/http.dart' as http;
 import 'api_config.dart';
 

@@ -1,7 +1,7 @@
 import 'package:aplikasi_guru/MUSYRIF/keuangan/detail_keuangan.dart';
 import 'package:flutter/material.dart';
-import '../models/student_data.dart';
-import '../../utils/currency_format.dart';
+import '../../MODELS/models_musyrif/models/student_data.dart';
+import '../../ANIMASI/currency_format.dart';
 
 
 class KeuanganSantriPage extends StatefulWidget {
@@ -155,6 +155,28 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
                             },
                           ),
                         ],
+                      ),
+                      SizedBox(width: 8),
+                      
+                      Container(
+                        height: screenHeight * 0.15,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            kamarList.length,
+                            (index) => Container(
+                              margin: EdgeInsets.symmetric(vertical: 2),
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _currentPage == index
+                                    ? Color(0xFF2E3F7F)
+                                    : Colors.grey[300],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),

@@ -3,8 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aplikasi_guru/LOGIN/login.dart';
 import 'edit_profil.dart';
 import 'dart:io';
-import 'package:aplikasi_guru/utils/user_data_manager.dart';
-import '../../utils/animations.dart';
+import 'package:aplikasi_guru/ANIMASI/user_data_manager.dart';
+import '../../ANIMASI/animations.dart';
 
 class ProfileDetailPage extends StatefulWidget {
   @override
@@ -56,7 +56,6 @@ class _ProfileDetailPageState extends State<ProfileDetailPage> with SingleTicker
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            backgroundColor: Colors.grey[100],
             expandedHeight: 200.0,
             floating: false,
             pinned: true,

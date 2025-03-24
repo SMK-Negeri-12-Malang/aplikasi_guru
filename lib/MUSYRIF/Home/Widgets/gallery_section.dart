@@ -1,5 +1,4 @@
-import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Detail_page/Galeri/galeri_detail.dart';
-import 'package:aplikasi_guru/MUSYRIF/Home/Menu/Aktivitas/gallery_list.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Detail_page/Galeri/gallery_list_page.dart';
 import 'package:flutter/material.dart';
 
 class GallerySection extends StatelessWidget {
@@ -47,7 +46,7 @@ class GallerySection extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => GalleryListPage(galleryItems: [],),
+                      builder: (context) => GalleryListPage(),
                     ),
                   );
                 },
@@ -67,64 +66,51 @@ class GallerySection extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               itemCount: galleryImages.length,
               itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => GaleriDetailPage(
-                          imageUrl: galleryImages[index],
-                          index: index,
-                        ),
+                return Container(
+                  width: 120, // Ukuran gambar lebih kecil
+                  height: 100,
+                  margin: const EdgeInsets.only(right: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 1,
+                        blurRadius: 3,
+                        offset: const Offset(0, 2),
                       ),
-                    );
-                  },
-                  child: Container(
-                    width: 120, // Ukuran gambar lebih kecil
-                    height: 100,
-                    margin: const EdgeInsets.only(right: 10),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          spreadRadius: 1,
-                          blurRadius: 3,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        galleryImages[index],
-                        width: 120, // Pastikan gambar tetap proporsional
-                        height: 100,
-                        fit: BoxFit.cover, // Supaya gambar tetap rapi
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              color: const Color(0xFF2B4BF2),
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[200],
-                            child: const Icon(
-                              Icons.error_outline,
-                              color: Colors.red,
-                              size: 32,
-                            ),
-                          );
-                        },
-                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      galleryImages[index],
+                      width: 120, // Pastikan gambar tetap proporsional
+                      height: 100,
+                      fit: BoxFit.cover, // Supaya gambar tetap rapi
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            color: const Color(0xFF2B4BF2),
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[200],
+                          child: const Icon(
+                            Icons.error_outline,
+                            color: Colors.red,
+                            size: 32,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 );

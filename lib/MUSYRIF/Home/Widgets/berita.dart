@@ -1,7 +1,5 @@
-import 'package:aplikasi_guru/MUSYRIF/Home/Detail_page/Berita/all_news_page.dart';
+import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Detail_page/Berita/berita_list.dart';
 import 'package:flutter/material.dart';
-// Add this import for the detail page we'll create
-import 'package:aplikasi_guru/MUSYRIF/Home/Laporan/Detail_page/Berita/news_detail_page.dart';
 
 class ActivitySection extends StatelessWidget {
   ActivitySection({Key? key}) : super(key: key);  // Add constructor with optional key
@@ -79,73 +77,58 @@ class ActivitySection extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: newsItems.length,
             itemBuilder: (context, index) {
-              return InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NewsDetailPagem(
-                        title: newsItems[index]['title'] ?? '',
-                        imageUrl: newsItems[index]['imageUrl'] ?? '',
-                        description: newsItems[index]['description'] ?? '',
-                        time: newsItems[index]['time'] ?? '',
+              return Column(
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          newsItems[index]['imageUrl'] ?? '', // Add null check operator
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
                       ),
-                    ),
-                  );
-                },
-                child: Column(
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            newsItems[index]['imageUrl'] ?? '', // Add null check operator
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
-                          ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              newsItems[index]['title'] ?? '', // Add null check operator
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              newsItems[index]['description'] ?? '', // Add null check operator
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              newsItems[index]['time'] ?? '', // Add null check operator
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                newsItems[index]['title'] ?? '', // Add null check operator
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                newsItems[index]['description'] ?? '', // Add null check operator
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                newsItems[index]['time'] ?? '', // Add null check operator
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (index < newsItems.length - 1)
-                      const Divider(height: 24, thickness: 0.5),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                  if (index < newsItems.length - 1)
+                    const Divider(height: 24, thickness: 0.5),
+                ],
               );
             },
           ),
