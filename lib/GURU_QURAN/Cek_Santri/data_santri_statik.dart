@@ -1,6 +1,6 @@
 final List<Map<String, dynamic>> santriData = [
   {
-    "studentName": "Ahmad",
+    "studentName": "mohammad alakhro",
     "room": "Ruang 1",
     "className": "10",
     "studentId": "12345",
@@ -31,7 +31,7 @@ final List<Map<String, dynamic>> santriData = [
     ],
   },
   {
-    "studentName": "Fatimah",
+    "studentName": "fatimah nur khalifah",
     "room": "Ruang 2",
     "className": "11",
     "studentId": "67890",
