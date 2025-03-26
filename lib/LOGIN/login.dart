@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
           } else if (response.$2 != null) { // Musyrif login
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => HomeQuran()),
+              MaterialPageRoute(builder: (context) => homemusryf()),
             );
             return; // Add return to prevent further execution
           }
