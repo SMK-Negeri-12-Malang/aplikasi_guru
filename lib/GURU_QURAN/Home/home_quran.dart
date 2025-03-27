@@ -4,18 +4,24 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:aplikasi_guru/GURU_QURAN/Home/Tabel_Santri/santri_table.dart';
 import 'package:aplikasi_guru/MODELS/models/santri_data.dart' as models;
-import 'package:flutter_spinkit/flutter_spinkit.dart'; // Add this import
 
 class HomeQuran extends StatefulWidget {
-  const HomeQuran({super.key});
+  final String? name;
+  final String? email;
+  
+  const HomeQuran({
+    super.key, 
+    this.name,
+    this.email,
+  });
 
   @override
   State<HomeQuran> createState() => _HomeQuranState();
 }
 
 class _HomeQuranState extends State<HomeQuran> {
-  String _name = "User Name";
-  String _email = "user@example.com";
+  late String _name;
+  late String _email;
   String? _profileImagePath;
 
   int _currentYearIndex = 2; 
@@ -64,25 +70,12 @@ class _HomeQuranState extends State<HomeQuran> {
     },
   ];
 
-  bool _isLoading = true; // Add loading state
-  bool _isRefreshing = false; // Add refreshing state
-  
   @override
   void initState() {
     super.initState();
-    _initializeData();
-  }
-  
-  Future<void> _initializeData() async {
-    setState(() {
-      _isLoading = true;
-    });
-    
-    await _loadSantriData();
-    
-    setState(() {
-      _isLoading = false;
-    });
+    _name = widget.name ?? "User Name";
+    _email = widget.email ?? "user@example.com";
+    _loadSantriData();
   }
 
   Future<void> _loadSantriData() async {
@@ -109,15 +102,9 @@ class _HomeQuranState extends State<HomeQuran> {
   }
 
   Future<void> _reloadProfileData() async {
-    setState(() {
-      _isRefreshing = true;
-    });
-    
     await Future.delayed(Duration(seconds: 1)); 
     await _loadSantriData();
-    
     setState(() {
-      _isRefreshing = false;
     });
   }
 
@@ -148,246 +135,200 @@ class _HomeQuranState extends State<HomeQuran> {
           ),
         ),
         child: SafeArea(
-          child: _isLoading 
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SpinKitWave(
-                        color: Colors.white,
-                        size: 50.0,
-                      ),
-                      SizedBox(height: 24),
-                      Text(
-                        'Memuat Data Santri...',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      )
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _reloadProfileData,
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return Stack(
-                        children: [
-                          SingleChildScrollView(
-                            physics: AlwaysScrollableScrollPhysics(),
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minHeight: constraints.maxHeight,
-                              ),
-                              child: Column(
+          child: RefreshIndicator(
+            onRefresh: _reloadProfileData,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(
+                              top: 50, left: 20, right: 20, bottom: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
                                 children: [
-                                  Padding(
-                                    padding: EdgeInsets.only(
-                                        top: 50, left: 20, right: 20, bottom: 20),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 25,
-                                              backgroundColor: Colors.white,
-                                              backgroundImage: _profileImagePath != null
-                                                  ? FileImage(File(_profileImagePath!))
-                                                  : AssetImage(
-                                                          'assets/profile_picture.png')
-                                                      as ImageProvider,
-                                            ),
-                                            SizedBox(width: 10),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  _name,
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold),
-                                                ),
-                                                Text(
-                                                  _email,
-                                                  style: TextStyle(
-                                                      color: Colors.white, fontSize: 16),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                        if (_isRefreshing)
-                                          SpinKitFadingCircle(
+                                  CircleAvatar(
+                                    radius: 25,
+                                    backgroundColor: Colors.white,
+                                    backgroundImage: _profileImagePath != null
+                                        ? FileImage(File(_profileImagePath!))
+                                        : AssetImage(
+                                                'assets/profile_picture.png')
+                                            as ImageProvider,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _name,
+                                        style: TextStyle(
                                             color: Colors.white,
-                                            size: 24.0,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        _email,
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          child: Card(
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(15.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Kehadiran Tahfidz",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2E3F7F),
+                                    ),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.arrow_back_ios, size: 18),
+                                        color: _currentYearIndex > 0 
+                                            ? Color(0xFF2E3F7F) 
+                                            : Colors.grey[400],
+                                        onPressed: _currentYearIndex > 0 
+                                            ? () => _navigateYear(-1) 
+                                            : null,
+                                        constraints: BoxConstraints(),
+                                        padding: EdgeInsets.symmetric(horizontal: 8),
+                                        splashRadius: 20,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 12,
+                                            height: 12,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Colors.blue,
+                                            ),
                                           ),
-                                      ],
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                    child: Card(
-                                      elevation: 5,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(15),
+                                          SizedBox(width: 5),
+                                          Text(
+                                            currentYear['startYear'],
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF2E3F7F),
+                                            ),
+                                          ),
+                                          SizedBox(width: 10),
+                                          Text(
+                                            '-',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                          SizedBox(width: 10),
+                                          Container(
+                                            width: 12,
+                                            height: 12,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Colors.green,
+                                            ),
+                                          ),
+                                          SizedBox(width: 5),
+                                          Text(
+                                            currentYear['endYear'],
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF2E3F7F),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(15.0),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              "Kehadiran Tahfidz",
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color(0xFF2E3F7F),
-                                              ),
-                                            ),
-                                            SizedBox(height: 10),
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                IconButton(
-                                                  icon: Icon(Icons.arrow_back_ios, size: 18),
-                                                  color: _currentYearIndex > 0 
-                                                      ? Color(0xFF2E3F7F) 
-                                                      : Colors.grey[400],
-                                                  onPressed: _currentYearIndex > 0 
-                                                      ? () => _navigateYear(-1) 
-                                                      : null,
-                                                  constraints: BoxConstraints(),
-                                                  padding: EdgeInsets.symmetric(horizontal: 8),
-                                                  splashRadius: 20,
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Container(
-                                                      width: 12,
-                                                      height: 12,
-                                                      decoration: BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    SizedBox(width: 5),
-                                                    Text(
-                                                      currentYear['startYear'],
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Color(0xFF2E3F7F),
-                                                      ),
-                                                    ),
-                                                    SizedBox(width: 10),
-                                                    Text(
-                                                      '-',
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Colors.grey,
-                                                      ),
-                                                    ),
-                                                    SizedBox(width: 10),
-                                                    Container(
-                                                      width: 12,
-                                                      height: 12,
-                                                      decoration: BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        color: Colors.green,
-                                                      ),
-                                                    ),
-                                                    SizedBox(width: 5),
-                                                    Text(
-                                                      currentYear['endYear'],
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Color(0xFF2E3F7F),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                IconButton(
-                                                  icon: Icon(Icons.arrow_forward_ios, size: 18),
-                                                  color: _currentYearIndex < _academicYears.length - 1 
-                                                      ? Color(0xFF2E3F7F) 
-                                                      : Colors.grey[400],
-                                                  onPressed: _currentYearIndex < _academicYears.length - 1 
-                                                      ? () => _navigateYear(1) 
-                                                      : null,
-                                                  constraints: BoxConstraints(),
-                                                  padding: EdgeInsets.symmetric(horizontal: 8),
-                                                  splashRadius: 20,
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(height: 15),
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                              children: [
-                                                _buildEnhancedProgressIndicator(
-                                                  value: currentYear['hafalanProgress'],
-                                                  color: Colors.blue,
-                                                  label: 'Hafalan',
-                                                  presentCount: currentYear['hafalanPresent'],
-                                                  absentCount: currentYear['hafalanAbsent'],
-                                                  totalCount: currentYear['hafalanTotal'],
-                                                ),
-                                                _buildEnhancedProgressIndicator(
-                                                  value: currentYear['kehadiranProgress'],
-                                                  color: Colors.green,
-                                                  label: 'Kehadiran',
-                                                  presentCount: currentYear['kehadiranPresent'],
-                                                  absentCount: currentYear['kehadiranAbsent'],
-                                                  totalCount: currentYear['kehadiranTotal'],
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
+                                      IconButton(
+                                        icon: Icon(Icons.arrow_forward_ios, size: 18),
+                                        color: _currentYearIndex < _academicYears.length - 1 
+                                            ? Color(0xFF2E3F7F) 
+                                            : Colors.grey[400],
+                                        onPressed: _currentYearIndex < _academicYears.length - 1 
+                                            ? () => _navigateYear(1) 
+                                            : null,
+                                        constraints: BoxConstraints(),
+                                        padding: EdgeInsets.symmetric(horizontal: 8),
+                                        splashRadius: 20,
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                    child: GalleryView(),
+                                  SizedBox(height: 15),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      _buildEnhancedProgressIndicator(
+                                        value: currentYear['hafalanProgress'],
+                                        color: Colors.blue,
+                                        label: 'Hafalan',
+                                        presentCount: currentYear['hafalanPresent'],
+                                        absentCount: currentYear['hafalanAbsent'],
+                                        totalCount: currentYear['hafalanTotal'],
+                                      ),
+                                      _buildEnhancedProgressIndicator(
+                                        value: currentYear['kehadiranProgress'],
+                                        color: Colors.green,
+                                        label: 'Kehadiran',
+                                        presentCount: currentYear['kehadiranPresent'],
+                                        absentCount: currentYear['kehadiranAbsent'],
+                                        totalCount: currentYear['kehadiranTotal'],
+                                      ),
+                                    ],
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                    child: NewsView(newsItems: newsItems),
-                                  ),
-                                  SizedBox(height: 20), 
                                 ],
                               ),
                             ),
                           ),
-                          if (_isRefreshing)
-                            Positioned(
-                              top: 4,
-                              right: 4,
-                              child: Container(
-                                padding: EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.7),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: SpinKitPulse(
-                                  color: Color(0xFF2E3F7F),
-                                  size: 24.0,
-                                ),
-                              ),
-                            ),
-                        ],
-                      );
-                    },
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          child: GalleryView(),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          child: NewsView(newsItems: newsItems),
+                        ),
+                        SizedBox(height: 20), 
+                      ],
+                    ),
                   ),
-                ),
+                );
+              },
+            ),
+          ),
         ),
       ),
     );
@@ -403,8 +344,6 @@ class _HomeQuranState extends State<HomeQuran> {
   }) {
     return InkWell(
       onTap: () {
-        if (_isRefreshing) return; // Prevent navigation while refreshing
-        
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -432,18 +371,12 @@ class _HomeQuranState extends State<HomeQuran> {
                 SizedBox(
                   height: 85,
                   width: 85,
-                  child: _isRefreshing
-                      ? SpinKitRing(
-                          color: color,
-                          size: 85.0,
-                          lineWidth: 8.0,
-                        )
-                      : CircularProgressIndicator(
-                          value: value,
-                          strokeWidth: 8,
-                          backgroundColor: Colors.grey[300],
-                          valueColor: AlwaysStoppedAnimation<Color>(color),
-                        ),
+                  child: CircularProgressIndicator(
+                    value: value,
+                    strokeWidth: 8,
+                    backgroundColor: Colors.grey[300],
+                    valueColor: AlwaysStoppedAnimation<Color>(color),
+                  ),
                 ),
                 Container(
                   height: 65,

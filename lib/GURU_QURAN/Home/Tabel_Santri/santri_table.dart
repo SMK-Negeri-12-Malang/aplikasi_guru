@@ -37,10 +37,15 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
   late AnimationController _pulseController;
   late AnimationController _bounceController;
   bool _useShimmerLoading = true; // Flag to toggle between loading animation types
+  // Add a variable to store the current progress
+  double _currentProgress = 0.0;
   
   @override
   void initState() {
     super.initState();
+    // Initialize _currentProgress with the value from widget.progress
+    _currentProgress = widget.progress;
+    
     _loadingController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 1500),
@@ -98,8 +103,34 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
       _isLoading = false;
     });
     
-    // Notify parent about current data
+    // Calculate and update progress based on actual attendance data
+    _recalculateAndUpdateProgress();
+    
+    // Notify parent about current data after recalculation
     _notifyParentOfUpdate();
+  }
+
+  // New improved method to calculate and update progress
+  void _recalculateAndUpdateProgress() {
+    if (_santriData.isEmpty) return;
+    
+    // Count present students
+    int presentCount = 0;
+    for (var santri in _santriData) {
+      if (_attendanceStatus[santri.id] == true) {
+        presentCount++;
+      }
+    }
+    
+    // Calculate current percentage
+    final percentage = presentCount / _santriData.length;
+    
+    // Update local progress value
+    setState(() {
+      _currentProgress = percentage;
+    });
+    
+    debugPrint('Progress recalculated: ${(percentage * 100).toStringAsFixed(1)}% ($presentCount/${_santriData.length})');
   }
 
   Future<Map<int, bool>> _loadAttendanceFromPrefs() async {
@@ -180,34 +211,27 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
       _attendanceStatus[santriId] = !(_attendanceStatus[santriId] ?? true);
     });
     
+    // Save changes to preferences
     _saveAttendanceToPrefs();
+    
+    // Update progress and notify parent
+    _recalculateAndUpdateProgress();
     _notifyParentOfUpdate();
   }
 
   void _notifyParentOfUpdate() {
     if (widget.onDataUpdate != null) {
+      final summary = _attendanceSummary;
+      
+      // Pass the updated progress value back to parent widget
       widget.onDataUpdate!(
-        _currentAttendancePercentage,
-        _attendanceSummary['present']!,
-        _attendanceSummary['total']!
+        _currentProgress,
+        summary['present']!,
+        summary['total']!
       );
     }
   }
 
-  // Calculate current attendance percentage
-  double get _currentAttendancePercentage {
-    if (_santriData.isEmpty) return 0.0;
-    
-    int presentCount = 0;
-    for (var santri in _santriData) {
-      if (_attendanceStatus[santri.id] == true) {
-        presentCount++;
-      }
-    }
-    
-    return presentCount / _santriData.length;
-  }
-  
   // Get present and absent counts
   Map<String, int> get _attendanceSummary {
     int presentCount = 0;
@@ -247,31 +271,6 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
       appBar: AppBar(
         title: Text('${widget.category} - ${widget.academicYear}'),
         backgroundColor: widget.color,
-        elevation: 0,
-        actions: [
-          _isRefreshing 
-              ? Padding(
-                  padding: EdgeInsets.only(right: 16.0),
-                  child: SpinKitFadingCircle(
-                    color: Colors.white,
-                    size: 24.0,
-                  ),
-                )
-              : IconButton(
-                  icon: Icon(Icons.refresh),
-                  onPressed: _refreshData,
-                ),
-          // Add a button to toggle loading animation style
-          IconButton(
-            icon: Icon(Icons.animation),
-            onPressed: () {
-              setState(() {
-                _useShimmerLoading = !_useShimmerLoading;
-              });
-            },
-            tooltip: 'Change loading animation style',
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -283,17 +282,41 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: widget.color,
-                      child: Text(
-                        '${(_currentAttendancePercentage * 100).toInt()}%',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                    // Add an animated progress circle to make the percentage changes more visually appealing
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        CircularProgressIndicator(
+                          value: _currentProgress,
+                          backgroundColor: widget.color.withOpacity(0.2),
+                          valueColor: AlwaysStoppedAnimation<Color>(widget.color),
+                          strokeWidth: 6,
                         ),
-                      ),
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: widget.color,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '${(_currentProgress * 100).toStringAsFixed(0)}%',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              Text(
+                                '${summary['present']}/${summary['total']}',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                     SizedBox(width: 20),
                     Column(
