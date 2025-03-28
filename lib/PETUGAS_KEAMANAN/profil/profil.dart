@@ -1,15 +1,16 @@
 import 'package:aplikasi_guru/GURU_QURAN/Profil/edit_profil.dart';
 import 'package:aplikasi_guru/LOGIN/login.dart';
+import 'package:aplikasi_guru/PETUGAS_KEAMANAN/profil/edit_profil.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 
-class profilquran extends StatefulWidget {
+class profilsatpam extends StatefulWidget {
   @override
   _orofilState createState() => _orofilState();
 }
 
-class _orofilState extends State<profilquran> {
+class _orofilState extends State<profilsatpam> {
   String? _profileImagePath;
   String _name = 'User';
   String _email = 'User@example.com';
@@ -44,7 +45,13 @@ class _orofilState extends State<profilquran> {
             expandedHeight: 200.0,
             floating: false,
             pinned: true,
-            automaticallyImplyLeading: false,
+            automaticallyImplyLeading: false, // Keep this to control how the back button appears
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
             flexibleSpace: FlexibleSpaceBar(
               background: ClipPath(
                 clipper: AppBarClipper(),
@@ -234,7 +241,7 @@ class _orofilState extends State<profilquran> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => editprofilquran(
+        builder: (context) => editprofilsatpam(
           name: _name,
           email: _email,
           phone: _phone,
