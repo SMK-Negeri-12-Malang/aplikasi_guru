@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
+import 'package:aplikasi_guru/PETUGAS_KEAMANAN/profil/profil.dart';
 import 'package:flutter/material.dart';
 
 class HomePetugas extends StatefulWidget {
@@ -16,6 +17,17 @@ class _HomePetugasState extends State<HomePetugas> {
     {'nama': 'Santri B', 'status': 'Keluar', 'waktu': '10:00'},
   ];
   List<Map<String, dynamic>> _newsList = []; // No static news data
+
+  // Navigation method for profile
+  void _navigateToProfilePage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => profilsatpam(
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,37 +77,44 @@ class _HomePetugasState extends State<HomePetugas> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 25, // Match size with home_musyrif
-                backgroundColor: Colors.white,
-                backgroundImage: _profileImagePath != null
-                    ? FileImage(File(_profileImagePath!))
-                    : AssetImage('assets/profile_picture.png') as ImageProvider,
-              ),
-              SizedBox(width: 10), // Match spacing with home_musyrif
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          InkWell(
+            onTap: _navigateToProfilePage,
+            borderRadius: BorderRadius.circular(30),
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Row(
                 children: [
-                  Text(
-                    _name,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20, // Match font size with home_musyrif
-                      fontWeight: FontWeight.bold,
-                    ),
+                  CircleAvatar(
+                    radius: 25, // Match size with home_musyrif
+                    backgroundColor: Colors.white,
+                    backgroundImage: _profileImagePath != null
+                        ? FileImage(File(_profileImagePath!))
+                        : AssetImage('assets/profile_picture.png') as ImageProvider,
                   ),
-                  Text(
-                    _email,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16, // Match font size with home_musyrif
-                    ),
+                  SizedBox(width: 10), // Match spacing with home_musyrif
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _name,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20, // Match font size with home_musyrif
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        _email,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16, // Match font size with home_musyrif
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -444,6 +463,83 @@ class _HomePetugasState extends State<HomePetugas> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// Profile page class (simplified implementation)
+class ProfilePetugasPage extends StatelessWidget {
+  final String name;
+  final String email;
+  final String? profileImagePath;
+
+  const ProfilePetugasPage({
+    Key? key,
+    required this.name,
+    required this.email,
+    this.profileImagePath,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Profile Petugas'),
+        backgroundColor: Color(0xFF2E3F7F),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF2E3F7F),
+              const Color.fromARGB(255, 255, 255, 255),
+            ],
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.white,
+                backgroundImage: profileImagePath != null
+                    ? FileImage(File(profileImagePath!))
+                    : AssetImage('assets/profile_picture.png') as ImageProvider,
+              ),
+              SizedBox(height: 20),
+              Text(
+                name,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 10),
+              Text(
+                email,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: () {
+                  // Implement edit profile functionality
+                },
+                child: Text('Edit Profile'),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

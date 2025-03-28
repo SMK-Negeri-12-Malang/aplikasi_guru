@@ -5,7 +5,7 @@ import 'package:aplikasi_guru/GURU/Home/home_guru.dart';
 import 'package:aplikasi_guru/GURU/Profil/profil.dart';
 import 'package:aplikasi_guru/GURU_QURAN/Cek_Santri/cek_santri.dart';
 import 'package:aplikasi_guru/GURU_QURAN/Home/home_quran.dart';
-import 'package:aplikasi_guru/GURU_QURAN/Profil/Profil/profil.dart';
+import 'package:aplikasi_guru/GURU_QURAN/Profil/profil.dart';
 import 'package:aplikasi_guru/MUSYRIF/Home/home_musyrif.dart';
 import 'package:aplikasi_guru/MUSYRIF/Profil/profil.dart';
 import 'package:aplikasi_guru/MUSYRIF/Tugas/tugas.dart';
@@ -435,7 +435,7 @@ class _GuruQuranDashboardState extends State<GuruQuranDashboard> with SingleTick
 
   final List<NavItem> _navItems = [
     NavItem(icon: Icons.menu_book, label: 'Tahfidz'),
-    NavItem(icon: Icons.calendar_today, label: 'Jadwal'), 
+    NavItem(icon: Icons.calendar_today, label: 'Cek Santri'), 
     NavItem(icon: Icons.home, label: 'Home'),
     NavItem(icon: Icons.list, label: 'Absen'),
     NavItem(icon: Icons.person, label: 'Profil'),

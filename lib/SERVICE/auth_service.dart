@@ -1,6 +1,7 @@
 import 'package:aplikasi_guru/MODELS/guru_model.dart';
 import 'package:aplikasi_guru/MODELS/guru_quran_model.dart';
 import 'package:aplikasi_guru/MODELS/musyrif_model.dart';
+import 'package:aplikasi_guru/MODELS/security_guard_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -9,8 +10,9 @@ class AuthService {
   static const String guruApiUrl = 'https://677d1f084496848554c91eb9.mockapi.io/Guru';
   static const String musyrifApiUrl = 'https://677d1f084496848554c91eb9.mockapi.io/Musryf';
   static const String guruQuranApiUrl = 'https://67e4bcd02ae442db76d56140.mockapi.io/login/guru_quran';
+  static const String securityGuardApiUrl = 'https://67e4bcd02ae442db76d56140.mockapi.io/login/satpam';
 
-  Future<(GuruModel?, MusyrifModel?, GuruQuran?)> login(String email, String password) async {
+  Future<(GuruModel?, MusyrifModel?, GuruQuran?, SecurityGuard?)> login(String email, String password) async {
     // Try login as guru
     try {
       final guruResponse = await http.get(Uri.parse(guruApiUrl));
@@ -21,7 +23,7 @@ class AuthService {
           orElse: () => null,
         );
         if (guru != null) {
-          return (GuruModel.fromJson(guru), null, null);
+          return (GuruModel.fromJson(guru), null, null, null);
         }
       }
     } catch (e) {
@@ -38,7 +40,7 @@ class AuthService {
           orElse: () => null,
         );
         if (musyrif != null) {
-          return (null, MusyrifModel.fromJson(musyrif), null);
+          return (null, MusyrifModel.fromJson(musyrif), null, null);
         }
       }
     } catch (e) {
@@ -55,13 +57,30 @@ class AuthService {
           orElse: () => null,
         );
         if (guruQuran != null) {
-          return (null, null, GuruQuran.fromJson(guruQuran));
+          return (null, null, GuruQuran.fromJson(guruQuran), null);
         }
       }
     } catch (e) {
       print('Guru Quran login error: $e');
     }
 
-    return (null, null, null);
+    // Try login as security guard
+    try {
+      final securityGuardResponse = await http.get(Uri.parse(securityGuardApiUrl));
+      if (securityGuardResponse.statusCode == 200) {
+        final List<dynamic> securityGuardList = json.decode(securityGuardResponse.body);
+        final securityGuard = securityGuardList.firstWhere(
+          (guard) => guard['email'] == email && guard['password'] == password,
+          orElse: () => null,
+        );
+        if (securityGuard != null) {
+          return (null, null, null, SecurityGuard.fromJson(securityGuard));
+        }
+      }
+    } catch (e) {
+      print('Security Guard login error: $e');
+    }
+
+    return (null, null, null, null);
   }
 }

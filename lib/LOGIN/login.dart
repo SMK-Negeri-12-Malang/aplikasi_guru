@@ -1,3 +1,4 @@
+import 'package:aplikasi_guru/PETUGAS_KEAMANAN/Home/Home/home_petugas.dart';
 import 'package:aplikasi_guru/main.dart';
 import 'package:aplikasi_guru/ANIMASI/user_data_manager.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +54,12 @@ class _LoginScreenState extends State<LoginScreen> {
               MaterialPageRoute(builder: (context) => GuruQuranDashboard()),
             );
             return; // Add return to prevent further execution
+          } else if (response.$4 != null) { // Security Guard login
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomePetugas()),
+            );
+            return; // Add return to prevent further execution
           }
         } catch (e) {
           // If auto-login fails, we'll just show the login screen
@@ -70,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final (guru, musyrif, guruQuran) = await _authService.login(
+      final (guru, musyrif, guruQuran, securityGuard) = await _authService.login(
         _emailController.text,
         _passwordController.text,
       );
@@ -104,6 +111,16 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => GuruQuranDashboard()),
+        );
+      } else if (securityGuard != null) {
+        await UserDataManager.saveUserData(
+          securityGuard.name,
+          securityGuard.email,
+          _passwordController.text
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePetugas()),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
