@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:aplikasi_guru/PETUGAS_KEAMANAN/profil/profil.dart';
+import 'package:aplikasi_guru/PETUGAS_KEAMANAN/Perizinan/masuk.dart';
+import 'package:aplikasi_guru/PETUGAS_KEAMANAN/Perizinan/keluar.dart';
 import 'package:flutter/material.dart';
 
 class HomePetugas extends StatefulWidget {
@@ -12,11 +14,55 @@ class _HomePetugasState extends State<HomePetugas> {
   String _name = 'Nama Petugas';
   String _email = 'email@domain.com';
   String? _profileImagePath;
-  List<Map<String, String>> _dataPerizinan = [
-    {'nama': 'Santri A', 'status': 'Masuk', 'waktu': '08:00'},
-    {'nama': 'Santri B', 'status': 'Keluar', 'waktu': '10:00'},
-  ];
+  List<Map<String, String>> _dataPerizinan = []; // Hapus data statik
   List<Map<String, dynamic>> _newsList = []; // No static news data
+  List<Map<String, String>> _filteredDataPerizinan = [];
+  final TextEditingController _searchController = TextEditingController();
+  String? _selectedKelas;
+  DateTimeRange? _selectedDateRange;
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_applyFilters);
+  }
+
+  void _applyFilters() {
+    setState(() {
+      _filteredDataPerizinan = _dataPerizinan.where((data) {
+        final matchesName = data['nama']!
+            .toLowerCase()
+            .contains(_searchController.text.toLowerCase());
+        final matchesKelas = _selectedKelas == null ||
+            data['kelas'] == _selectedKelas;
+        final matchesDate = _selectedDateRange == null ||
+            (_isDateInRange(data['tanggalIzin']!) ||
+                _isDateInRange(data['tanggalKembali']!));
+        return matchesName && matchesKelas && matchesDate;
+      }).toList();
+    });
+  }
+
+  bool _isDateInRange(String date) {
+    final parsedDate = DateTime.parse(date.split('-').reversed.join('-'));
+    return _selectedDateRange!.start.isBefore(parsedDate) &&
+        _selectedDateRange!.end.isAfter(parsedDate);
+  }
+
+  void _selectDateRange(BuildContext context) async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDateRange = picked;
+        _applyFilters();
+      });
+    }
+  }
 
   // Navigation method for profile
   void _navigateToProfilePage() {
@@ -27,6 +73,43 @@ class _HomePetugasState extends State<HomePetugas> {
         ),
       ),
     );
+  }
+
+  void _navigateToMasukPage() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MasukPage()),
+    );
+    if (result != null) {
+      setState(() {
+        _dataPerizinan.add(result);
+        _applyFilters(); // Ensure the new data is reflected in the filtered list
+      });
+    }
+  }
+
+  void _navigateToKeluarPage() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => KeluarPage()),
+    );
+    if (result != null) {
+      setState(() {
+        _dataPerizinan.add(result);
+        _applyFilters(); // Ensure the new data is reflected in the filtered list
+      });
+    }
+  }
+
+  void _onBottomNavTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    if (index == 0) {
+      _navigateToMasukPage();
+    } else if (index == 1) {
+      _navigateToKeluarPage();
+    }
   }
 
   @override
@@ -64,6 +147,84 @@ class _HomePetugasState extends State<HomePetugas> {
                 ),
               );
             },
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: Offset(0, -1),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _navigateToMasukPage(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _currentIndex == 0
+                        ? const Color.fromARGB(255, 33, 93, 153)
+                        : Colors.white,
+                    foregroundColor: _currentIndex == 0
+                        ? Colors.white
+                        : const Color.fromARGB(255, 33, 93, 153),
+                    side: BorderSide(
+                      color: const Color.fromARGB(255, 33, 93, 153),
+                      width: 1.5,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                  child: Text(
+                    'Masuk',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _navigateToKeluarPage(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _currentIndex == 1
+                        ? const Color.fromARGB(255, 33, 93, 153)
+                        : Colors.white,
+                    foregroundColor: _currentIndex == 1
+                        ? Colors.white
+                        : const Color.fromARGB(255, 33, 93, 153),
+                    side: BorderSide(
+                      color: const Color.fromARGB(255, 33, 93, 153),
+                      width: 1.5,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                  child: Text(
+                    'Keluar',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -174,7 +335,7 @@ class _HomePetugasState extends State<HomePetugas> {
                                   color: Colors.white.withOpacity(0.8),
                                   size: 50, // Reduced icon size
                                 ),
-                                SizedBox(height: 8), // Reduced spacing
+                                SizedBox(height: 10), // Reduced spacing
                                 Text(
                                   'Belum ada berita',
                                   style: TextStyle(
@@ -304,90 +465,6 @@ class _HomePetugasState extends State<HomePetugas> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 0),
-          Center(
-            child: Text(
-              'Perizinan',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: const Color.fromARGB(255, 255, 255, 255),
-              ),
-            ),
-          ),
-          SizedBox(height: 10),
-          Divider(
-            color: Colors.white70, // Divider color
-            thickness: 1.5, // Divider thickness
-          ),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Handle "Masuk" action
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    backgroundColor: Colors.green,
-                    elevation: 5,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.login, color: Colors.white),
-                      SizedBox(width: 8),
-                      Text(
-                        'Masuk',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(width: 15),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Handle "Keluar" action
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    backgroundColor: const Color.fromARGB(255, 51, 33, 156),
-                    elevation: 5,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.logout, color: Colors.white),
-                      SizedBox(width: 8),
-                      Text(
-                        'Keluar',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 20),
           Center(
             child: Text(
               'Data Perizinan Santri',
@@ -400,18 +477,119 @@ class _HomePetugasState extends State<HomePetugas> {
           ),
           SizedBox(height: 10),
           Divider(
-            color: Colors.white70, // Divider color
-            thickness: 1.5, // Divider thickness
+            color: Colors.white70, // Warna garis
+            thickness: 1.5, // Ketebalan garis
           ),
           SizedBox(height: 10),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: _dataPerizinan.length,
-            itemBuilder: (context, index) {
-              final data = _dataPerizinan[index];
-              return _buildPerizinanCard(data);
-            },
+          _buildFilterSection(),
+          SizedBox(height: 10),
+          _filteredDataPerizinan.isEmpty
+              ? Container(
+                  height: 300,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: const Color.fromARGB(255, 153, 153, 153).withOpacity(0.8),
+                          size: 50,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Belum ada data',
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 153, 153, 153).withOpacity(0.8),
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: _filteredDataPerizinan.length,
+                  itemBuilder: (context, index) {
+                    final data = _filteredDataPerizinan[index];
+                    return _buildPerizinanCard(data);
+                  },
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _selectedKelas,
+                  decoration: InputDecoration(
+                    labelText: "Pilih Kelas",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  ),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedKelas = newValue;
+                      _applyFilters();
+                    });
+                  },
+                  items: ['Kelas 1', 'Kelas 2', 'Kelas 3']
+                      .map((kelas) => DropdownMenuItem(
+                            value: kelas,
+                            child: Text(kelas, style: TextStyle(fontWeight: FontWeight.bold)),
+                          ))
+                      .toList(),
+                ),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: TextFormField(
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    labelText: "Pilih Tanggal",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  ),
+                  onTap: () => _selectDateRange(context),
+                  controller: TextEditingController(
+                    text: _selectedDateRange == null
+                        ? ''
+                        : "${_selectedDateRange!.start.toLocal()} - ${_selectedDateRange!.end.toLocal()}".split(' ')[0],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8),
+          TextFormField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              labelText: "Cari Nama Santri",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              suffixIcon: Icon(Icons.search, size: 20),
+            ),
           ),
         ],
       ),
@@ -419,44 +597,138 @@ class _HomePetugasState extends State<HomePetugas> {
   }
 
   Widget _buildPerizinanCard(Map<String, String> data) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 5,
-            offset: Offset(0, 2),
-          ),
-        ],
+    return GestureDetector(
+      onTap: () => _showBottomSheet(data),
+      child: Container(
+        margin: EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 5,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        padding: EdgeInsets.all(10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data['nama']!,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Tanggal Izin: ${data['tanggalIzin']}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[700],
+                  ),
+                ),
+                Text(
+                  'Tanggal Kembali: ${data['tanggalKembali']}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
+            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[700]),
+          ],
+        ),
       ),
-      padding: EdgeInsets.all(10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
+    );
+  }
+
+  void _showBottomSheet(Map<String, String> data) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                data['nama']!,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+              Center(
+                child: Container(
+                  width: 50,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
+              SizedBox(height: 16),
               Text(
-                'Status: ${data['status']}',
+                'Detail Perizinan',
                 style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[700],
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 16),
+              _buildDetailRow('Nama', data['nama']!),
+              _buildDetailRow('Kamar', data['kamar']!),
+              _buildDetailRow('Kelas', data['kelas']!),
+              _buildDetailRow('Halaqoh', data['halaqoh']!),
+              _buildDetailRow('Musyrif', data['musyrif']!),
+              _buildDetailRow('Keperluan', data['keperluan']!),
+              _buildDetailRow('Tanggal Izin', data['tanggalIzin']!),
+              _buildDetailRow('Tanggal Kembali', data['tanggalKembali']!),
+              _buildDetailRow('Status', data['status']!),
+              SizedBox(height: 16),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF2E3F7F),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    'Tutup',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
           Text(
-            data['waktu']!,
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            value,
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[700],
