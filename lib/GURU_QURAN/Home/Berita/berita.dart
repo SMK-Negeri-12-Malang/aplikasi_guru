@@ -8,7 +8,7 @@ class NewsView extends StatelessWidget {
     Key? key,
     required this.newsItems,
   }) : super(key: key);
-
+  //
   @override
   Widget build(BuildContext context) {
     return Card(
