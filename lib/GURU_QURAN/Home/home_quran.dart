@@ -362,59 +362,73 @@ class _HomeQuranState extends State<HomeQuran> {
       onTap: _isLoading
           ? null
           : () async {
-              setState(() {
-                _isLoading = true;
-              });
+              setState(() => _isLoading = true);
+              
+              // Show loading overlay
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return WillPopScope(
+                    onWillPop: () async => false,
+                    child: Center(
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 50,
+                                height: 50,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                                ),
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'Memuat data...',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
 
               try {
-                final route = MaterialPageRoute(
-                  builder: (context) => SantriTablePage(
-                    academicYear: _academicYears[_currentYearIndex]['period'],
-                    category: label,
-                    progress: value,
-                    color: color,
-                  ),
-                );
+                await Future.delayed(Duration(milliseconds: 800));
+                if (!mounted) return;
 
-                // Show loading overlay
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => Center(
-                    child: Container(
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircularProgressIndicator(color: color),
-                          SizedBox(height: 16),
-                          Text(
-                            'Memuat data...',
-                            style: TextStyle(color: Colors.grey[700]),
-                          ),
-                        ],
-                      ),
+                Navigator.pop(context); // Remove loading dialog
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SantriTablePage(
+                      academicYear: _academicYears[_currentYearIndex]['period'],
+                      category: label,
+                      progress: value,
+                      color: color,
                     ),
                   ),
                 );
 
-                // Navigate and wait for result
-                await Navigator.of(context).push(route);
-
-                // Remove loading overlay
-                if (mounted) Navigator.of(context).pop();
-
-                // Reload data
-                await _reloadProfileData();
+                if (mounted) {
+                  await _reloadProfileData();
+                }
               } finally {
                 if (mounted) {
-                  setState(() {
-                    _isLoading = false;
-                  });
+                  setState(() => _isLoading = false);
                 }
               }
             },

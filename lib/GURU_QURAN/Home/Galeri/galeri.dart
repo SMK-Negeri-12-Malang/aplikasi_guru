@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'detail_galeri.dart';
 
 class GalleryView extends StatelessWidget {
   GalleryView({Key? key}) : super(key: key);
 
   // Gallery images moved from home_quran.dart
   final List<String> _galleryImages = [
-    'assets/images/yoga.jpg',
-    'assets/gallery2.jpg',
-    'assets/gallery3.jpg',
-    'assets/gallery4.jpg',
-    'assets/gallery5.jpg',
-    'assets/gallery6.jpg',
+    'assets/images/onGlasses.jpg',
+    'assets/images/she.jpg',
+    'assets/images/beauty.jpg',
+    'assets/images/.jpg',
+    'assets/images/.jpg',
+    'assets/images/.jpg',
   ];
 
   void _viewGalleryImage(BuildContext context, int index) {
@@ -27,7 +28,8 @@ class GalleryView extends StatelessWidget {
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   return Center(
-                    child: Icon(Icons.broken_image, size: 100, color: Colors.grey),
+                    child:
+                        Icon(Icons.broken_image, size: 100, color: Colors.grey),
                   );
                 },
               ),
@@ -46,6 +48,13 @@ class GalleryView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showDetailGaleri(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => DetailGaleri(images: _galleryImages),
     );
   }
 
@@ -73,9 +82,7 @@ class GalleryView extends StatelessWidget {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {
-                    // Navigate to full gallery
-                  },
+                  onPressed: () => _showDetailGaleri(context),
                   child: Text('Lihat Semua'),
                 ),
               ],
@@ -106,9 +113,8 @@ class GalleryView extends StatelessWidget {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.image_not_supported, 
-                                       color: Colors.grey[400], 
-                                       size: 40),
+                                  Icon(Icons.image_not_supported,
+                                      color: Colors.grey[400], size: 40),
                                   SizedBox(height: 5),
                                   Text(
                                     'No Image',
