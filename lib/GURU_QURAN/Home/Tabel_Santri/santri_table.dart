@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-// Add shimmer package for loading effects
+
 import 'package:shimmer/shimmer.dart';
 
 class SantriTablePage extends StatefulWidget {
@@ -26,8 +26,9 @@ class SantriTablePage extends StatefulWidget {
   State<SantriTablePage> createState() => _SantriTablePageState();
 }
 
-class _SantriTablePageState extends State<SantriTablePage> with TickerProviderStateMixin {
-  late List<models.Santri> _santriData;
+class _SantriTablePageState extends State<SantriTablePage>
+    with TickerProviderStateMixin {
+  List<models.Santri> _santriData = [];  
   bool _isLoading = true;
   String _searchQuery = '';
   Map<int, bool> _attendanceStatus = {};
@@ -36,36 +37,36 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
   late AnimationController _refreshController;
   late AnimationController _pulseController;
   late AnimationController _bounceController;
-  bool _useShimmerLoading = true; // Flag to toggle between loading animation types
-  // Add a variable to store the current progress
+  bool _useShimmerLoading = true;
+
   double _currentProgress = 0.0;
-  
+
   @override
   void initState() {
     super.initState();
-    // Initialize _currentProgress with the value from widget.progress
+
     _currentProgress = widget.progress;
-    
+
     _loadingController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 1500),
     )..repeat();
-    
+
     _refreshController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 800),
     );
-    
+
     _pulseController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 1000),
     )..repeat(reverse: true);
-    
+
     _bounceController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 1200),
     )..repeat(reverse: true);
-    
+
     _loadSantriData();
   }
 
@@ -79,58 +80,50 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
   }
 
   Future<void> _loadSantriData() async {
-    // Simulate loading delay
     await Future.delayed(Duration(milliseconds: 800));
-    
-    // Load the santri data
-    final santriList = models.SantriDataProvider.getSantriForYear(widget.academicYear);
-    
-    // Load saved attendance status from SharedPreferences
+
+    final santriList =
+        models.SantriDataProvider.getSantriForYear(widget.academicYear);
+
     Map<int, bool> savedAttendance = await _loadAttendanceFromPrefs();
-    
+
     setState(() {
       _santriData = santriList;
-      
-      // Initialize attendance status - use saved data if available
+
       for (var santri in _santriData) {
         if (savedAttendance.containsKey(santri.id)) {
           _attendanceStatus[santri.id] = savedAttendance[santri.id]!;
         } else {
-          _attendanceStatus[santri.id] = true; // default to present
+          _attendanceStatus[santri.id] = true;
         }
       }
-      
+
       _isLoading = false;
     });
-    
-    // Calculate and update progress based on actual attendance data
+
     _recalculateAndUpdateProgress();
-    
-    // Notify parent about current data after recalculation
+
     _notifyParentOfUpdate();
   }
 
-  // New improved method to calculate and update progress
   void _recalculateAndUpdateProgress() {
     if (_santriData.isEmpty) return;
-    
-    // Count present students
+
     int presentCount = 0;
     for (var santri in _santriData) {
       if (_attendanceStatus[santri.id] == true) {
         presentCount++;
       }
     }
-    
-    // Calculate current percentage
+
     final percentage = presentCount / _santriData.length;
-    
-    // Update local progress value
+
     setState(() {
       _currentProgress = percentage;
     });
-    
-    debugPrint('Progress recalculated: ${(percentage * 100).toStringAsFixed(1)}% ($presentCount/${_santriData.length})');
+
+    debugPrint(
+        'Progress recalculated: ${(percentage * 100).toStringAsFixed(1)}% ($presentCount/${_santriData.length})');
   }
 
   Future<Map<int, bool>> _loadAttendanceFromPrefs() async {
@@ -138,10 +131,10 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
       final prefs = await SharedPreferences.getInstance();
       final key = '${widget.academicYear}_${widget.category}_attendance';
       final savedData = prefs.getString(key);
-      
+
       if (savedData != null) {
         Map<String, dynamic> decoded = json.decode(savedData);
-        // Convert string keys back to int keys
+
         Map<int, bool> result = {};
         decoded.forEach((key, value) {
           result[int.parse(key)] = value;
@@ -158,13 +151,12 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
     try {
       final prefs = await SharedPreferences.getInstance();
       final key = '${widget.academicYear}_${widget.category}_attendance';
-      
-      // Convert int keys to string keys for JSON serialization
+
       Map<String, bool> toSave = {};
       _attendanceStatus.forEach((key, value) {
         toSave[key.toString()] = value;
       });
-      
+
       final data = json.encode(toSave);
       await prefs.setString(key, data);
       debugPrint('Saved attendance data for ${widget.category}');
@@ -173,48 +165,13 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
     }
   }
 
-  // Add this method to refresh data with animation
-  Future<void> _refreshData() async {
-    setState(() {
-      _isRefreshing = true;
-    });
-    
-    _refreshController.reset();
-    _refreshController.repeat();
-    
-    // Simulate network delay
-    await Future.delayed(Duration(milliseconds: 1200));
-    
-    // Randomly change some attendance statuses to demonstrate refresh effect
-    if (_santriData.isNotEmpty) {
-      final random = new DateTime.now().millisecondsSinceEpoch;
-      for (var i = 0; i < min(3, _santriData.length); i++) {
-        final randomIndex = (random + i) % _santriData.length;
-        final santriId = _santriData[randomIndex].id;
-        _toggleAttendance(santriId);
-      }
-    }
-    
-    await _saveAttendanceToPrefs();
-    _notifyParentOfUpdate();
-    
-    setState(() {
-      _isRefreshing = false;
-    });
-    
-    _refreshController.stop();
-  }
-
-  // Toggle attendance status for a specific santri
   void _toggleAttendance(int santriId) {
     setState(() {
       _attendanceStatus[santriId] = !(_attendanceStatus[santriId] ?? true);
     });
-    
-    // Save changes to preferences
+
     _saveAttendanceToPrefs();
-    
-    // Update progress and notify parent
+
     _recalculateAndUpdateProgress();
     _notifyParentOfUpdate();
   }
@@ -222,21 +179,16 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
   void _notifyParentOfUpdate() {
     if (widget.onDataUpdate != null) {
       final summary = _attendanceSummary;
-      
-      // Pass the updated progress value back to parent widget
+
       widget.onDataUpdate!(
-        _currentProgress,
-        summary['present']!,
-        summary['total']!
-      );
+          _currentProgress, summary['present']!, summary['total']!);
     }
   }
 
-  // Get present and absent counts
   Map<String, int> get _attendanceSummary {
     int presentCount = 0;
     int absentCount = 0;
-    
+
     for (var santri in _santriData) {
       if (_attendanceStatus[santri.id] == true) {
         presentCount++;
@@ -244,7 +196,7 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
         absentCount++;
       }
     }
-    
+
     return {
       'present': presentCount,
       'absent': absentCount,
@@ -256,17 +208,17 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
     if (_searchQuery.isEmpty) {
       return _santriData;
     }
-    
+
     return _santriData.where((santri) {
       return santri.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-             santri.id.toString().contains(_searchQuery);
+          santri.id.toString().contains(_searchQuery);
     }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final summary = _attendanceSummary;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.category} - ${widget.academicYear}'),
@@ -282,14 +234,14 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Add an animated progress circle to make the percentage changes more visually appealing
                     Stack(
                       alignment: Alignment.center,
                       children: [
                         CircularProgressIndicator(
                           value: _currentProgress,
                           backgroundColor: widget.color.withOpacity(0.2),
-                          valueColor: AlwaysStoppedAnimation<Color>(widget.color),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(widget.color),
                           strokeWidth: 6,
                         ),
                         CircleAvatar(
@@ -371,7 +323,7 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
           ),
           Expanded(
             child: _isLoading
-                ? _useShimmerLoading 
+                ? _useShimmerLoading
                     ? _buildShimmerLoading()
                     : _buildSpinKitLoading()
                 : _filteredData.isEmpty
@@ -390,30 +342,39 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
                                 horizontalMargin: 12.0,
                                 columns: [
                                   DataColumn(
-                                    label: Text('No', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    label: Text('No',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                     numeric: true,
                                   ),
                                   DataColumn(
                                     label: Expanded(
-                                      child: Text('Nama Santri', 
-                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      child: Text(
+                                        'Nama Santri',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
                                         textAlign: TextAlign.center,
                                       ),
                                     ),
                                   ),
                                   DataColumn(
-                                    label: Text('NIS', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    label: Text('NIS',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                   ),
                                   DataColumn(
-                                    label: Text('Kehadiran', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    label: Text('Kehadiran',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                   ),
                                 ],
                                 rows: _filteredData.map((santri) {
-                                  // Generate a NIS based on the student ID and academic year
-                                  String nis = "S${santri.id.toString().padLeft(3, '0')}${widget.academicYear.substring(2, 4)}${widget.academicYear.substring(7, 9)}";
-                                  
-                                  bool isPresent = _attendanceStatus[santri.id] ?? true;
-                                  
+                                  String nis =
+                                      "S${santri.id.toString().padLeft(3, '0')}${widget.academicYear.substring(2, 4)}${widget.academicYear.substring(7, 9)}";
+
+                                  bool isPresent =
+                                      _attendanceStatus[santri.id] ?? true;
+
                                   return DataRow(
                                     cells: [
                                       DataCell(Container(
@@ -425,20 +386,31 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
                                       DataCell(Text(nis)),
                                       DataCell(
                                         GestureDetector(
-                                          onTap: () => _toggleAttendance(santri.id),
+                                          onTap: () =>
+                                              _toggleAttendance(santri.id),
                                           child: Container(
-                                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: isPresent ? Colors.green.shade100 : Colors.red.shade100,
-                                              borderRadius: BorderRadius.circular(12),
+                                              color: isPresent
+                                                  ? Colors.green.shade100
+                                                  : Colors.red.shade100,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                               border: Border.all(
-                                                color: isPresent ? Colors.green.shade700 : Colors.red.shade700,
+                                                color: isPresent
+                                                    ? Colors.green.shade700
+                                                    : Colors.red.shade700,
                                               ),
                                             ),
                                             child: Text(
-                                              isPresent ? 'Hadir' : 'Tidak Hadir',
+                                              isPresent
+                                                  ? 'Hadir'
+                                                  : 'Tidak Hadir',
                                               style: TextStyle(
-                                                color: isPresent ? Colors.green.shade800 : Colors.red.shade800,
+                                                color: isPresent
+                                                    ? Colors.green.shade800
+                                                    : Colors.red.shade800,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
@@ -493,53 +465,42 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
           ),
         ],
       ),
-      floatingActionButton: !_isLoading ? FloatingActionButton(
-        onPressed: _isRefreshing ? null : _refreshData,
-        backgroundColor: widget.color,
-        child: _isRefreshing 
-            ? SpinKitRing(color: Colors.white, lineWidth: 2, size: 24)
-            : Icon(Icons.refresh),
-      ) : null,
     );
   }
-  
-  // New method to build fancy SpinKit loading animation
+
   Widget _buildSpinKitLoading() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           AnimatedBuilder(
-            animation: _bounceController,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: 1.0 + (_bounceController.value * 0.2),
-                child: SpinKitPouringHourGlassRefined(
-                  color: widget.color,
-                  size: 50.0,
-                ),
-              );
-            }
-          ),
+              animation: _bounceController,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: 1.0 + (_bounceController.value * 0.2),
+                  child: SpinKitPouringHourGlassRefined(
+                    color: widget.color,
+                    size: 50.0,
+                  ),
+                );
+              }),
           SizedBox(height: 16),
           AnimatedBuilder(
-            animation: _pulseController,
-            builder: (context, child) {
-              return Opacity(
-                opacity: 0.6 + (_pulseController.value * 0.4),
-                child: Text(
-                  'Memuat data santri...',
-                  style: TextStyle(
-                    color: Colors.grey[700],
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16 + (_pulseController.value * 2),
+              animation: _pulseController,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: 0.6 + (_pulseController.value * 0.4),
+                  child: Text(
+                    'Memuat data santri...',
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.w500,
+                      fontSize: 16 + (_pulseController.value * 2),
+                    ),
                   ),
-                ),
-              );
-            }
-          ),
+                );
+              }),
           SizedBox(height: 24),
-          // Additional loading animations
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -563,8 +524,7 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
       ),
     );
   }
-  
-  // New method to build shimmer loading effect for tables
+
   Widget _buildShimmerLoading() {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
@@ -575,23 +535,18 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Shimmer for table header
               Container(
                 height: 50,
                 color: Colors.white,
                 margin: EdgeInsets.only(bottom: 12),
               ),
-              
-              // Shimmer for table rows
               for (int i = 0; i < 12; i++)
                 Container(
                   height: 40,
                   margin: EdgeInsets.only(bottom: 8),
                   color: Colors.white,
                 ),
-                
               SizedBox(height: 20),
-              
               Center(
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
@@ -599,7 +554,8 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text('Loading...', style: TextStyle(color: Colors.transparent)),
+                  child: Text('Loading...',
+                      style: TextStyle(color: Colors.transparent)),
                 ),
               ),
             ],
@@ -608,7 +564,6 @@ class _SantriTablePageState extends State<SantriTablePage> with TickerProviderSt
       ),
     );
   }
-  
-  // Helper function to get minimum value
+
   int min(int a, int b) => a < b ? a : b;
 }
