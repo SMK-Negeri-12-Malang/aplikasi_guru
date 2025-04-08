@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'news_detail.dart';
+import 'list_berita.dart';
 
 class NewsView extends StatelessWidget {
   final List<Map<String, dynamic>> newsItems;
@@ -34,7 +35,10 @@ class NewsView extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () {
-                    // Navigate to all news page
+                    showDialog(
+                      context: context,
+                      builder: (context) => ListBerita(newsItems: newsItems),
+                    );
                   },
                   child: Text(
                     'Lihat Semua',
@@ -73,7 +77,7 @@ class NewsView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Add padding around each news image 
+                        // Add padding around each news image
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),
                           child: ClipRRect(
@@ -97,7 +101,8 @@ class NewsView extends StatelessWidget {
                         SizedBox(height: 5),
                         Text(
                           newsItem['content'],
-                          style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                          style:
+                              TextStyle(fontSize: 14, color: Colors.grey[700]),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -126,20 +131,23 @@ class NewsView extends StatelessWidget {
 final List<Map<String, dynamic>> newsItems = [
   {
     'title': 'Jadwal Ujian Tahfidz Semester Genap',
-    'content': 'Ujian Tahfidz akan dilaksanakan pada tanggal 15-20 Juni 2024. Pastikan siswa sudah mempersiapkan hafalan dengan baik.',
+    'content':
+        'Ujian Tahfidz akan dilaksanakan pada tanggal 15-20 Juni 2024. Pastikan siswa sudah mempersiapkan hafalan dengan baik.',
     'date': '10 Mei 2024',
     'image': 'assets/images/yoga.jpg',
   },
   {
-    'title': 'Workshop Metode Menghafal Al-Quran',
-    'content': 'Workshop akan diadakan pada hari Sabtu, 25 Mei 2024. Kegiatan ini wajib diikuti oleh seluruh guru tahfidz.',
+    'title': 'A Love Beyond Time',
+    'content':
+        'Aku mencintaimu setiap detik, setiap menit, setiap hari, dan setiap waktu. Cintaku hadir seperti a never-ending melody yang terus mengalun tanpa henti. Namamu mengalir di setiap tarikan napas, seolah menjadi the rhythm of my soul  Setiap kali aku menatapmu, dunia terasa diam, seakan waktu berhenti hanya untuk kita—frozen in a perfect moment. Kau adalah my constant in the chaos, satu-satunya hal yang tetap ketika segalanya berubah.Cinta ini bukan hanya sekadar rasa, tapi a promise whispered through eternity, yang tak akan pernah hilang, bahkan oleh waktu itu sendiri.',   
     'date': '5 Mei 2024',
-    'image': 'assets/news2.jpg',
+    'image': 'assets/images/ily.jpg',
   },
   {
-    'title': 'Pengumuman Perlombaan Tahfidz Nasional',
-    'content': 'Pendaftaran untuk Perlombaan Tahfidz Nasional telah dibuka. Batas akhir pendaftaran tanggal 30 Mei 2024.',
+    'title': 'Whispers Between The Stars',
+    'content':
+        'Dalam sunyi malam, ada bisikan hatiku yang tak pernah sampai padamu, namun selalu hidup di antara bintang. Even when silence surrounds me, your name echoes within. Cintaku bukan teriakan, tapi bisikan halus yang menyelinap lewat angin—a secret the moon keeps for me.',
     'date': '1 Mei 2024',
-    'image': 'assets/news3.jpg',
+    'image': 'assets/images/flowers.jpg',
   },
 ];
