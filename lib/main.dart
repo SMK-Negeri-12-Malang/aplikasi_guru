@@ -6,6 +6,7 @@ import 'package:aplikasi_guru/GURU/Profil/profil.dart';
 import 'package:aplikasi_guru/GURU_QURAN/Cek_Santri/cek_santri.dart';
 import 'package:aplikasi_guru/GURU_QURAN/Home/home_quran.dart';
 import 'package:aplikasi_guru/GURU_QURAN/Kepesantrenan/Kepesantrenan.dart';
+import 'package:aplikasi_guru/GURU_QURAN/Leaderboard/leaderboard.dart';
 import 'package:aplikasi_guru/GURU_QURAN/Profil/profil.dart';
 import 'package:aplikasi_guru/MUSYRIF/Home/home_musyrif.dart';
 import 'package:aplikasi_guru/MUSYRIF/Profil/profil.dart';
@@ -522,7 +523,7 @@ class _GuruQuranDashboardState extends State<GuruQuranDashboard> with SingleTick
             });
           },
           children: [
-            Placeholder(), // Replace with TahfidzPage()
+            LeaderboardPage(), // Replace with TahfidzPage()
             CekSantri(), 
             HomeQuran(), // Replace with DashboardGuruQuranPage()
             Kepesantrenan(),    
