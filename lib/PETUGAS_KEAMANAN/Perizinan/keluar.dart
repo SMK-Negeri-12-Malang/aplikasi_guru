@@ -10,12 +10,14 @@ class _KeluarPageState extends State<KeluarPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _siswaController = TextEditingController();
   final TextEditingController _kamarController = TextEditingController();
-  final TextEditingController _kelasController = TextEditingController();
   final TextEditingController _halaqohController = TextEditingController();
   final TextEditingController _musyrifController = TextEditingController();
   final TextEditingController _keperluanController = TextEditingController();
   final TextEditingController _tanggalIzinController = TextEditingController();
   final TextEditingController _tanggalKembaliController = TextEditingController();
+
+  final List<String> _kelasOptions = ['Kelas 1', 'Kelas 2', 'Kelas 3']; // Add class options
+  String? _selectedKelas = 'Kelas 1'; // Default selected class
 
   Future<void> _selectDateRange(BuildContext context) async {
     DateTimeRange? picked = await showDateRangePicker(
@@ -42,7 +44,7 @@ class _KeluarPageState extends State<KeluarPage> {
       final data = {
         'nama': _siswaController.text,
         'kamar': _kamarController.text,
-        'kelas': _kelasController.text,
+        'kelas': _selectedKelas!, // Use selected class
         'halaqoh': _halaqohController.text,
         'musyrif': _musyrifController.text,
         'keperluan': _keperluanController.text,
@@ -103,7 +105,7 @@ class _KeluarPageState extends State<KeluarPage> {
                         SizedBox(height: 16),
                         _buildTextField(_kamarController, 'Kamar', Icons.room),
                         SizedBox(height: 16),
-                        _buildTextField(_kelasController, 'Kelas', Icons.class_),
+                        _buildDropdownField('Kelas', Icons.class_), // Replace text field with dropdown
                         SizedBox(height: 16),
                         _buildTextField(_halaqohController, 'Halaqoh', Icons.group),
                         SizedBox(height: 16),
@@ -187,6 +189,32 @@ class _KeluarPageState extends State<KeluarPage> {
         }
         return null;
       },
+    );
+  }
+
+  Widget _buildDropdownField(String label, IconData icon) {
+    return DropdownButtonFormField<String>(
+      value: _selectedKelas,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Color(0xFF2E3F7F)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+      ),
+      onChanged: (String? newValue) {
+        setState(() {
+          _selectedKelas = newValue;
+        });
+      },
+      items: _kelasOptions.map((kelas) {
+        return DropdownMenuItem(
+          value: kelas,
+          child: Text(kelas),
+        );
+      }).toList(),
     );
   }
 }

@@ -2,15 +2,17 @@ import 'package:aplikasi_guru/GURU_QURAN/Home/Galeri/galeri.dart';
 import 'package:aplikasi_guru/GURU_QURAN/Home/Berita/berita.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aplikasi_guru/GURU_QURAN/Home/Tabel_Santri/santri_table.dart';
 import 'package:aplikasi_guru/MODELS/models/santri_data.dart' as models;
 
 class HomeQuran extends StatefulWidget {
   final String? name;
   final String? email;
-
+  
   const HomeQuran({
-    super.key,
+    super.key, 
     this.name,
     this.email,
   });
@@ -23,51 +25,76 @@ class _HomeQuranState extends State<HomeQuran> {
   late String _name;
   late String _email;
   String? _profileImagePath;
+  late SharedPreferences _prefs;
+  bool _isPrefsLoaded = false;
 
-  int _currentYearIndex = 2;
-  bool _isLoading = false;
-
+  int _currentYearIndex = 2; 
+  
   final List<Map<String, dynamic>> _academicYears = [
     {
       'period': '2022-2023',
       'startYear': '2022',
       'endYear': '2023',
-      'hafalanProgress': 0.95,
-      'kehadiranProgress': 0.88,
-      'hafalanPresent': 38,
-      'hafalanAbsent': 2,
-      'hafalanTotal': 40,
-      'kehadiranPresent': 35,
-      'kehadiranAbsent': 5,
-      'kehadiranTotal': 40,
+      'hafalanProgress': 0.0,  
+      'kehadiranProgress': 0.0, 
+      'hafalanPresent': 0,
+      'hafalanAbsent': 0,
+      'hafalanTotal': 0,
+      'kehadiranPresent': 0,
+      'kehadiranAbsent': 0,
+      'kehadiranTotal': 0,
     },
     {
       'period': '2023-2024',
       'startYear': '2023',
       'endYear': '2024',
-      'hafalanProgress': 0.85,
-      'kehadiranProgress': 0.70,
+      'hafalanProgress': 0.0,
+      'kehadiranProgress': 0.0,
+      'hafalanPresent': 0,
+      'hafalanAbsent': 0,
+      'hafalanTotal': 0,
+      'kehadiranPresent': 0,
+      'kehadiranAbsent': 0,
+      'kehadiranTotal': 0,
     },
     {
       'period': '2024-2025',
       'startYear': '2024',
       'endYear': '2025',
-      'hafalanProgress': 0.75,
-      'kehadiranProgress': 0.60,
+      'hafalanProgress': 0.0,
+      'kehadiranProgress': 0.0,
+      'hafalanPresent': 0,
+      'hafalanAbsent': 0,
+      'hafalanTotal': 0,
+      'kehadiranPresent': 0,
+      'kehadiranAbsent': 0,
+      'kehadiranTotal': 0,
     },
     {
       'period': '2025-2026',
       'startYear': '2025',
       'endYear': '2026',
-      'hafalanProgress': 0.40,
-      'kehadiranProgress': 0.85,
+      'hafalanProgress': 0.0,
+      'kehadiranProgress': 0.0,
+      'hafalanPresent': 0,
+      'hafalanAbsent': 0,
+      'hafalanTotal': 0,
+      'kehadiranPresent': 0,
+      'kehadiranAbsent': 0,
+      'kehadiranTotal': 0,
     },
     {
       'period': '2026-2027',
       'startYear': '2026',
       'endYear': '2027',
-      'hafalanProgress': 0.25,
-      'kehadiranProgress': 0.30,
+      'hafalanProgress': 0.0,
+      'kehadiranProgress': 0.0,
+      'hafalanPresent': 0,
+      'hafalanAbsent': 0,
+      'hafalanTotal': 0,
+      'kehadiranPresent': 0,
+      'kehadiranAbsent': 0,
+      'kehadiranTotal': 0,
     },
   ];
 
@@ -76,37 +103,87 @@ class _HomeQuranState extends State<HomeQuran> {
     super.initState();
     _name = widget.name ?? "User Name";
     _email = widget.email ?? "user@example.com";
+    _initPreferences();
+  }
+
+  Future<void> _initPreferences() async {
+    _prefs = await SharedPreferences.getInstance();
+    _isPrefsLoaded = true;
+    _loadSavedAcademicYearData();
     _loadSantriData();
   }
 
+  void _loadSavedAcademicYearData() {
+    if (!_isPrefsLoaded) return;
+
+    for (int i = 0; i < _academicYears.length; i++) {
+      String period = _academicYears[i]['period'];
+      String key = 'academic_year_$period';
+      
+      if (_prefs.containsKey(key)) {
+        String? jsonData = _prefs.getString(key);
+        if (jsonData != null) {
+          Map<String, dynamic> savedData = json.decode(jsonData);
+          setState(() {
+            _academicYears[i] = {..._academicYears[i], ...savedData};
+          });
+        }
+      }
+    }
+
+    // Load current year index
+    int? savedIndex = _prefs.getInt('current_year_index');
+    if (savedIndex != null && savedIndex >= 0 && savedIndex < _academicYears.length) {
+      setState(() {
+        _currentYearIndex = savedIndex;
+      });
+    }
+  }
+
+  Future<void> _saveAcademicYearData(int index) async {
+    if (!_isPrefsLoaded) return;
+    
+    String period = _academicYears[index]['period'];
+    String key = 'academic_year_$period';
+    
+    await _prefs.setString(key, json.encode(_academicYears[index]));
+    await _prefs.setInt('current_year_index', _currentYearIndex);
+  }
+
   Future<void> _loadSantriData() async {
-    for (var year in _academicYears) {
-      final santriList =
-          models.SantriDataProvider.getSantriForYear(year['period']);
+    if (!_isPrefsLoaded) return;
+    
+    for (var i = 0; i < _academicYears.length; i++) {
+      var year = _academicYears[i];
+      final santriList = models.SantriDataProvider.getSantriForYear(year['period']);
       if (santriList.isNotEmpty) {
         int totalSantri = santriList.length;
-        int hafalanPresent = (totalSantri * 0.85).round();
-        int kehadiranPresent = (totalSantri * 0.75).round();
-
+        
+        int hafalanPresent = totalSantri;
+        int kehadiranPresent = totalSantri;
+        
         setState(() {
           year['hafalanTotal'] = totalSantri;
           year['hafalanPresent'] = hafalanPresent;
           year['hafalanAbsent'] = totalSantri - hafalanPresent;
           year['hafalanProgress'] = hafalanPresent / totalSantri;
-
+          
           year['kehadiranTotal'] = totalSantri;
           year['kehadiranPresent'] = kehadiranPresent;
           year['kehadiranAbsent'] = totalSantri - kehadiranPresent;
           year['kehadiranProgress'] = kehadiranPresent / totalSantri;
         });
+        
+        _saveAcademicYearData(i);
       }
     }
   }
 
   Future<void> _reloadProfileData() async {
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 1)); 
     await _loadSantriData();
-    setState(() {});
+    setState(() {
+    });
   }
 
   void _navigateYear(int direction) {
@@ -114,6 +191,7 @@ class _HomeQuranState extends State<HomeQuran> {
       int newIndex = _currentYearIndex + direction;
       if (newIndex >= 0 && newIndex < _academicYears.length) {
         _currentYearIndex = newIndex;
+        _prefs.setInt('current_year_index', _currentYearIndex);
       }
     });
   }
@@ -121,9 +199,9 @@ class _HomeQuranState extends State<HomeQuran> {
   @override
   Widget build(BuildContext context) {
     final currentYear = _academicYears[_currentYearIndex];
-
+    
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.transparent, 
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -190,8 +268,7 @@ class _HomeQuranState extends State<HomeQuran> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           child: Card(
                             elevation: 5,
                             shape: RoundedRectangleBorder(
@@ -215,17 +292,15 @@ class _HomeQuranState extends State<HomeQuran> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       IconButton(
-                                        icon: Icon(Icons.arrow_back_ios,
-                                            size: 18),
-                                        color: _currentYearIndex > 0
-                                            ? Color(0xFF2E3F7F)
+                                        icon: Icon(Icons.arrow_back_ios, size: 18),
+                                        color: _currentYearIndex > 0 
+                                            ? Color(0xFF2E3F7F) 
                                             : Colors.grey[400],
-                                        onPressed: _currentYearIndex > 0
-                                            ? () => _navigateYear(-1)
+                                        onPressed: _currentYearIndex > 0 
+                                            ? () => _navigateYear(-1) 
                                             : null,
                                         constraints: BoxConstraints(),
-                                        padding:
-                                            EdgeInsets.symmetric(horizontal: 8),
+                                        padding: EdgeInsets.symmetric(horizontal: 8),
                                         splashRadius: 20,
                                       ),
                                       Row(
@@ -277,48 +352,38 @@ class _HomeQuranState extends State<HomeQuran> {
                                         ],
                                       ),
                                       IconButton(
-                                        icon: Icon(Icons.arrow_forward_ios,
-                                            size: 18),
-                                        color: _currentYearIndex <
-                                                _academicYears.length - 1
-                                            ? Color(0xFF2E3F7F)
+                                        icon: Icon(Icons.arrow_forward_ios, size: 18),
+                                        color: _currentYearIndex < _academicYears.length - 1 
+                                            ? Color(0xFF2E3F7F) 
                                             : Colors.grey[400],
-                                        onPressed: _currentYearIndex <
-                                                _academicYears.length - 1
-                                            ? () => _navigateYear(1)
+                                        onPressed: _currentYearIndex < _academicYears.length - 1 
+                                            ? () => _navigateYear(1) 
                                             : null,
                                         constraints: BoxConstraints(),
-                                        padding:
-                                            EdgeInsets.symmetric(horizontal: 8),
+                                        padding: EdgeInsets.symmetric(horizontal: 8),
                                         splashRadius: 20,
                                       ),
                                     ],
                                   ),
                                   SizedBox(height: 15),
                                   Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                     children: [
                                       _buildEnhancedProgressIndicator(
                                         value: currentYear['hafalanProgress'],
                                         color: Colors.blue,
                                         label: 'Hafalan',
-                                        presentCount:
-                                            currentYear['hafalanPresent'],
-                                        absentCount:
-                                            currentYear['hafalanAbsent'],
+                                        presentCount: currentYear['hafalanPresent'],
+                                        absentCount: currentYear['hafalanAbsent'],
                                         totalCount: currentYear['hafalanTotal'],
                                       ),
                                       _buildEnhancedProgressIndicator(
                                         value: currentYear['kehadiranProgress'],
                                         color: Colors.green,
                                         label: 'Kehadiran',
-                                        presentCount:
-                                            currentYear['kehadiranPresent'],
-                                        absentCount:
-                                            currentYear['kehadiranAbsent'],
-                                        totalCount:
-                                            currentYear['kehadiranTotal'],
+                                        presentCount: currentYear['kehadiranPresent'],
+                                        absentCount: currentYear['kehadiranAbsent'],
+                                        totalCount: currentYear['kehadiranTotal'],
                                       ),
                                     ],
                                   ),
@@ -328,16 +393,14 @@ class _HomeQuranState extends State<HomeQuran> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           child: GalleryView(),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           child: NewsView(newsItems: newsItems),
                         ),
-                        SizedBox(height: 20),
+                        SizedBox(height: 20), 
                       ],
                     ),
                   ),
@@ -349,7 +412,7 @@ class _HomeQuranState extends State<HomeQuran> {
       ),
     );
   }
-
+  
   Widget _buildEnhancedProgressIndicator({
     required double value,
     required Color color,
@@ -359,79 +422,39 @@ class _HomeQuranState extends State<HomeQuran> {
     required int totalCount,
   }) {
     return InkWell(
-      onTap: _isLoading
-          ? null
-          : () async {
-              setState(() => _isLoading = true);
-              
-              // Show loading overlay
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (BuildContext context) {
-                  return WillPopScope(
-                    onWillPop: () async => false,
-                    child: Center(
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                width: 50,
-                                height: 50,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 3,
-                                  valueColor: AlwaysStoppedAnimation<Color>(color),
-                                ),
-                              ),
-                              SizedBox(height: 16),
-                              Text(
-                                'Memuat data...',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              );
-
-              try {
-                await Future.delayed(Duration(milliseconds: 800));
-                if (!mounted) return;
-
-                Navigator.pop(context); // Remove loading dialog
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SantriTablePage(
-                      academicYear: _academicYears[_currentYearIndex]['period'],
-                      category: label,
-                      progress: value,
-                      color: color,
-                    ),
-                  ),
-                );
-
-                if (mounted) {
-                  await _reloadProfileData();
-                }
-              } finally {
-                if (mounted) {
-                  setState(() => _isLoading = false);
-                }
-              }
-            },
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SantriTablePage(
+              academicYear: _academicYears[_currentYearIndex]['period'],
+              category: label,
+              progress: value,
+              color: color,
+              onDataUpdate: (updatedProgress, present, total) {
+                setState(() {
+                  if (label == 'Hafalan') {
+                    _academicYears[_currentYearIndex]['hafalanProgress'] = updatedProgress;
+                    _academicYears[_currentYearIndex]['hafalanPresent'] = present;
+                    _academicYears[_currentYearIndex]['hafalanTotal'] = total;
+                    _academicYears[_currentYearIndex]['hafalanAbsent'] = total - present;
+                  } else if (label == 'Kehadiran') {
+                    _academicYears[_currentYearIndex]['kehadiranProgress'] = updatedProgress;
+                    _academicYears[_currentYearIndex]['kehadiranPresent'] = present;
+                    _academicYears[_currentYearIndex]['kehadiranTotal'] = total;
+                    _academicYears[_currentYearIndex]['kehadiranAbsent'] = total - present;
+                  }
+                  _saveAcademicYearData(_currentYearIndex);
+                });
+                
+                print('Updated $label: $present/$total (${(updatedProgress * 100).toStringAsFixed(1)}%)');
+              },
+            ),
+          ),
+        ).then((_) {
+          setState(() {});
+        });
+      },
       child: Container(
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -493,23 +516,14 @@ class _HomeQuranState extends State<HomeQuran> {
               ],
             ),
             SizedBox(height: 10),
-            _isLoading
-                ? SizedBox(
-                    height: 14,
-                    width: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(color),
-                    ),
-                  )
-                : Text(
-                    'Lihat Detail',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
+            Text(
+              'Lihat Detail',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                decoration: TextDecoration.underline,
+              ),
+            ),
           ],
         ),
       ),
