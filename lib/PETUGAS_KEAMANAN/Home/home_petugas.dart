@@ -19,7 +19,7 @@ class _HomePetugasState extends State<HomePetugas> {
   List<Map<String, String>> _filteredDataPerizinan = [];
   final TextEditingController _searchController = TextEditingController();
   String? _selectedKelas;
-  DateTimeRange? _selectedDateRange;
+  String? _selectedDate; // Change to a single date
   int _currentIndex = 0;
 
   @override
@@ -36,29 +36,24 @@ class _HomePetugasState extends State<HomePetugas> {
             .contains(_searchController.text.toLowerCase());
         final matchesKelas = _selectedKelas == null ||
             data['kelas'] == _selectedKelas;
-        final matchesDate = _selectedDateRange == null ||
-            (_isDateInRange(data['tanggalIzin']!) ||
-                _isDateInRange(data['tanggalKembali']!));
+        final matchesDate = _selectedDate == null ||
+            data['tanggalIzin'] == _selectedDate ||
+            data['tanggalKembali'] == _selectedDate;
         return matchesName && matchesKelas && matchesDate;
       }).toList();
     });
   }
 
-  bool _isDateInRange(String date) {
-    final parsedDate = DateTime.parse(date.split('-').reversed.join('-'));
-    return _selectedDateRange!.start.isBefore(parsedDate) &&
-        _selectedDateRange!.end.isAfter(parsedDate);
-  }
-
-  void _selectDateRange(BuildContext context) async {
-    final picked = await showDateRangePicker(
+  void _selectDate(BuildContext context) async {
+    final picked = await showDatePicker(
       context: context,
+      initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
     if (picked != null) {
       setState(() {
-        _selectedDateRange = picked;
+        _selectedDate = "${picked.day}-${picked.month}-${picked.year}";
         _applyFilters();
       });
     }
@@ -567,11 +562,9 @@ class _HomePetugasState extends State<HomePetugas> {
                     fillColor: Colors.white,
                     contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   ),
-                  onTap: () => _selectDateRange(context),
+                  onTap: () => _selectDate(context), // Use single date picker
                   controller: TextEditingController(
-                    text: _selectedDateRange == null
-                        ? ''
-                        : "${_selectedDateRange!.start.toLocal()} - ${_selectedDateRange!.end.toLocal()}".split(' ')[0],
+                    text: _selectedDate ?? '',
                   ),
                 ),
               ),
