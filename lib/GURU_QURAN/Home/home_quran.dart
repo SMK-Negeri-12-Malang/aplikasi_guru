@@ -16,7 +16,6 @@ class HomeQuran extends StatefulWidget {
     this.name,
     this.email,
   });
-  // add 
 
   @override
   State<HomeQuran> createState() => _HomeQuranState();
@@ -160,19 +159,38 @@ class _HomeQuranState extends State<HomeQuran> {
       if (santriList.isNotEmpty) {
         int totalSantri = santriList.length;
         
+        // Load saved attendance data from shared preferences
+        final hafalanKey = '${year['period']}_Hafalan_attendance';
+        final kehadiranKey = '${year['period']}_Kehadiran_attendance';
+        
+        final prefs = await SharedPreferences.getInstance();
+        final hafalanData = prefs.getString(hafalanKey);
+        final kehadiranData = prefs.getString(kehadiranKey);
+        
         int hafalanPresent = totalSantri;
         int kehadiranPresent = totalSantri;
+        
+        // Calculate actual present students from saved data
+        if (hafalanData != null) {
+          Map<String, dynamic> hafalanMap = json.decode(hafalanData);
+          hafalanPresent = hafalanMap.values.where((value) => value == true).length;
+        }
+        
+        if (kehadiranData != null) {
+          Map<String, dynamic> kehadiranMap = json.decode(kehadiranData);
+          kehadiranPresent = kehadiranMap.values.where((value) => value == true).length;
+        }
         
         setState(() {
           year['hafalanTotal'] = totalSantri;
           year['hafalanPresent'] = hafalanPresent;
           year['hafalanAbsent'] = totalSantri - hafalanPresent;
-          year['hafalanProgress'] = hafalanPresent / totalSantri;
+          year['hafalanProgress'] = totalSantri > 0 ? hafalanPresent / totalSantri : 0.0;
           
           year['kehadiranTotal'] = totalSantri;
           year['kehadiranPresent'] = kehadiranPresent;
           year['kehadiranAbsent'] = totalSantri - kehadiranPresent;
-          year['kehadiranProgress'] = kehadiranPresent / totalSantri;
+          year['kehadiranProgress'] = totalSantri > 0 ? kehadiranPresent / totalSantri : 0.0;
         });
         
         _saveAcademicYearData(i);
