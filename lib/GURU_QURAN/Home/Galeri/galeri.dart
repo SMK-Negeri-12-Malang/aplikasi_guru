@@ -83,7 +83,11 @@ class GalleryView extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () => _showDetailGaleri(context),
-                  child: Text('Lihat Semua'),
+                  child: Text('Lihat Semua',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                  ),),
                 ),
               ],
             ),

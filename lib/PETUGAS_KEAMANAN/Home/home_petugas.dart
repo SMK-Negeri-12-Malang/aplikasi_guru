@@ -4,6 +4,9 @@ import 'package:aplikasi_guru/PETUGAS_KEAMANAN/profil/profil.dart';
 import 'package:aplikasi_guru/PETUGAS_KEAMANAN/Perizinan/masuk.dart';
 import 'package:aplikasi_guru/PETUGAS_KEAMANAN/Perizinan/keluar.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePetugas extends StatefulWidget {
   @override
@@ -14,18 +17,43 @@ class _HomePetugasState extends State<HomePetugas> {
   String _name = 'Nama Petugas';
   String _email = 'email@domain.com';
   String? _profileImagePath;
-  List<Map<String, String>> _dataPerizinan = []; // Hapus data statik
-  List<Map<String, dynamic>> _newsList = []; // No static news data
-  List<Map<String, String>> _filteredDataPerizinan = [];
+  List<Map<String, dynamic>> _dataPerizinan = [];
+  List<Map<String, dynamic>> _filteredDataPerizinan = [];
+  List<Map<String, dynamic>> _newsList = [];
   final TextEditingController _searchController = TextEditingController();
   String? _selectedKelas;
-  String? _selectedDate; // Change to a single date
+  String? _selectedDate;
   int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
+    _loadDataFromLocal();
     _searchController.addListener(_applyFilters);
+  }
+
+  Future<void> _loadDataFromLocal() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> dataJson = prefs.getStringList('perizinan_data') ?? [];
+    
+    setState(() {
+      _dataPerizinan = dataJson
+          .map((str) => json.decode(str) as Map<String, dynamic>)
+          .toList();
+      // Sort by timestamp to show newest first
+      _dataPerizinan.sort((a, b) => 
+          (b['timestamp'] ?? '').compareTo(a['timestamp'] ?? ''));
+      _filteredDataPerizinan = List.from(_dataPerizinan);
+      _applyFilters();
+    });
+  }
+
+  Future<void> _updateLocalStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> updatedDataJson = _dataPerizinan
+        .map((data) => json.encode(data))
+        .toList();
+    await prefs.setStringList('perizinan_data', updatedDataJson);
   }
 
   void _applyFilters() {
@@ -59,27 +87,43 @@ class _HomePetugasState extends State<HomePetugas> {
     }
   }
 
-  // Navigation method for profile
   void _navigateToProfilePage() {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => profilsatpam(
-        ),
+        builder: (context) => profilsatpam(),
       ),
     );
   }
 
   void _navigateToMasukPage() async {
+    if (_dataPerizinan.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Tidak ada data perizinan')),
+      );
+      return;
+    }
+
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => MasukPage()),
+      MaterialPageRoute(
+        builder: (context) => MasukPage(izinList: _dataPerizinan),
+      ),
     );
     if (result != null) {
       setState(() {
-        _dataPerizinan.add(result);
-        _applyFilters(); // Ensure the new data is reflected in the filtered list
+        for (var returnedStudent in result) {
+          int index = _dataPerizinan.indexWhere(
+              (data) => data['nama'] == returnedStudent['nama']);
+          if (index != -1) {
+            _dataPerizinan[index]['status'] = 'Masuk';
+            _dataPerizinan[index]['isKembali'] = true;
+          }
+        }
+        _filteredDataPerizinan = List.from(_dataPerizinan);
+        _applyFilters();
       });
+      await _updateLocalStorage(); // Save changes to local storage
     }
   }
 
@@ -89,10 +133,8 @@ class _HomePetugasState extends State<HomePetugas> {
       MaterialPageRoute(builder: (context) => KeluarPage()),
     );
     if (result != null) {
-      setState(() {
-        _dataPerizinan.add(result);
-        _applyFilters(); // Ensure the new data is reflected in the filtered list
-      });
+      // Reload data from SharedPreferences after new data is added
+      await _loadDataFromLocal();
     }
   }
 
@@ -229,7 +271,7 @@ class _HomePetugasState extends State<HomePetugas> {
   Widget _buildProfileSection() {
     return Padding(
       padding: EdgeInsets.only(
-          top: 50, left: 20, right: 20, bottom: 20), // Adjusted padding
+          top: 50, left: 20, right: 20, bottom: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -241,13 +283,13 @@ class _HomePetugasState extends State<HomePetugas> {
               child: Row(
                 children: [
                   CircleAvatar(
-                    radius: 25, // Match size with home_musyrif
+                    radius: 25,
                     backgroundColor: Colors.white,
                     backgroundImage: _profileImagePath != null
                         ? FileImage(File(_profileImagePath!))
                         : AssetImage('assets/profile_picture.png') as ImageProvider,
                   ),
-                  SizedBox(width: 10), // Match spacing with home_musyrif
+                  SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -255,7 +297,7 @@ class _HomePetugasState extends State<HomePetugas> {
                         _name,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 20, // Match font size with home_musyrif
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -263,7 +305,7 @@ class _HomePetugasState extends State<HomePetugas> {
                         _email,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 16, // Match font size with home_musyrif
+                          fontSize: 16,
                         ),
                       ),
                     ],
@@ -281,12 +323,12 @@ class _HomePetugasState extends State<HomePetugas> {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 15),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20), // Increased border radius
+        borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.12), // Reduced opacity
+              color: Colors.white.withOpacity(0.12),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: Colors.white.withOpacity(0.2),
@@ -294,7 +336,7 @@ class _HomePetugasState extends State<HomePetugas> {
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(20), // Increased padding
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -320,7 +362,7 @@ class _HomePetugasState extends State<HomePetugas> {
                   SizedBox(height: 20),
                   _newsList.isEmpty
                       ? Container(
-                          height: 120, // Increased height for the card
+                          height: 120,
                           child: Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -328,14 +370,14 @@ class _HomePetugasState extends State<HomePetugas> {
                                 Icon(
                                   Icons.warning_amber_rounded,
                                   color: Colors.white.withOpacity(0.8),
-                                  size: 50, // Reduced icon size
+                                  size: 50,
                                 ),
-                                SizedBox(height: 10), // Reduced spacing
+                                SizedBox(height: 10),
                                 Text(
                                   'Belum ada berita',
                                   style: TextStyle(
                                     color: Colors.white.withOpacity(0.8),
-                                    fontSize: 16, // Reduced font size
+                                    fontSize: 16,
                                   ),
                                 ),
                               ],
@@ -472,8 +514,8 @@ class _HomePetugasState extends State<HomePetugas> {
           ),
           SizedBox(height: 10),
           Divider(
-            color: Colors.white70, // Warna garis
-            thickness: 1.5, // Ketebalan garis
+            color: Colors.white70,
+            thickness: 1.5,
           ),
           SizedBox(height: 10),
           _buildFilterSection(),
@@ -562,7 +604,7 @@ class _HomePetugasState extends State<HomePetugas> {
                     fillColor: Colors.white,
                     contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   ),
-                  onTap: () => _selectDate(context), // Use single date picker
+                  onTap: () => _selectDate(context),
                   controller: TextEditingController(
                     text: _selectedDate ?? '',
                   ),
@@ -589,61 +631,36 @@ class _HomePetugasState extends State<HomePetugas> {
     );
   }
 
-  Widget _buildPerizinanCard(Map<String, String> data) {
-    return GestureDetector(
-      onTap: () => _showBottomSheet(data),
-      child: Container(
-        margin: EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 5,
-              offset: Offset(0, 2),
-            ),
-          ],
+  Widget _buildPerizinanCard(Map<String, dynamic> data) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 10),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        title: Text(
+          data['nama'] ?? '',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        padding: EdgeInsets.all(10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data['nama']!,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Tanggal Izin: ${data['tanggalIzin']}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                Text(
-                  'Tanggal Kembali: ${data['tanggalKembali']}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[700],
-                  ),
-                ),
-              ],
-            ),
-            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[700]),
+            Text('Kamar: ${data['kamar']} | Kelas: ${data['kelas']}'),
+            Text('Status: ${data['status']}'),
+            Text('Tanggal Izin: ${data['tanggalIzin']}'),
           ],
         ),
+        trailing: Icon(
+          data['status'] == 'Masuk' ? Icons.check_circle : Icons.pending,
+          color: data['status'] == 'Masuk' ? Colors.green : Colors.orange,
+        ),
+        onTap: () => _showBottomSheet(data),
       ),
     );
   }
 
-  void _showBottomSheet(Map<String, String> data) {
+  void _showBottomSheet(Map<String, dynamic> data) {
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -675,15 +692,15 @@ class _HomePetugasState extends State<HomePetugas> {
                 ),
               ),
               SizedBox(height: 16),
-              _buildDetailRow('Nama', data['nama']!),
-              _buildDetailRow('Kamar', data['kamar']!),
-              _buildDetailRow('Kelas', data['kelas']!),
-              _buildDetailRow('Halaqoh', data['halaqoh']!),
-              _buildDetailRow('Musyrif', data['musyrif']!),
-              _buildDetailRow('Keperluan', data['keperluan']!),
-              _buildDetailRow('Tanggal Izin', data['tanggalIzin']!),
-              _buildDetailRow('Tanggal Kembali', data['tanggalKembali']!),
-              _buildDetailRow('Status', data['status']!),
+              _buildDetailRow('Nama', data['nama'] ?? ''),
+              _buildDetailRow('Kamar', data['kamar'] ?? ''),
+              _buildDetailRow('Kelas', data['kelas'] ?? ''),
+              _buildDetailRow('Halaqoh', data['halaqoh'] ?? ''),
+              _buildDetailRow('Musyrif', data['musyrif'] ?? ''),
+              _buildDetailRow('Keperluan', data['keperluan'] ?? ''),
+              _buildDetailRow('Tanggal Izin', data['tanggalIzin'] ?? ''),
+              _buildDetailRow('Tanggal Kembali', data['tanggalKembali'] ?? ''),
+              _buildDetailRow('Status', data['status'] ?? ''),
               SizedBox(height: 16),
               Center(
                 child: ElevatedButton(
