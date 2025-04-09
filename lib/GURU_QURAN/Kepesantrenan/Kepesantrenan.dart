@@ -385,7 +385,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
             ),
             const SizedBox(height: 5),
             Text(
-              'Program Tahfidz & Tahsin',
+              'Program Tahfidz & Tahsin',//tes
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.white.withOpacity(0.9),
