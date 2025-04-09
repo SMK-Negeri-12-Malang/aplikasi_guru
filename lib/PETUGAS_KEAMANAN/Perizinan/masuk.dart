@@ -1,65 +1,118 @@
-import 'package:aplikasi_guru/ANIMASI/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'history.dart';
 
 class MasukPage extends StatefulWidget {
+  final List<Map<String, dynamic>> izinList;
+
+  MasukPage({required this.izinList});
+
   @override
   _MasukPageState createState() => _MasukPageState();
 }
 
 class _MasukPageState extends State<MasukPage> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _siswaController = TextEditingController();
-  final TextEditingController _kamarController = TextEditingController();
-  final TextEditingController _halaqohController = TextEditingController();
-  final TextEditingController _musyrifController = TextEditingController();
-  final TextEditingController _keperluanController = TextEditingController();
-  final TextEditingController _tanggalIzinController = TextEditingController();
-  final TextEditingController _tanggalKembaliController = TextEditingController();
+  late List<Map<String, dynamic>> _izinList;
+  late List<Map<String, dynamic>> _filteredIzinList;
+  final TextEditingController _searchController = TextEditingController();
+  String? _selectedKelas;
+  String? _selectedDate;
 
-  final List<String> _kelasOptions = ['Kelas 1', 'Kelas 2', 'Kelas 3']; // Add class options
-  String? _selectedKelas = 'Kelas 1'; // Default selected class
+  @override
+  void initState() {
+    super.initState();
+    _izinList = widget.izinList
+        .where((data) => data['status'] == 'Keluar')
+        .map((data) => Map<String, dynamic>.from(data))
+        .toList();
+    _filteredIzinList = List.from(_izinList);
+    _searchController.addListener(_applyFilters);
+  }
 
-  Future<void> _selectDateRange(BuildContext context) async {
-    DateTimeRange? picked = await showDateRangePicker(
+  void _applyFilters() {
+    setState(() {
+      _filteredIzinList = _izinList.where((data) {
+        final matchesName = data['nama']!
+            .toLowerCase()
+            .contains(_searchController.text.toLowerCase());
+        final matchesKelas = _selectedKelas == null ||
+            data['kelas'] == _selectedKelas;
+        final matchesDate = _selectedDate == null ||
+            data['tanggalIzin'] == _selectedDate ||
+            data['tanggalKembali'] == _selectedDate;
+        return matchesName && matchesKelas && matchesDate;
+      }).toList();
+    });
+  }
+
+  void _selectDate(BuildContext context) async {
+    final picked = await showDatePicker(
       context: context,
+      initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
-      initialDateRange: DateTimeRange(
-        start: DateTime.now(),
-        end: DateTime.now().add(Duration(days: 1)),
-      ),
     );
     if (picked != null) {
       setState(() {
-        _tanggalIzinController.text =
-            "${picked.start.day}-${picked.start.month}-${picked.start.year}";
-        _tanggalKembaliController.text =
-            "${picked.end.day}-${picked.end.month}-${picked.end.year}";
+        _selectedDate = "${picked.day}-${picked.month}-${picked.year}";
+        _applyFilters();
       });
     }
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      final data = {
-        'nama': _siswaController.text,
-        'kamar': _kamarController.text,
-        'kelas': _selectedKelas!, // Use selected class
-        'halaqoh': _halaqohController.text,
-        'musyrif': _musyrifController.text,
-        'keperluan': _keperluanController.text,
-        'tanggalIzin': _tanggalIzinController.text,
-        'tanggalKembali': _tanggalKembaliController.text,
-        'status': 'Masuk',
-      };
-      Navigator.pop(context, data);
+  void _toggleKembali(int index) {
+    setState(() {
+      _filteredIzinList[index]['isKembali'] =
+          !_filteredIzinList[index]['isKembali'];
+    });
+  }
+
+  void _saveAndReturn() async {
+    final returnedStudents = _filteredIzinList
+        .where((data) => data['isKembali'] == true)
+        .map((data) => Map<String, dynamic>.from(data))
+        .toList();
+
+    final prefs = await SharedPreferences.getInstance();
+    List<String> allDataJson = prefs.getStringList('perizinan_data') ?? [];
+    List<Map<String, dynamic>> allData = allDataJson
+        .map((str) => json.decode(str) as Map<String, dynamic>)
+        .toList();
+
+    for (var returnedStudent in returnedStudents) {
+      int index =
+          allData.indexWhere((data) => data['nama'] == returnedStudent['nama']);
+      if (index != -1) {
+        allData[index]['status'] = 'Masuk';
+        allData[index]['isKembali'] = true;
+      }
     }
+
+    await prefs.setStringList('perizinan_data',
+        allData.map((data) => json.encode(data)).toList());
+
+    Navigator.pop(context, returnedStudents);
+  }
+
+  void _loadDataFromLocal() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> allDataJson = prefs.getStringList('perizinan_data') ?? [];
+    List<Map<String, dynamic>> allData = allDataJson
+        .map((str) => json.decode(str) as Map<String, dynamic>)
+        .toList();
+
+    setState(() {
+      _izinList = allData
+          .where((data) => data['status'] == 'Keluar')
+          .map((data) => Map<String, dynamic>.from(data))
+          .toList();
+      _filteredIzinList = List.from(_izinList);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(80),
@@ -68,153 +121,192 @@ class _MasukPageState extends State<MasukPage> {
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              Navigator.pop(context);
-            },
+            onPressed: _saveAndReturn,
           ),
           title: Text(
-            'Formulir Masuk',
+            'Daftar Santri Izin',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(20),
-            ),
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
           ),
         ),
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(screenWidth * 0.05),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildTextField(_siswaController, 'Nama Siswa', Icons.person),
-                        SizedBox(height: 16),
-                        _buildTextField(_kamarController, 'Kamar', Icons.room),
-                        SizedBox(height: 16),
-                        _buildDropdownField('Kelas', Icons.class_), // Replace text field with dropdown
-                        SizedBox(height: 16),
-                        _buildTextField(_halaqohController, 'Halaqoh', Icons.group),
-                        SizedBox(height: 16),
-                        _buildTextField(_musyrifController, 'Musyrif', Icons.supervisor_account),
-                        SizedBox(height: 16),
-                        _buildTextField(_keperluanController, 'Keperluan', Icons.note),
-                        SizedBox(height: 16),
-                        _buildDateField(_tanggalIzinController, 'Tanggal Izin', Icons.calendar_today, () => _selectDateRange(context)),
-                        SizedBox(height: 16),
-                        _buildDateField(_tanggalKembaliController, 'Tanggal Kembali', Icons.calendar_today, null, readOnly: true),
-                        SizedBox(height: 24),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF2E3F7F),
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedKelas,
+                        decoration: InputDecoration(
+                          labelText: "Pilih Kelas",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          onPressed: _submitForm,
-                          child: Text(
-                            'Simpan Data',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                          filled: true,
+                          fillColor: Colors.white,
                         ),
-                      ],
+                        items: ['Kelas 1', 'Kelas 2', 'Kelas 3']
+                            .map((kelas) => DropdownMenuItem(
+                                  value: kelas,
+                                  child: Text(kelas),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedKelas = value;
+                            _applyFilters();
+                          });
+                        },
+                      ),
                     ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: TextFormField(
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: "Pilih Tanggal",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        onTap: () => _selectDate(context),
+                        controller: TextEditingController(
+                          text: _selectedDate ?? '',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                TextFormField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: "Cari Nama Santri",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    suffixIcon: Icon(Icons.search),
                   ),
                 ),
-              ),
+              ],
             ),
+          ),
+          Expanded(
+            child: _filteredIzinList.isEmpty
+                ? Center(
+                    child: Text('Tidak ada santri yang sedang izin',
+                        style: TextStyle(fontSize: 16)),
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.all(16),
+                    itemCount: _filteredIzinList.length,
+                    itemBuilder: (context, index) {
+                      final izin = _filteredIzinList[index];
+                      return Card(
+                        margin: EdgeInsets.only(bottom: 12),
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: CheckboxListTile(
+                          value: izin['isKembali'] ?? false,
+                          onChanged: (_) => _toggleKembali(index),
+                          title: Text(
+                            izin['nama'],
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  'Kamar: ${izin['kamar']} | Kelas: ${izin['kelas']}'),
+                              Text('Keperluan: ${izin['keperluan']}'),
+                              Text('Tanggal Izin: ${izin['tanggalIzin']}'),
+                              Text('Tanggal Kembali: ${izin['tanggalKembali']}'),
+                            ],
+                          ),
+                          secondary: Icon(
+                            izin['isKembali'] == true
+                                ? Icons.check_circle
+                                : Icons.pending,
+                            color: izin['isKembali'] == true
+                                ? Colors.green
+                                : Colors.orange,
+                          ),
+                          contentPadding: EdgeInsets.all(12),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: Offset(0, -1),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          child: ElevatedButton(
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HistoryPage()),
+              );
+              _loadDataFromLocal();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 33, 93, 153),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.history, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'Riwayat Perizinan',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool readOnly = false}) {
-    return TextFormField(
-      controller: controller,
-      readOnly: readOnly,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Color(0xFF2E3F7F)),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Field ini wajib diisi';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildDateField(TextEditingController controller, String label, IconData icon, VoidCallback? onTap, {bool readOnly = false}) {
-    return TextFormField(
-      controller: controller,
-      readOnly: readOnly || onTap == null,
-      onTap: onTap,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Color(0xFF2E3F7F)),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Field ini wajib diisi';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildDropdownField(String label, IconData icon) {
-    return DropdownButtonFormField<String>(
-      value: _selectedKelas,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Color(0xFF2E3F7F)),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-      ),
-      onChanged: (String? newValue) {
-        setState(() {
-          _selectedKelas = newValue;
-        });
-      },
-      items: _kelasOptions.map((kelas) {
-        return DropdownMenuItem(
-          value: kelas,
-          child: Text(kelas),
-        );
-      }).toList(),
-    );
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 }
+
+

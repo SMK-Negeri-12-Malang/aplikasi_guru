@@ -1,5 +1,8 @@
 import 'package:aplikasi_guru/ANIMASI/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 class KeluarPage extends StatefulWidget {
   @override
@@ -39,20 +42,61 @@ class _KeluarPageState extends State<KeluarPage> {
     }
   }
 
-  void _submitForm() {
+  Future<void> _saveToLocalStorage(Map<String, dynamic> newData) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> existingDataJson = prefs.getStringList('perizinan_data') ?? [];
+      List<Map<String, dynamic>> existingData = existingDataJson
+          .map((str) => json.decode(str) as Map<String, dynamic>)
+          .toList();
+      
+      existingData.add(newData);
+      List<String> updatedDataJson = existingData
+          .map((data) => json.encode(data))
+          .toList();
+          
+      await prefs.setStringList('perizinan_data', updatedDataJson);
+    } catch (e) {
+      print('Error saving data: $e');
+      throw e;
+    }
+  }
+
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      final data = {
-        'nama': _siswaController.text,
-        'kamar': _kamarController.text,
-        'kelas': _selectedKelas!, // Use selected class
-        'halaqoh': _halaqohController.text,
-        'musyrif': _musyrifController.text,
-        'keperluan': _keperluanController.text,
-        'tanggalIzin': _tanggalIzinController.text,
-        'tanggalKembali': _tanggalKembaliController.text,
-        'status': 'Keluar',
-      };
-      Navigator.pop(context, data);
+      try {
+        final data = {
+          'nama': _siswaController.text,
+          'kamar': _kamarController.text,
+          'kelas': _selectedKelas!,
+          'halaqoh': _halaqohController.text,
+          'musyrif': _musyrifController.text,
+          'keperluan': _keperluanController.text,
+          'tanggalIzin': _tanggalIzinController.text,
+          'tanggalKembali': _tanggalKembaliController.text,
+          'status': 'Keluar',
+          'isKembali': false,
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+
+        await _saveToLocalStorage(data);
+
+        // Clear form
+        _formKey.currentState!.reset();
+        _selectedKelas = 'Kelas 1';
+        _tanggalIzinController.clear();
+        _tanggalKembaliController.clear();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Data berhasil disimpan')),
+        );
+
+        Navigator.pop(context, true); // Return true to indicate success
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyimpan data')),
+        );
+      }
     }
   }
 
