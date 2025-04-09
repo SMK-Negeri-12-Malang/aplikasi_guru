@@ -1,19 +1,53 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import '../../SERVICE/Service_Musyrif/data_siswa.dart';
 import 'package:intl/intl.dart'; // Add this import
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Kepesantrenan extends StatefulWidget {
   const Kepesantrenan({super.key});
 
   @override
   State<Kepesantrenan> createState() => _KepesantrenanState();
+
+  // Add a static method to get top scores
+  static List<Map<String, dynamic>> getTopScores(
+      Map<String, Map<String, String>> hafalanData) {
+    List<Map<String, dynamic>> scores = hafalanData.entries.map((entry) {
+      return {
+        'id': entry.key,
+        'name': DataSiswa.getMockSiswa()
+            .firstWhere((s) => s['id'] == entry.key)['name'],
+        'score': _convertGradeToScore(entry.value['nilai'] ?? 'Maqbul'),
+      };
+    }).toList();
+
+    scores.sort((a, b) => b['score'].compareTo(a['score']));
+    return scores.take(10).toList(); // Return top 10 scores
+  }
+
+  static int _convertGradeToScore(String grade) {
+    switch (grade) {
+      case 'Mumtaz':
+        return 100;
+      case 'Jayyid Jiddan':
+        return 90;
+      case 'Jayyid':
+        return 80;
+      case 'Maqbul':
+        return 70;
+      default:
+        return 0;
+    }
+  }
 }
 
 class _KepesantrenanState extends State<Kepesantrenan> {
-  // Add theme colors
-  final Color primaryColor = const Color(0xFF1E88E5);
-  final Color secondaryColor = const Color(0xFFE3F2FD);
-  final Color accentColor = const Color(0xFF64B5F6);
+  // Update theme colors to match the leaderboard
+  final Color primaryColor = const Color(0xFF1D2842); // Dark blue
+  final Color secondaryColor = const Color(0xFF2E3F7F); // Slightly lighter blue
+  final Color accentColor = const Color(0xFF3E4E8C); // Accent blue
 
   String selectedSession = 'Sesi 1';
   String selectedDate = DateTime.now().toString().split(' ')[0];
@@ -34,6 +68,42 @@ class _KepesantrenanState extends State<Kepesantrenan> {
 
   // Add new map to store data by date
   Map<String, Map<String, Map<String, String>>> hafalanDataByDate = {};
+
+  late SharedPreferences _prefs;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedData();
+  }
+
+  Future<void> _loadSavedData() async {
+    _prefs = await SharedPreferences.getInstance();
+    setState(() {
+      // Load hafalanDataByDate from SharedPreferences
+      String? savedData = _prefs.getString('hafalanDataByDate');
+      if (savedData != null) {
+        hafalanDataByDate = Map<String, Map<String, Map<String, String>>>.from(
+          (Map<String, dynamic>.from(
+            Map<String, dynamic>.from(
+              json.decode(savedData),
+            ),
+          )),
+        );
+      }
+    });
+  }
+
+  Future<void> _saveData() async {
+    // Save hafalanDataByDate to SharedPreferences
+    await _prefs.setString('hafalanDataByDate', json.encode(hafalanDataByDate));
+  }
+
+  @override
+  void dispose() {
+    _saveData(); // Save data when the page is disposed
+    super.dispose();
+  }
 
   List<Map<String, dynamic>> getFilteredStudents(String type) {
     final students = DataSiswa.getMockSiswa()
@@ -141,6 +211,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                       hafalanDataByDate[selectedDate] = Map.from(hafalanData);
                       selectedStudents.add(student['id']);
                     });
+                    _saveData(); // Save data after updating
                     Navigator.of(context).pop();
                   },
                   child: const Text('Simpan'),
@@ -176,9 +247,8 @@ class _KepesantrenanState extends State<Kepesantrenan> {
             title: Text(
               student['name'],
               style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-                fontSize: 16,
+                //fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
             ),
             subtitle: Column(
@@ -191,7 +261,6 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: secondaryColor,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -200,14 +269,26 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                       ),
                     ),
                     if (hasHafalan) ...[
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Surat ${studentHafalan['surat']} '
-                          '(${studentHafalan['ayatAwal']}-${studentHafalan['ayatAkhir']})',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.green,
+                      // const SizedBox(width: 2),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 15),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: secondaryColor
+                                .withOpacity(0.5), // Warna latar belakang
+                            borderRadius:
+                                BorderRadius.circular(8), // Sudut melengkung
+                          ),
+                          child: Text(
+                            'Surat ${studentHafalan['surat']} '
+                            '(${studentHafalan['ayatAwal']}-${studentHafalan['ayatAkhir']})',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: accentColor,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ),
@@ -217,13 +298,13 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                 if (hasHafalan) ...[
                   const SizedBox(height: 4),
                   Padding(
-                    padding: const EdgeInsets.only(left: 75),
+                    padding: const EdgeInsets.only(left: 90),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: secondaryColor.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         'Nilai: ${studentHafalan['nilai']}',
@@ -282,7 +363,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: primaryColor,
+        backgroundColor: primaryColor, // Use updated primary color
         elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -299,11 +380,12 @@ class _KepesantrenanState extends State<Kepesantrenan> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 24,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 5),
             Text(
-              'Program Tahfidz & Tahsin',
+              'Program Tahfidz & Tahsin',//tes
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.white.withOpacity(0.9),
@@ -353,6 +435,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                   height: 120,
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   margin: const EdgeInsets.symmetric(vertical: 8),
+                  // Hilangkan warna latar belakang putih
                   child: PageView(
                     onPageChanged: (int page) {
                       setState(() {
@@ -434,6 +517,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
           hafalanData = hafalanDataByDate[newDate] ?? {};
           selectedStudents.clear();
         });
+        _saveData(); // Save data after adding a new date
       }
     } catch (e) {
       print('Date picker error: $e');
@@ -441,69 +525,31 @@ class _KepesantrenanState extends State<Kepesantrenan> {
   }
 
   Widget _buildDropdown(List<String> items, String value, String hint) {
-    if (hint == 'Tanggal') {
-      return Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: secondaryColor,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: primaryColor.withOpacity(0.2)),
-            ),
-            child: DropdownButton<String>(
-              value: value,
-              underline: Container(),
-              icon: Icon(Icons.arrow_drop_down, color: primaryColor),
-              style:
-                  TextStyle(color: primaryColor, fontWeight: FontWeight.w500),
-              items: [
-                ...items.map((String item) {
-                  return DropdownMenuItem<String>(
-                    value: item,
-                    child: Text(item),
-                  );
-                }),
-                const DropdownMenuItem<String>(
-                  value: 'more',
-                  child: Text('Lihat Lainnya...'),
-                ),
-              ],
-              onChanged: (String? newValue) {
-                if (newValue == 'more') {
-                  _showDatePicker();
-                } else if (newValue != null) {
-                  setState(() {
-                    hafalanDataByDate[selectedDate] = Map.from(hafalanData);
-                    selectedDate = newValue;
-                    hafalanData = hafalanDataByDate[newValue] ?? {};
-                    selectedStudents.clear();
-                  });
-                }
-              },
-            ),
-          ),
-        ],
-      );
-    }
-
-    // Return original dropdown for other cases
+    // Mengatur tampilan dropdown untuk Sesi, Tanggal, dan Tingkatan
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: secondaryColor,
+        color: secondaryColor, // Warna latar belakang dropdown
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: primaryColor.withOpacity(0.2)),
       ),
       child: DropdownButton<String>(
         value: value,
         underline: Container(),
-        icon: Icon(Icons.arrow_drop_down, color: primaryColor),
-        style: TextStyle(color: primaryColor, fontWeight: FontWeight.w500),
+        icon: Icon(Icons.arrow_drop_down,
+            color: Colors.white), // Warna ikon dropdown diubah menjadi putih
+        style: const TextStyle(
+            color: Colors.white,
+            fontWeight:
+                FontWeight.w500), // Warna teks dropdown diubah menjadi putih
+        dropdownColor: secondaryColor, // Warna latar belakang menu dropdown
         items: items.map((String item) {
           return DropdownMenuItem<String>(
             value: item,
-            child: Text(item),
+            child: Text(item,
+                style: const TextStyle(
+                    color: Colors
+                        .white)), // Warna teks item dropdown diubah menjadi putih
           );
         }).toList(),
         onChanged: (String? newValue) {
@@ -512,10 +558,8 @@ class _KepesantrenanState extends State<Kepesantrenan> {
               if (hint == 'Sesi') {
                 selectedSession = newValue;
               } else if (hint == 'Tanggal') {
-                // Save current data before changing date
                 hafalanDataByDate[selectedDate] = Map.from(hafalanData);
                 selectedDate = newValue;
-                // Clear current data when changing date
                 hafalanData = hafalanDataByDate[newValue] ?? {};
                 selectedStudents.clear();
               } else if (hint == 'Tingkat') {

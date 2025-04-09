@@ -16,6 +16,7 @@ class HomeQuran extends StatefulWidget {
     this.name,
     this.email,
   });
+  // add 
 
   @override
   State<HomeQuran> createState() => _HomeQuranState();
