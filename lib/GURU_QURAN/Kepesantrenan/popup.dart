@@ -105,7 +105,7 @@ class _PopupInputState extends State<PopupInput> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                contentPadding:
+                contentPadding: // a
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
               items: widget.grades.map((String grade) {
