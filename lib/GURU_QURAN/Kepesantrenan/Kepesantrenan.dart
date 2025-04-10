@@ -10,7 +10,6 @@ class Kepesantrenan extends StatefulWidget {
   @override
   State<Kepesantrenan> createState() => _KepesantrenanState();
 
-  
   static List<Map<String, dynamic>> getTopScores(
       Map<String, Map<String, String>> hafalanData) {
     List<Map<String, dynamic>> scores = hafalanData.entries.map((entry) {
@@ -23,7 +22,7 @@ class Kepesantrenan extends StatefulWidget {
     }).toList();
 
     scores.sort((a, b) => b['score'].compareTo(a['score']));
-    return scores.take(10).toList(); 
+    return scores.take(10).toList();
   }
 
   static int _convertGradeToScore(String grade) {
@@ -43,10 +42,10 @@ class Kepesantrenan extends StatefulWidget {
 }
 
 class _KepesantrenanState extends State<Kepesantrenan> {
-  
-  final Color primaryColor = const Color(0xFF1D2842); 
-  final Color secondaryColor = const Color(0xFF2E3F7F); 
-  final Color accentColor = const Color(0xFF3E4E8C); 
+  // Update theme colors to be slightly darker
+  final Color primaryColor = const Color(0xFF0B3C91); // Darker blue for AppBar
+  final Color secondaryColor = const Color(0xFF165AA3); // Slightly darker blue
+  final Color accentColor = const Color(0xFF2E7BCF); // Slightly darker accent
 
   String selectedSession = 'Sesi 1';
   String selectedDate = DateTime.now().toString().split(' ')[0];
@@ -63,12 +62,12 @@ class _KepesantrenanState extends State<Kepesantrenan> {
 
   int _currentPage = 0;
   Map<String, Map<String, String>> hafalanData = {};
-  Set<String> selectedStudents = {}; 
+  Set<String> selectedStudents = {};
 
-  
   Map<String, Map<String, Map<String, String>>> hafalanDataByDate = {};
 
   late SharedPreferences _prefs;
+  bool _dataInitialized = false;
 
   @override
   void initState() {
@@ -78,29 +77,45 @@ class _KepesantrenanState extends State<Kepesantrenan> {
 
   Future<void> _loadSavedData() async {
     _prefs = await SharedPreferences.getInstance();
-    setState(() {
-      
-      String? savedData = _prefs.getString('hafalanDataByDate');
-      if (savedData != null) {
-        hafalanDataByDate = Map<String, Map<String, Map<String, String>>>.from(
-          (Map<String, dynamic>.from(
-            Map<String, dynamic>.from(
-              json.decode(savedData),
-            ),
-          )),
-        );
+
+    String? savedData = _prefs.getString('hafalanDataByDate');
+    if (savedData != null) {
+      try {
+        final Map<String, dynamic> decodedData = json.decode(savedData);
+        final Map<String, Map<String, Map<String, String>>> convertedData = {};
+
+        decodedData.forEach((date, studentData) {
+          convertedData[date] = {};
+          (studentData as Map<String, dynamic>).forEach((studentId, data) {
+            convertedData[date]![studentId] =
+                Map<String, String>.from(data as Map);
+          });
+        });
+
+        setState(() {
+          hafalanDataByDate = convertedData;
+          hafalanData = hafalanDataByDate[selectedDate] ?? {};
+          _updateSelectedStudents();
+          _dataInitialized = true;
+        });
+      } catch (e) {
+        print('Error loading saved data: $e');
       }
-    });
+    }
   }
 
   Future<void> _saveData() async {
-    
-    await _prefs.setString('hafalanDataByDate', json.encode(hafalanDataByDate));
+    try {
+      await _prefs.setString(
+          'hafalanDataByDate', json.encode(hafalanDataByDate));
+    } catch (e) {
+      print('Error saving data: $e');
+    }
   }
 
   @override
   void dispose() {
-    _saveData(); 
+    _saveData();
     super.dispose();
   }
 
@@ -111,26 +126,20 @@ class _KepesantrenanState extends State<Kepesantrenan> {
             student['level'] == selectedLevel)
         .toList();
 
-    
     if (!hafalanDataByDate.containsKey(selectedDate)) {
       hafalanDataByDate[selectedDate] = {};
     }
 
-    
     hafalanData = hafalanDataByDate[selectedDate]!;
 
-    
     _updateSelectedStudents();
 
     return students;
   }
 
-  
   void _updateSelectedStudents() {
-    
     selectedStudents.clear();
     hafalanData.forEach((studentId, data) {
-      
       if (data['surat']?.isNotEmpty == true) {
         selectedStudents.add(studentId);
       }
@@ -143,7 +152,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
           'surat': '',
           'ayatAwal': '',
           'ayatAkhir': '',
-          'nilai': grades[0], 
+          'nilai': grades[0],
         };
 
     String surat = existingData['surat'] ?? '';
@@ -155,7 +164,6 @@ class _KepesantrenanState extends State<Kepesantrenan> {
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
-          
           builder: (context, setState) {
             return AlertDialog(
               title: Text('Input Hafalan ${student['name']}'),
@@ -221,11 +229,11 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                         'ayatAkhir': ayatAkhir,
                         'nilai': nilai,
                       };
-                      
+
                       hafalanDataByDate[selectedDate] = Map.from(hafalanData);
                       selectedStudents.add(student['id']);
                     });
-                    _saveData(); 
+                    _saveData();
                     Navigator.of(context).pop();
                   },
                   child: const Text('Simpan'),
@@ -261,7 +269,6 @@ class _KepesantrenanState extends State<Kepesantrenan> {
             title: Text(
               student['name'],
               style: TextStyle(
-                
                 color: Colors.black,
               ),
             ),
@@ -283,17 +290,14 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                       ),
                     ),
                     if (hasHafalan) ...[
-                      
                       Padding(
                         padding: const EdgeInsets.only(left: 15),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: secondaryColor
-                                .withOpacity(0.5), 
-                            borderRadius:
-                                BorderRadius.circular(8), 
+                            color: secondaryColor.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             'Surat ${studentHafalan['surat']} '
@@ -377,14 +381,14 @@ class _KepesantrenanState extends State<Kepesantrenan> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: primaryColor, 
+        backgroundColor: primaryColor, // Use updated darker primary color
         elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             bottom: Radius.circular(30),
           ),
         ),
-        toolbarHeight: 100, 
+        toolbarHeight: 100, // Make AppBar taller
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -449,7 +453,6 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                   height: 120,
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   margin: const EdgeInsets.symmetric(vertical: 8),
-                  
                   child: PageView(
                     onPageChanged: (int page) {
                       setState(() {
@@ -463,8 +466,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                   ),
                 ),
                 Container(
-                  margin:
-                      const EdgeInsets.only(bottom: 16), 
+                  margin: const EdgeInsets.only(bottom: 16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -545,7 +547,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
           hafalanData = hafalanDataByDate[newDate] ?? {};
           _updateSelectedStudents();
         });
-        _saveData(); 
+        _saveData();
       }
     } catch (e) {
       print('Date picker error: $e');
@@ -568,11 +570,9 @@ class _KepesantrenanState extends State<Kepesantrenan> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                value, 
+                value,
                 style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500
-                ),
+                    color: Colors.white, fontWeight: FontWeight.w500),
               ),
               const SizedBox(width: 4),
               const Icon(Icons.calendar_today, color: Colors.white, size: 16)
@@ -581,33 +581,28 @@ class _KepesantrenanState extends State<Kepesantrenan> {
         ),
       );
     }
-    
+
     // Original dropdown for other fields
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: secondaryColor, 
+        color: secondaryColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: primaryColor.withOpacity(0.2)),
       ),
       child: DropdownButton<String>(
         value: value,
         underline: Container(),
-        icon: Icon(Icons.arrow_drop_down,
-            color: Colors.white), 
-        style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w500), 
+        icon: Icon(Icons.arrow_drop_down, color: Colors.white),
+        style:
+            const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
         dropdownColor: secondaryColor,
         isDense: true,
         menuMaxHeight: 300,
         items: items.map((String item) {
           return DropdownMenuItem<String>(
             value: item,
-            child: Text(item,
-                style: const TextStyle(
-                    color: Colors
-                        .white)), 
+            child: Text(item, style: const TextStyle(color: Colors.white)),
           );
         }).toList(),
         onChanged: (String? newValue) {
@@ -618,6 +613,9 @@ class _KepesantrenanState extends State<Kepesantrenan> {
               } else if (hint == 'Tingkat') {
                 selectedLevel = newValue;
               }
+
+              // Save current data to shared preferences whenever any setting changes
+              _saveData();
             });
           }
         },
