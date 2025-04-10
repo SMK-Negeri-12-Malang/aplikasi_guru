@@ -14,6 +14,8 @@ class _MyWidgetState extends State<CekSantri> {
   String? _selectedClass;
   String? _selectedSession;
   String? _selectedHalaqoh;
+  String _searchQuery = "";
+  TextEditingController _searchController = TextEditingController();
 
   final List<String> schools = ["SMP", "SMA"];
   final List<String> classes = ["7", "8", "9", "10", "11", "12"];
@@ -108,6 +110,39 @@ class _MyWidgetState extends State<CekSantri> {
               ),
             ),
             SizedBox(height: 10),
+            // Search bar
+            Container(
+              margin: EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Cari berdasarkan sesi...',
+                  prefixIcon: Icon(Icons.search, color: Color(0xFF2E3F7F)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+              ),
+            ),
             // Filters
             Row(
               children: [
@@ -193,34 +228,84 @@ class _MyWidgetState extends State<CekSantri> {
             ),
             SizedBox(height: 16),
             Expanded(
-              child: ListView.builder(
-                itemCount: santriData.length,
-                itemBuilder: (context, index) {
-                  final santri = santriData[index];
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 8),
-                    child: ListTile(
-                      title: Text(santri['studentName']),
-                      subtitle: Text("Kelas: ${santri['className']} - Ruang: ${santri['room']}"),
-                      trailing: Icon(Icons.arrow_forward),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DetailCekSantri(
-                              studentName: santri['studentName'],
-                              room: santri['room'],
-                              className: santri['className'],
-                              studentId: santri['studentId'],
-                              progressData: santri['progressData'],
-                            ),
-                          ),
-                        );
-                      },
+              child: _selectedSchool == null
+                ? Center(
+                    child: Text(
+                      "Silahkan pilih SMP atau SMA terlebih dahulu",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                      ),
                     ),
-                  );
-                },
-              ),
+                  )
+                : ListView.builder(
+                    itemCount: santriData
+                        .where((santri) => 
+                          _selectedSchool == "SMP" 
+                            ? int.parse(santri['className'].split(' ')[0]) <= 9
+                            : int.parse(santri['className'].split(' ')[0]) >= 10
+                        )
+                        .length,
+                    itemBuilder: (context, index) {
+                      final filteredSantriData = santriData
+                          .where((santri) => 
+                            _selectedSchool == "SMP" 
+                              ? int.parse(santri['className'].split(' ')[0]) <= 9
+                              : int.parse(santri['className'].split(' ')[0]) >= 10
+                          )
+                          .toList();
+                      final santri = filteredSantriData[index];
+                      
+                      // Apply additional filters if selected
+                      if ((_selectedClass != null && !santri['className'].startsWith(_selectedClass!)) ||
+                          (_selectedSession != null && santri['session'] != _selectedSession) ||
+                          (_selectedHalaqoh != null && santri['halaqoh'] != _selectedHalaqoh)) {
+                        return Container();  // Return empty container for non-matching items
+                      }
+
+                      // Apply search query filter
+                      if (_searchQuery.isNotEmpty && 
+                          !(santri['session'].toString().toLowerCase().contains(_searchQuery.toLowerCase()))) {
+                        return Container();  // Return empty container for non-matching search
+                      }
+                      
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        child: ListTile(
+                          title: Text(santri['studentName']),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Kelas: ${santri['className']} - Ruang: ${santri['room']}"),
+                              Text("Sesi: ${santri['session']}", 
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2E3F7F)
+                                ),
+                              )
+                            ],
+                          ),
+                          isThreeLine: true,
+                          trailing: Icon(Icons.arrow_forward),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DetailCekSantri(
+                                  studentName: santri['studentName'],
+                                  room: santri['room'],
+                                  className: santri['className'],
+                                  studentId: santri['studentId'],
+                                  progressData: santri['progressData'],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
             ),
           ],
         ),

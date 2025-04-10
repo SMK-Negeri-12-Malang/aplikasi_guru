@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../Kepesantrenan/Kepesantrenan.dart';
 
 class LeaderboardPage extends StatefulWidget {
   const LeaderboardPage({super.key});
@@ -9,21 +8,19 @@ class LeaderboardPage extends StatefulWidget {
 }
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
-  List<Map<String, dynamic>> _leaderboardData = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadLeaderboardData();
-  }
-
-  void _loadLeaderboardData() {
-    setState(() {
-      // Fetch leaderboard data from Kepesantrenan
-      _leaderboardData = Kepesantrenan.getLeaderboardData(
-          Kepesantrenan.hafalanDataByDate); // Use static property
-    });
-  }
+  // Sample data for leaderboard
+  final List<Map<String, dynamic>> _leaderboardData = [
+    {'rank': 1, 'name': 'Ahmad Rizky', 'score': 98, 'avatar': 'assets/avatar1.png'},
+    {'rank': 2, 'name': 'Siti Nurhaliza', 'score': 95, 'avatar': 'assets/avatar2.png'},
+    {'rank': 3, 'name': 'Budi Santoso', 'score': 92, 'avatar': 'assets/avatar3.png'},
+    {'rank': 4, 'name': 'Dewi Anggraini', 'score': 90, 'avatar': 'assets/avatar4.png'},
+    {'rank': 5, 'name': 'Farhan Abdullah', 'score': 88, 'avatar': 'assets/avatar5.png'},
+    {'rank': 6, 'name': 'Rina Marlina', 'score': 85, 'avatar': 'assets/avatar6.png'},
+    {'rank': 7, 'name': 'Dimas Pratama', 'score': 82, 'avatar': 'assets/avatar7.png'},
+    {'rank': 8, 'name': 'Anisa Rahmawati', 'score': 80, 'avatar': 'assets/avatar8.png'},
+    {'rank': 9, 'name': 'Irfan Hakim', 'score': 78, 'avatar': 'assets/avatar9.png'},
+    {'rank': 10, 'name': 'Maya Putri', 'score': 75, 'avatar': 'assets/avatar10.png'},
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -82,13 +79,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildTopThreeItem(
-                  _leaderboardData.length > 1 ? _leaderboardData[1] : null, 2),
-              _buildTopThreeItem(
-                  _leaderboardData.isNotEmpty ? _leaderboardData[0] : null, 1,
-                  isLarger: true),
-              _buildTopThreeItem(
-                  _leaderboardData.length > 2 ? _leaderboardData[2] : null, 3),
+              // Second Place
+              _buildTopThreeItem(_leaderboardData[1], 2),
+              // First Place (larger)
+              _buildTopThreeItem(_leaderboardData[0], 1, isLarger: true),
+              // Third Place
+              _buildTopThreeItem(_leaderboardData[2], 3),
             ],
           ),
         ],
@@ -96,8 +92,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     );
   }
 
-  Widget _buildTopThreeItem(Map<String, dynamic>? student, int position,
-      {bool isLarger = false}) {
+  Widget _buildTopThreeItem(Map<String, dynamic> student, int position, {bool isLarger = false}) {
     return Column(
       children: [
         Container(
@@ -128,7 +123,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         ),
         const SizedBox(height: 8),
         Text(
-          student?['name'] ?? '',
+          student['name'],
           style: TextStyle(
             color: Colors.white,
             fontSize: isLarger ? 14 : 12,
@@ -136,7 +131,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           ),
         ),
         Text(
-          student?['surat'] ?? '', // Display the surah name
+          student['score'].toString(),
           style: TextStyle(
             color: Colors.white70,
             fontSize: isLarger ? 18 : 16,
@@ -157,13 +152,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color:
-                index < 3 ? _getMedalColor(index + 1) : const Color(0xFFE0E0E0),
+            color: index < 3 ? _getMedalColor(index + 1) : const Color(0xFFE0E0E0),
             shape: BoxShape.circle,
           ),
           child: Center(
             child: Text(
-              (index + 1).toString(), // Ensure rank is based on sorted data
+              student['rank'].toString(),
               style: TextStyle(
                 color: index < 3 ? Colors.white : const Color(0xFF1D2842),
                 fontWeight: FontWeight.bold,
@@ -175,12 +169,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           student['name'],
           style: const TextStyle(
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1D2842),
-          ),
-        ),
-        subtitle: Text(
-          'Surat: ${student['surat']}', // Display the surah name
-          style: const TextStyle(
             color: Color(0xFF1D2842),
           ),
         ),
