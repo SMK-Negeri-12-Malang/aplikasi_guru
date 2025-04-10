@@ -3,12 +3,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../SERVICE/Service_Musyrif/data_siswa.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'surat.dart'; // Import surah list
+import 'popup.dart'; // Import the PopupInput widget
 
 class Kepesantrenan extends StatefulWidget {
   const Kepesantrenan({super.key});
 
   @override
   State<Kepesantrenan> createState() => _KepesantrenanState();
+
+  static Map<String, Map<String, Map<String, String>>> hafalanDataByDate = {};
 
   static List<Map<String, dynamic>> getTopScores(
       Map<String, Map<String, String>> hafalanData) {
@@ -17,27 +21,39 @@ class Kepesantrenan extends StatefulWidget {
         'id': entry.key,
         'name': DataSiswa.getMockSiswa()
             .firstWhere((s) => s['id'] == entry.key)['name'],
-        'score': _convertGradeToScore(entry.value['nilai'] ?? 'Maqbul'),
+        'surat': entry.value['surat'] ?? '',
+        'progress': _convertSurahToProgress(entry.value['surat'] ?? ''),
       };
     }).toList();
 
-    scores.sort((a, b) => b['score'].compareTo(a['score']));
+    scores.sort((a, b) => b['progress'].compareTo(a['progress']));
     return scores.take(10).toList();
   }
 
-  static int _convertGradeToScore(String grade) {
-    switch (grade) {
-      case 'Mumtaz':
-        return 100;
-      case 'Jayyid Jiddan':
-        return 90;
-      case 'Jayyid':
-        return 80;
-      case 'Maqbul':
-        return 70;
-      default:
-        return 0;
-    }
+  static int _convertSurahToProgress(String surah) {
+    // Map surah names to their order in the Quran (Juz 30 to Juz 1)
+    const surahOrder = {
+      'An-Nas': 114,
+      'Al-Falaq': 113,
+      'Al-Ikhlas': 112,
+      // ...add all surahs in reverse order...
+      'Al-Baqarah': 2,
+      'Al-Fatihah': 1,
+    };
+
+    return surahOrder[surah] ?? 0; // Default to 0 if surah is not found
+  }
+
+  static List<Map<String, dynamic>> getLeaderboardData(
+      Map<String, Map<String, Map<String, String>>> hafalanDataByDate) {
+    List<Map<String, dynamic>> allScores = [];
+
+    hafalanDataByDate.forEach((date, hafalanData) {
+      allScores.addAll(getTopScores(hafalanData));
+    });
+
+    allScores.sort((a, b) => b['progress'].compareTo(a['progress']));
+    return allScores.take(10).toList();
   }
 }
 
@@ -93,6 +109,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
         });
 
         setState(() {
+          Kepesantrenan.hafalanDataByDate = convertedData;
           hafalanDataByDate = convertedData;
           hafalanData = hafalanDataByDate[selectedDate] ?? {};
           _updateSelectedStudents();
@@ -108,6 +125,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
     try {
       await _prefs.setString(
           'hafalanDataByDate', json.encode(hafalanDataByDate));
+      Kepesantrenan.hafalanDataByDate = hafalanDataByDate;
     } catch (e) {
       print('Error saving data: $e');
     }
@@ -144,106 +162,6 @@ class _KepesantrenanState extends State<Kepesantrenan> {
         selectedStudents.add(studentId);
       }
     });
-  }
-
-  void _showInputDialog(Map<String, dynamic> student) {
-    Map<String, String> existingData = hafalanData[student['id']] ??
-        {
-          'surat': '',
-          'ayatAwal': '',
-          'ayatAkhir': '',
-          'nilai': grades[0],
-        };
-
-    String surat = existingData['surat'] ?? '';
-    String ayatAwal = existingData['ayatAwal'] ?? '';
-    String ayatAkhir = existingData['ayatAkhir'] ?? '';
-    String nilai = existingData['nilai'] ?? grades[0];
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text('Input Hafalan ${student['name']}'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      decoration: const InputDecoration(labelText: 'Surat'),
-                      controller: TextEditingController(text: surat),
-                      onChanged: (value) => surat = value,
-                    ),
-                    TextField(
-                      decoration: const InputDecoration(labelText: 'Ayat Awal'),
-                      keyboardType: TextInputType.number,
-                      controller: TextEditingController(text: ayatAwal),
-                      onChanged: (value) => ayatAwal = value,
-                    ),
-                    TextField(
-                      decoration:
-                          const InputDecoration(labelText: 'Ayat Akhir'),
-                      keyboardType: TextInputType.number,
-                      controller: TextEditingController(text: ayatAkhir),
-                      onChanged: (value) => ayatAkhir = value,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: nilai,
-                      decoration: InputDecoration(
-                        labelText: 'Nilai',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                      ),
-                      items: grades.map((String grade) {
-                        return DropdownMenuItem<String>(
-                          value: grade,
-                          child: Text(grade),
-                        );
-                      }).toList(),
-                      onChanged: (String? value) {
-                        if (value != null) {
-                          setState(() => nilai = value);
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Batal'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    this.setState(() {
-                      hafalanData[student['id']] = {
-                        'surat': surat,
-                        'ayatAwal': ayatAwal,
-                        'ayatAkhir': ayatAkhir,
-                        'nilai': nilai,
-                      };
-
-                      hafalanDataByDate[selectedDate] = Map.from(hafalanData);
-                      selectedStudents.add(student['id']);
-                    });
-                    _saveData();
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Simpan'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
   }
 
   Widget buildStudentList(String type) {
@@ -352,7 +270,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                       ),
                       onChanged: (bool? value) {
                         if (value == true) {
-                          _showInputDialog(student);
+                          _showPopupDialog(student);
                         } else {
                           setState(() {
                             selectedStudents.remove(student['id']);
@@ -370,8 +288,45 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                 ],
               ),
             ),
-            onTap: () => _showInputDialog(student),
           ),
+        );
+      },
+    );
+  }
+
+  void _showPopupDialog(Map<String, dynamic> student) {
+    final studentHafalan = hafalanData[student['id']] ??
+        {
+          'surat': '',
+          'ayatAwal': '',
+          'ayatAkhir': '',
+          'nilai': grades[0],
+        };
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent accidental dismissal
+      builder: (BuildContext context) {
+        return PopupInput(
+          initialSurat: studentHafalan['surat'] ?? '',
+          initialAyatAwal: studentHafalan['ayatAwal'] ?? '',
+          initialAyatAkhir: studentHafalan['ayatAkhir'] ?? '',
+          initialNilai: studentHafalan['nilai'] ?? grades[0],
+          grades: grades,
+          onSave: (surat, ayatAwal, ayatAkhir, nilai) {
+            setState(() {
+              hafalanData[student['id']] = {
+                'surat': surat,
+                'ayatAwal': ayatAwal,
+                'ayatAkhir': ayatAkhir,
+                'nilai': nilai,
+              };
+              hafalanDataByDate[selectedDate] = Map.from(hafalanData);
+              Kepesantrenan.hafalanDataByDate = hafalanDataByDate;
+              selectedStudents.add(student['id']);
+            });
+            _saveData();
+          },
         );
       },
     );
