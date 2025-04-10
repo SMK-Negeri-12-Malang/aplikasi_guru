@@ -65,7 +65,6 @@ class _KepesantrenanState extends State<Kepesantrenan> {
   Map<String, Map<String, String>> hafalanData = {};
   Set<String> selectedStudents = {}; 
 
-  
   Map<String, Map<String, Map<String, String>>> hafalanDataByDate = {};
 
   late SharedPreferences _prefs;
@@ -78,24 +77,37 @@ class _KepesantrenanState extends State<Kepesantrenan> {
 
   Future<void> _loadSavedData() async {
     _prefs = await SharedPreferences.getInstance();
-    setState(() {
-      
-      String? savedData = _prefs.getString('hafalanDataByDate');
-      if (savedData != null) {
-        hafalanDataByDate = Map<String, Map<String, Map<String, String>>>.from(
-          (Map<String, dynamic>.from(
-            Map<String, dynamic>.from(
-              json.decode(savedData),
-            ),
-          )),
-        );
+    
+    String? savedData = _prefs.getString('hafalanDataByDate');
+    if (savedData != null) {
+      try {
+        final Map<String, dynamic> decodedData = json.decode(savedData);
+        final Map<String, Map<String, Map<String, String>>> convertedData = {};
+        
+        decodedData.forEach((date, studentData) {
+          convertedData[date] = {};
+          (studentData as Map<String, dynamic>).forEach((studentId, data) {
+            convertedData[date]![studentId] = Map<String, String>.from(data as Map);
+          });
+        });
+        
+        setState(() {
+          hafalanDataByDate = convertedData;
+          hafalanData = hafalanDataByDate[selectedDate] ?? {};
+          _updateSelectedStudents();
+        });
+      } catch (e) {
+        print('Error loading saved data: $e');
       }
-    });
+    }
   }
 
   Future<void> _saveData() async {
-    
-    await _prefs.setString('hafalanDataByDate', json.encode(hafalanDataByDate));
+    try {
+      await _prefs.setString('hafalanDataByDate', json.encode(hafalanDataByDate));
+    } catch (e) {
+      print('Error saving data: $e');
+    }
   }
 
   @override
@@ -618,6 +630,8 @@ class _KepesantrenanState extends State<Kepesantrenan> {
               } else if (hint == 'Tingkat') {
                 selectedLevel = newValue;
               }
+          
+              _saveData();
             });
           }
         },

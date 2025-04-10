@@ -130,11 +130,11 @@ class NewsView extends StatelessWidget {
 // News data
 final List<Map<String, dynamic>> newsItems = [
   {
-    'title': 'Jadwal Ujian Tahfidz Semester Genap',
+    'title': 'tungtung sahur',
     'content':
         'Ujian Tahfidz akan dilaksanakan pada tanggal 15-20 Juni 2024. Pastikan siswa sudah mempersiapkan hafalan dengan baik.',
     'date': '10 Mei 2024',
-    'image': 'assets/images/yoga.jpg',
+    'image': 'assets/images/shei.png',
   },
   {
     'title': 'A Love Beyond Time',
