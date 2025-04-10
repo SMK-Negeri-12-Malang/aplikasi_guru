@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../SERVICE/Service_Musyrif/data_siswa.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'surat.dart'; // Import surah list
+import 'popup.dart'; // Import the PopupInput widget
 
 class Kepesantrenan extends StatefulWidget {
   const Kepesantrenan({super.key});
@@ -10,7 +12,8 @@ class Kepesantrenan extends StatefulWidget {
   @override
   State<Kepesantrenan> createState() => _KepesantrenanState();
 
-  
+  static Map<String, Map<String, Map<String, String>>> hafalanDataByDate = {};
+
   static List<Map<String, dynamic>> getTopScores(
       Map<String, Map<String, String>> hafalanData) {
     List<Map<String, dynamic>> scores = hafalanData.entries.map((entry) {
@@ -18,35 +21,47 @@ class Kepesantrenan extends StatefulWidget {
         'id': entry.key,
         'name': DataSiswa.getMockSiswa()
             .firstWhere((s) => s['id'] == entry.key)['name'],
-        'score': _convertGradeToScore(entry.value['nilai'] ?? 'Maqbul'),
+        'surat': entry.value['surat'] ?? '',
+        'progress': _convertSurahToProgress(entry.value['surat'] ?? ''),
       };
     }).toList();
 
-    scores.sort((a, b) => b['score'].compareTo(a['score']));
-    return scores.take(10).toList(); 
+    scores.sort((a, b) => b['progress'].compareTo(a['progress']));
+    return scores.take(10).toList();
   }
 
-  static int _convertGradeToScore(String grade) {
-    switch (grade) {
-      case 'Mumtaz':
-        return 100;
-      case 'Jayyid Jiddan':
-        return 90;
-      case 'Jayyid':
-        return 80;
-      case 'Maqbul':
-        return 70;
-      default:
-        return 0;
-    }
+  static int _convertSurahToProgress(String surah) {
+    // Map surah names to their order in the Quran (Juz 30 to Juz 1)
+    const surahOrder = {
+      'An-Nas': 114,
+      'Al-Falaq': 113,
+      'Al-Ikhlas': 112,
+      // ...add all surahs in reverse order...
+      'Al-Baqarah': 2,
+      'Al-Fatihah': 1,
+    };
+
+    return surahOrder[surah] ?? 0; // Default to 0 if surah is not found
+  }
+
+  static List<Map<String, dynamic>> getLeaderboardData(
+      Map<String, Map<String, Map<String, String>>> hafalanDataByDate) {
+    List<Map<String, dynamic>> allScores = [];
+
+    hafalanDataByDate.forEach((date, hafalanData) {
+      allScores.addAll(getTopScores(hafalanData));
+    });
+
+    allScores.sort((a, b) => b['progress'].compareTo(a['progress']));
+    return allScores.take(10).toList();
   }
 }
 
 class _KepesantrenanState extends State<Kepesantrenan> {
-  
-  final Color primaryColor = const Color(0xFF1D2842); 
-  final Color secondaryColor = const Color(0xFF2E3F7F); 
-  final Color accentColor = const Color(0xFF3E4E8C); 
+  // Update theme colors to be slightly darker
+  final Color primaryColor = const Color(0xFF0B3C91); // Darker blue for AppBar
+  final Color secondaryColor = const Color(0xFF165AA3); // Slightly darker blue
+  final Color accentColor = const Color(0xFF2E7BCF); // Slightly darker accent
 
   String selectedSession = 'Sesi 1';
   String selectedDate = DateTime.now().toString().split(' ')[0];
@@ -63,12 +78,12 @@ class _KepesantrenanState extends State<Kepesantrenan> {
 
   int _currentPage = 0;
   Map<String, Map<String, String>> hafalanData = {};
-  Set<String> selectedStudents = {}; 
+  Set<String> selectedStudents = {};
 
-  
   Map<String, Map<String, Map<String, String>>> hafalanDataByDate = {};
 
   late SharedPreferences _prefs;
+  bool _dataInitialized = false;
 
   @override
   void initState() {
@@ -78,29 +93,47 @@ class _KepesantrenanState extends State<Kepesantrenan> {
 
   Future<void> _loadSavedData() async {
     _prefs = await SharedPreferences.getInstance();
-    setState(() {
-      
-      String? savedData = _prefs.getString('hafalanDataByDate');
-      if (savedData != null) {
-        hafalanDataByDate = Map<String, Map<String, Map<String, String>>>.from(
-          (Map<String, dynamic>.from(
-            Map<String, dynamic>.from(
-              json.decode(savedData),
-            ),
-          )),
-        );
+
+    String? savedData = _prefs.getString('hafalanDataByDate');
+    if (savedData != null) {
+      try {
+        final Map<String, dynamic> decodedData = json.decode(savedData);
+        final Map<String, Map<String, Map<String, String>>> convertedData = {};
+
+        decodedData.forEach((date, studentData) {
+          convertedData[date] = {};
+          (studentData as Map<String, dynamic>).forEach((studentId, data) {
+            convertedData[date]![studentId] =
+                Map<String, String>.from(data as Map);
+          });
+        });
+
+        setState(() {
+          Kepesantrenan.hafalanDataByDate = convertedData;
+          hafalanDataByDate = convertedData;
+          hafalanData = hafalanDataByDate[selectedDate] ?? {};
+          _updateSelectedStudents();
+          _dataInitialized = true;
+        });
+      } catch (e) {
+        print('Error loading saved data: $e');
       }
-    });
+    }
   }
 
   Future<void> _saveData() async {
-    
-    await _prefs.setString('hafalanDataByDate', json.encode(hafalanDataByDate));
+    try {
+      await _prefs.setString(
+          'hafalanDataByDate', json.encode(hafalanDataByDate));
+      Kepesantrenan.hafalanDataByDate = hafalanDataByDate;
+    } catch (e) {
+      print('Error saving data: $e');
+    }
   }
 
   @override
   void dispose() {
-    _saveData(); 
+    _saveData();
     super.dispose();
   }
 
@@ -111,131 +144,24 @@ class _KepesantrenanState extends State<Kepesantrenan> {
             student['level'] == selectedLevel)
         .toList();
 
-    
     if (!hafalanDataByDate.containsKey(selectedDate)) {
       hafalanDataByDate[selectedDate] = {};
     }
 
-    
     hafalanData = hafalanDataByDate[selectedDate]!;
 
-    
     _updateSelectedStudents();
 
     return students;
   }
 
-  
   void _updateSelectedStudents() {
-    
     selectedStudents.clear();
     hafalanData.forEach((studentId, data) {
-      
       if (data['surat']?.isNotEmpty == true) {
         selectedStudents.add(studentId);
       }
     });
-  }
-
-  void _showInputDialog(Map<String, dynamic> student) {
-    Map<String, String> existingData = hafalanData[student['id']] ??
-        {
-          'surat': '',
-          'ayatAwal': '',
-          'ayatAkhir': '',
-          'nilai': grades[0], 
-        };
-
-    String surat = existingData['surat'] ?? '';
-    String ayatAwal = existingData['ayatAwal'] ?? '';
-    String ayatAkhir = existingData['ayatAkhir'] ?? '';
-    String nilai = existingData['nilai'] ?? grades[0];
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text('Input Hafalan ${student['name']}'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      decoration: const InputDecoration(labelText: 'Surat'),
-                      controller: TextEditingController(text: surat),
-                      onChanged: (value) => surat = value,
-                    ),
-                    TextField(
-                      decoration: const InputDecoration(labelText: 'Ayat Awal'),
-                      keyboardType: TextInputType.number,
-                      controller: TextEditingController(text: ayatAwal),
-                      onChanged: (value) => ayatAwal = value,
-                    ),
-                    TextField(
-                      decoration:
-                          const InputDecoration(labelText: 'Ayat Akhir'),
-                      keyboardType: TextInputType.number,
-                      controller: TextEditingController(text: ayatAkhir),
-                      onChanged: (value) => ayatAkhir = value,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: nilai,
-                      decoration: InputDecoration(
-                        labelText: 'Nilai',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                      ),
-                      items: grades.map((String grade) {
-                        return DropdownMenuItem<String>(
-                          value: grade,
-                          child: Text(grade),
-                        );
-                      }).toList(),
-                      onChanged: (String? value) {
-                        if (value != null) {
-                          setState(() => nilai = value);
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Batal'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    this.setState(() {
-                      hafalanData[student['id']] = {
-                        'surat': surat,
-                        'ayatAwal': ayatAwal,
-                        'ayatAkhir': ayatAkhir,
-                        'nilai': nilai,
-                      };
-                      
-                      hafalanDataByDate[selectedDate] = Map.from(hafalanData);
-                      selectedStudents.add(student['id']);
-                    });
-                    _saveData(); 
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Simpan'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
   }
 
   Widget buildStudentList(String type) {
@@ -261,7 +187,6 @@ class _KepesantrenanState extends State<Kepesantrenan> {
             title: Text(
               student['name'],
               style: TextStyle(
-                
                 color: Colors.black,
               ),
             ),
@@ -283,17 +208,14 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                       ),
                     ),
                     if (hasHafalan) ...[
-                      
                       Padding(
                         padding: const EdgeInsets.only(left: 15),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: secondaryColor
-                                .withOpacity(0.5), 
-                            borderRadius:
-                                BorderRadius.circular(8), 
+                            color: secondaryColor.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             'Surat ${studentHafalan['surat']} '
@@ -348,7 +270,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                       ),
                       onChanged: (bool? value) {
                         if (value == true) {
-                          _showInputDialog(student);
+                          _showPopupDialog(student);
                         } else {
                           setState(() {
                             selectedStudents.remove(student['id']);
@@ -366,8 +288,45 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                 ],
               ),
             ),
-            onTap: () => _showInputDialog(student),
           ),
+        );
+      },
+    );
+  }
+
+  void _showPopupDialog(Map<String, dynamic> student) {
+    final studentHafalan = hafalanData[student['id']] ??
+        {
+          'surat': '',
+          'ayatAwal': '',
+          'ayatAkhir': '',
+          'nilai': grades[0],
+        };
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent accidental dismissal
+      builder: (BuildContext context) {
+        return PopupInput(
+          initialSurat: studentHafalan['surat'] ?? '',
+          initialAyatAwal: studentHafalan['ayatAwal'] ?? '',
+          initialAyatAkhir: studentHafalan['ayatAkhir'] ?? '',
+          initialNilai: studentHafalan['nilai'] ?? grades[0],
+          grades: grades,
+          onSave: (surat, ayatAwal, ayatAkhir, nilai) {
+            setState(() {
+              hafalanData[student['id']] = {
+                'surat': surat,
+                'ayatAwal': ayatAwal,
+                'ayatAkhir': ayatAkhir,
+                'nilai': nilai,
+              };
+              hafalanDataByDate[selectedDate] = Map.from(hafalanData);
+              Kepesantrenan.hafalanDataByDate = hafalanDataByDate;
+              selectedStudents.add(student['id']);
+            });
+            _saveData();
+          },
         );
       },
     );
@@ -377,14 +336,14 @@ class _KepesantrenanState extends State<Kepesantrenan> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: primaryColor, 
+        backgroundColor: primaryColor, // Use updated darker primary color
         elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             bottom: Radius.circular(30),
           ),
         ),
-        toolbarHeight: 100, 
+        toolbarHeight: 100, // Make AppBar taller
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -449,7 +408,6 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                   height: 120,
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   margin: const EdgeInsets.symmetric(vertical: 8),
-                  
                   child: PageView(
                     onPageChanged: (int page) {
                       setState(() {
@@ -463,8 +421,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                   ),
                 ),
                 Container(
-                  margin:
-                      const EdgeInsets.only(bottom: 16), 
+                  margin: const EdgeInsets.only(bottom: 16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -545,7 +502,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
           hafalanData = hafalanDataByDate[newDate] ?? {};
           _updateSelectedStudents();
         });
-        _saveData(); 
+        _saveData();
       }
     } catch (e) {
       print('Date picker error: $e');
@@ -568,11 +525,9 @@ class _KepesantrenanState extends State<Kepesantrenan> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                value, 
+                value,
                 style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500
-                ),
+                    color: Colors.white, fontWeight: FontWeight.w500),
               ),
               const SizedBox(width: 4),
               const Icon(Icons.calendar_today, color: Colors.white, size: 16)
@@ -581,33 +536,28 @@ class _KepesantrenanState extends State<Kepesantrenan> {
         ),
       );
     }
-    
+
     // Original dropdown for other fields
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: secondaryColor, 
+        color: secondaryColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: primaryColor.withOpacity(0.2)),
       ),
       child: DropdownButton<String>(
         value: value,
         underline: Container(),
-        icon: Icon(Icons.arrow_drop_down,
-            color: Colors.white), 
-        style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w500), 
+        icon: Icon(Icons.arrow_drop_down, color: Colors.white),
+        style:
+            const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
         dropdownColor: secondaryColor,
         isDense: true,
         menuMaxHeight: 300,
         items: items.map((String item) {
           return DropdownMenuItem<String>(
             value: item,
-            child: Text(item,
-                style: const TextStyle(
-                    color: Colors
-                        .white)), 
+            child: Text(item, style: const TextStyle(color: Colors.white)),
           );
         }).toList(),
         onChanged: (String? newValue) {
@@ -618,6 +568,9 @@ class _KepesantrenanState extends State<Kepesantrenan> {
               } else if (hint == 'Tingkat') {
                 selectedLevel = newValue;
               }
+
+              // Save current data to shared preferences whenever any setting changes
+              _saveData();
             });
           }
         },
