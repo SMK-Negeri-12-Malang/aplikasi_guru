@@ -113,21 +113,33 @@ class _CekSantriState extends State<CekSantri> {
                 itemCount: filteredStudents.length,
                 itemBuilder: (context, index) {
                   final student = filteredStudents[index];
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 8),
-                    child: ListTile(
-                      title: Text(student['name']),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Kelas: ${student['className']}"),
-                          Text("Sesi: ${student['session']}"),
-                          Text("Tipe: ${student['type']}"),
-                          Text(
-                              "Surat: ${student['surat']}, Nilai: ${student['nilai']}"),
-                        ],
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        // Add functionality for card click if needed
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Card(
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ListTile(
+                          title: Text(student['name']),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Kelas: ${student['className']}"),
+                              Text("Sesi: ${student['session']}"),
+                              Text("Tipe: ${student['type']}"),
+                              Text(
+                                  "Surat: ${student['surat']}, Nilai: ${student['nilai']}"),
+                            ],
+                          ),
+                          isThreeLine: true,
+                        ),
                       ),
-                      isThreeLine: true,
                     ),
                   );
                 },

@@ -238,19 +238,26 @@ class _KepesantrenanState extends State<Kepesantrenan> {
         final data = currentData[student['id']];
         final hasHafalan = data != null && data['surat']!.isNotEmpty;
 
-        return Card(
-          child: ListTile(
-            title: Text(
-              selectedLevel == 'SMP' || selectedLevel == 'SMA'
-                  ? '${student['name']} ${student['kelas']}'
-                  : student['name'],
-            ),
-            subtitle: hasHafalan
-                ? Text('Surat: ${data['surat']}, Nilai: ${data['nilai']}')
-                : const Text('Belum ada hafalan'),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () => _showInputDialog(student),
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _showInputDialog(student), // Add ripple animation
+            borderRadius: BorderRadius.circular(12),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                title: Text(
+                  selectedLevel == 'SMP' || selectedLevel == 'SMA'
+                      ? '${student['name']} ${student['kelas']}'
+                      : student['name'],
+                ),
+                subtitle: hasHafalan
+                    ? Text('Surat: ${data['surat']}, Nilai: ${data['nilai']}')
+                    : const Text('Belum ada hafalan'),
+                trailing: Icon(Icons.edit, color: Colors.grey),
+              ),
             ),
           ),
         );
