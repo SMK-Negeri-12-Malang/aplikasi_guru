@@ -2,626 +2,259 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../SERVICE/Service_Musyrif/data_siswa.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'StudentHafalanDetailPage.dart';
 
 class Kepesantrenan extends StatefulWidget {
   const Kepesantrenan({super.key});
 
   @override
   State<Kepesantrenan> createState() => _KepesantrenanState();
-
-  static List<Map<String, dynamic>> getTopScores(
-      Map<String, Map<String, String>> hafalanData) {
-    List<Map<String, dynamic>> scores = hafalanData.entries.map((entry) {
-      return {
-        'id': entry.key,
-        'name': DataSiswa.getMockSiswa()
-            .firstWhere((s) => s['id'] == entry.key)['name'],
-        'score': _convertGradeToScore(entry.value['nilai'] ?? 'Maqbul'),
-      };
-    }).toList();
-
-    scores.sort((a, b) => b['score'].compareTo(a['score']));
-    return scores.take(10).toList();
-  }
-
-  static int _convertGradeToScore(String grade) {
-    switch (grade) {
-      case 'Mumtaz':
-        return 100;
-      case 'Jayyid Jiddan':
-        return 90;
-      case 'Jayyid':
-        return 80;
-      case 'Maqbul':
-        return 70;
-      default:
-        return 0;
-    }
-  }
 }
 
 class _KepesantrenanState extends State<Kepesantrenan> {
   final Color primaryColor = const Color(0xFF1D2842);
-  final Color secondaryColor = const Color(0xFF2E3F7F);
-  final Color accentColor = const Color(0xFF3E4E8C);
+  final List<String> sessions = ['Sesi 1', 'Sesi 2', 'Sesi 3'];
+  final List<String> levels = ['SMP', 'SMA'];
+  final List<String> grades = ['Mumtaz', 'Jayyid Jiddan', 'Jayyid', 'Maqbul'];
 
   String selectedSession = 'Sesi 1';
   String selectedDate = DateTime.now().toString().split(' ')[0];
   String selectedLevel = 'SMP';
 
-  final List<String> sessions = ['Sesi 1', 'Sesi 2', 'Sesi 3'];
   final List<String> dates = [
     DateTime.now().toString().split(' ')[0],
     DateTime.now().subtract(const Duration(days: 1)).toString().split(' ')[0],
     DateTime.now().subtract(const Duration(days: 2)).toString().split(' ')[0],
   ];
-  final List<String> levels = ['SMP', 'SMA'];
-  final List<String> grades = ['Mumtaz', 'Jayyid Jiddan', 'Jayyid', 'Maqbul'];
 
-  int _currentPage = 0;
-  Map<String, Map<String, String>> hafalanData = {};
-  Set<String> selectedStudents = {};
-
-  Map<String, Map<String, Map<String, String>>> hafalanDataByDate = {};
-
+  int _currentPage = 0; // 0 for Tahfidz, 1 for Tahsin
+  Map<String, Map<String, String>> tahfidzData = {};
+  Map<String, Map<String, String>> tahsinData = {};
+  Map<String, Map<String, Map<String, String>>> tahfidzDataByDate = {};
+  Map<String, Map<String, Map<String, String>>> tahsinDataByDate = {};
   late SharedPreferences _prefs;
 
   @override
   void initState() {
     super.initState();
     _loadSavedData();
+    _loadLastSelectedPreferences();
   }
 
   Future<void> _loadSavedData() async {
     _prefs = await SharedPreferences.getInstance();
+    final savedTahfidzData = _prefs.getString('tahfidzDataByDate');
+    final savedTahsinData = _prefs.getString('tahsinDataByDate');
+
+    if (savedTahfidzData != null) {
+      tahfidzDataByDate = Map<String, Map<String, Map<String, String>>>.from(
+        json.decode(savedTahfidzData).map((key, value) => MapEntry(
+            key,
+            Map<String, Map<String, String>>.from(value
+                .map((k, v) => MapEntry(k, Map<String, String>.from(v)))))),
+      );
+    }
+
+    if (savedTahsinData != null) {
+      tahsinDataByDate = Map<String, Map<String, Map<String, String>>>.from(
+        json.decode(savedTahsinData).map((key, value) => MapEntry(
+            key,
+            Map<String, Map<String, String>>.from(value
+                .map((k, v) => MapEntry(k, Map<String, String>.from(v)))))),
+      );
+    }
+
     setState(() {
-      String? savedData = _prefs.getString('hafalanDataByDate');
-      if (savedData != null) {
-        hafalanDataByDate = Map<String, Map<String, Map<String, String>>>.from(
-          (Map<String, dynamic>.from(
-            Map<String, dynamic>.from(
-              json.decode(savedData),
-            ),
-          )),
-        );
-      }
+      tahfidzData = tahfidzDataByDate[selectedDate] ?? {};
+      tahsinData = tahsinDataByDate[selectedDate] ?? {};
     });
+  }
+
+  Future<void> _loadLastSelectedPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      selectedSession = prefs.getString('lastSelectedSession') ?? 'Sesi 1';
+      selectedLevel = prefs.getString('lastSelectedLevel') ?? 'SMP';
+    });
+  }
+
+  Future<void> _saveLastSelectedPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('lastSelectedSession', selectedSession);
+    await prefs.setString('lastSelectedLevel', selectedLevel);
   }
 
   Future<void> _saveData() async {
-    await _prefs.setString('hafalanDataByDate', json.encode(hafalanDataByDate));
-  }
-
-  @override
-  void dispose() {
-    _saveData();
-    super.dispose();
-  }
-
-  List<Map<String, dynamic>> getFilteredStudents(String type) {
-    final students = DataSiswa.getMockSiswa()
-        .where((student) =>
-            student['session'] == selectedSession &&
-            student['level'] == selectedLevel)
-        .toList();
-
-    if (!hafalanDataByDate.containsKey(selectedDate)) {
-      hafalanDataByDate[selectedDate] = {};
+    if (_currentPage == 0) {
+      tahfidzDataByDate[selectedDate] = Map.from(tahfidzData);
+      await _prefs.setString(
+          'tahfidzDataByDate', json.encode(tahfidzDataByDate));
+    } else {
+      tahsinDataByDate[selectedDate] = Map.from(tahsinData);
+      await _prefs.setString('tahsinDataByDate', json.encode(tahsinDataByDate));
     }
 
-    hafalanData = hafalanDataByDate[selectedDate]!;
+    // Save evaluated students' data for CekSantri
+    final evaluatedStudents = [
+      ...tahfidzData.entries.map((entry) {
+        final studentId = entry.key;
+        final studentData = entry.value;
+        final studentInfo =
+            DataSiswa.getMockSiswa().firstWhere((s) => s['id'] == studentId);
+        return {
+          'id': studentId,
+          'name': studentInfo['name'],
+          'className': studentInfo['kelas'],
+          'session': selectedSession,
+          'surat': studentData['surat'],
+          'nilai': studentData['nilai'],
+          'level': selectedLevel,
+          'type': 'Tahfidz',
+        };
+      }),
+      ...tahsinData.entries.map((entry) {
+        final studentId = entry.key;
+        final studentData = entry.value;
+        final studentInfo =
+            DataSiswa.getMockSiswa().firstWhere((s) => s['id'] == studentId);
+        return {
+          'id': studentId,
+          'name': studentInfo['name'],
+          'className': studentInfo['kelas'],
+          'session': selectedSession,
+          'surat': studentData['surat'],
+          'nilai': studentData['nilai'],
+          'level': selectedLevel,
+          'type': 'Tahsin',
+        };
+      }),
+    ];
 
-    _updateSelectedStudents();
-
-    return students;
-  }
-
-  void _updateSelectedStudents() {
-    selectedStudents.clear();
-    hafalanData.forEach((studentId, data) {
-      if (data['surat']?.isNotEmpty == true) {
-        selectedStudents.add(studentId);
-      }
-    });
+    await _prefs.setString('evaluatedStudents', json.encode(evaluatedStudents));
   }
 
   void _showInputDialog(Map<String, dynamic> student) {
-    Map<String, String> existingData = hafalanData[student['id']] ??
-        {
-          'surat': '',
-          'ayatAwal': '',
-          'ayatAkhir': '',
-          'nilai': grades[0],
-        };
-
-    String surat = existingData['surat'] ?? '';
-    String ayatAwal = existingData['ayatAwal'] ?? '';
-    String ayatAkhir = existingData['ayatAkhir'] ?? '';
-    String nilai = existingData['nilai'] ?? grades[0];
+    final data =
+        (_currentPage == 0 ? tahfidzData : tahsinData)[student['id']] ??
+            {'surat': '', 'nilai': grades[0]};
+    String surat = data['surat'] ?? '';
+    String nilai = data['nilai'] ?? grades[0];
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text('Input Hafalan ${student['name']}'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      decoration: const InputDecoration(labelText: 'Surat'),
-                      controller: TextEditingController(text: surat),
-                      onChanged: (value) => surat = value,
-                    ),
-                    TextField(
-                      decoration: const InputDecoration(labelText: 'Ayat Awal'),
-                      keyboardType: TextInputType.number,
-                      controller: TextEditingController(text: ayatAwal),
-                      onChanged: (value) => ayatAwal = value,
-                    ),
-                    TextField(
-                      decoration:
-                          const InputDecoration(labelText: 'Ayat Akhir'),
-                      keyboardType: TextInputType.number,
-                      controller: TextEditingController(text: ayatAkhir),
-                      onChanged: (value) => ayatAkhir = value,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: nilai,
-                      decoration: InputDecoration(
-                        labelText: 'Nilai',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                      ),
-                      items: grades.map((String grade) {
-                        return DropdownMenuItem<String>(
-                          value: grade,
-                          child: Text(grade),
-                        );
-                      }).toList(),
-                      onChanged: (String? value) {
-                        if (value != null) {
-                          setState(() => nilai = value);
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Batal'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    this.setState(() {
-                      hafalanData[student['id']] = {
-                        'surat': surat,
-                        'ayatAwal': ayatAwal,
-                        'ayatAkhir': ayatAkhir,
-                        'nilai': nilai,
-                      };
-                      hafalanDataByDate[selectedDate] = Map.from(hafalanData);
-                      selectedStudents.add(student['id']);
-                    });
-                    _saveData();
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Simpan'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _navigateToDetailPage(Map<String, dynamic> student) {
-    Map<String, String> existingData = hafalanData[student['id']] ??
-        {
-          'surat': '',
-          'ayatAwal': '',
-          'ayatAkhir': '',
-          'nilai': grades[0],
-        };
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => StudentHafalanDetailPage(
-          student: student,
-          existingData: existingData,
-          grades: grades,
-          onSave: (updatedData) {
-            setState(() {
-              hafalanData[student['id']] = updatedData;
-              hafalanDataByDate[selectedDate] = Map.from(hafalanData);
-              selectedStudents.add(student['id']);
-            });
-            _saveData();
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget buildStudentList(String type) {
-    final students = getFilteredStudents(type);
-    return ListView.builder(
-      padding: const EdgeInsets.all(8),
-      itemCount: students.length,
-      itemBuilder: (context, index) {
-        final student = students[index];
-        final studentHafalan = hafalanData[student['id']];
-        final hasHafalan =
-            studentHafalan != null && studentHafalan['surat']!.isNotEmpty;
-        final isSelected = selectedStudents.contains(student['id']);
-
-        return Card(
-          elevation: 3,
-          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(12),
-            title: Text(
-              student['name'],
-              style: TextStyle(
-                color: Colors.black,
-              ),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        'Kelas: ${student['kelas']}',
-                        style: TextStyle(color: primaryColor),
-                      ),
-                    ),
-                    if (hasHafalan) ...[
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: secondaryColor.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Surat ${studentHafalan['surat']} '
-                            '(${studentHafalan['ayatAwal']}-${studentHafalan['ayatAkhir']})',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: accentColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                if (hasHafalan) ...[
-                  const SizedBox(height: 4),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 90),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: secondaryColor.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'Nilai: ${studentHafalan['nilai']}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: accentColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            trailing: Container(
-              width: 40,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Transform.scale(
-                    scale: 1.2,
-                    child: Checkbox(
-                      value: isSelected,
-                      activeColor: primaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      onChanged: (bool? value) {
-                        if (value == true) {
-                          _showInputDialog(student);
-                        } else {
-                          setState(() {
-                            selectedStudents.remove(student['id']);
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                  if (isSelected)
-                    Icon(
-                      Icons.check_circle,
-                      color: primaryColor,
-                      size: 20,
-                    ),
-                ],
-              ),
-            ),
-            onTap: () => _navigateToDetailPage(student),
-          ),
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: primaryColor,
-        elevation: 0,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(30),
-          ),
-        ),
-        toolbarHeight: 100,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (context) => AlertDialog(
+        title: Text('Input Hafalan ${student['name']}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 10),
-            const Text(
-              'Kepesantrenan',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-                color: Colors.white,
-              ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Surat'),
+              controller: TextEditingController(text: surat),
+              onChanged: (value) => surat = value,
             ),
-            const SizedBox(height: 5),
-            Text(
-              'Program Tahfidz & Tahsin',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white.withOpacity(0.9),
-                fontWeight: FontWeight.w400,
-              ),
+            DropdownButtonFormField<String>(
+              value: nilai,
+              decoration: const InputDecoration(labelText: 'Nilai'),
+              items: grades
+                  .map((grade) =>
+                      DropdownMenuItem(value: grade, child: Text(grade)))
+                  .toList(),
+              onChanged: (value) => nilai = value ?? grades[0],
             ),
           ],
         ),
-        centerTitle: false,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [primaryColor.withOpacity(0.1), Colors.white],
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal')),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                if (_currentPage == 0) {
+                  tahfidzData[student['id']] = {'surat': surat, 'nilai': nilai};
+                } else {
+                  tahsinData[student['id']] = {'surat': surat, 'nilai': nilai};
+                }
+              });
+              _saveData();
+              Navigator.pop(context);
+            },
+            child: const Text('Simpan'),
           ),
-        ),
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: primaryColor.withOpacity(0.1),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildDropdown(sessions, selectedSession, 'Sesi'),
-                  _buildDropdown(dates, selectedDate, 'Tanggal'),
-                  _buildDropdown(levels, selectedLevel, 'Tingkat'),
-                ],
-              ),
-            ),
-            Column(
-              children: [
-                Container(
-                  height: 120,
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  child: PageView(
-                    onPageChanged: (int page) {
-                      setState(() {
-                        _currentPage = page;
-                      });
-                    },
-                    children: [
-                      _buildPageViewItem('Tahfidz', Icons.menu_book),
-                      _buildPageViewItem('Tahsin', Icons.record_voice_over),
-                    ],
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (int i = 0; i < 2; i++)
-                        Container(
-                          width: 8,
-                          height: 8,
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: i == _currentPage
-                                ? primaryColor
-                                : primaryColor.withOpacity(0.3),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child:
-                    buildStudentList(_currentPage == 0 ? 'Tahfidz' : 'Tahsin'),
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
 
   void _showDatePicker() async {
-    try {
-      final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.parse(selectedDate),
-        firstDate: DateTime(2020),
-        lastDate: DateTime.now(),
-        builder: (context, child) {
-          return Theme(
-            data: ThemeData.light().copyWith(
-              colorScheme: ColorScheme.light(
-                primary: primaryColor,
-                onPrimary: Colors.white,
-                surface: Colors.white,
-                onSurface: primaryColor,
-              ),
-              dialogBackgroundColor: Colors.white,
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.parse(selectedDate),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: ColorScheme.light(
+              primary: primaryColor,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: primaryColor,
             ),
-            child: child!,
-          );
-        },
-      );
+            dialogBackgroundColor: Colors.white,
+          ),
+          child: child!,
+        );
+      },
+    );
 
-      if (picked != null) {
-        String newDate =
-            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-        setState(() {
-          if (!dates.contains(newDate)) {
-            dates.insert(0, newDate);
-            if (dates.length > 3) dates.removeLast();
-          }
-          selectedDate = newDate;
-          hafalanData = hafalanDataByDate[newDate] ?? {};
-          _updateSelectedStudents();
-        });
-        _saveData();
-      }
-    } catch (e) {
-      print('Date picker error: $e');
+    if (picked != null) {
+      String newDate =
+          "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      setState(() {
+        if (!dates.contains(newDate)) {
+          dates.insert(0, newDate);
+          if (dates.length > 3) dates.removeLast();
+        }
+        selectedDate = newDate;
+        tahfidzData = tahfidzDataByDate[selectedDate] ?? {};
+        tahsinData = tahsinDataByDate[selectedDate] ?? {};
+      });
+      _saveData();
     }
   }
 
-  Widget _buildDropdown(List<String> items, String value, String hint) {
-    if (hint == 'Tanggal') {
-      return InkWell(
-        onTap: _showDatePicker,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: secondaryColor,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: primaryColor.withOpacity(0.2)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.calendar_today, color: Colors.white, size: 16)
-            ],
-          ),
-        ),
-      );
-    }
+  Widget _buildStudentList() {
+    final students = DataSiswa.getMockSiswa()
+        .where((s) =>
+            s['session'] == selectedSession && s['level'] == selectedLevel)
+        .toList();
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: secondaryColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: primaryColor.withOpacity(0.2)),
-      ),
-      child: DropdownButton<String>(
-        value: value,
-        underline: Container(),
-        icon: Icon(Icons.arrow_drop_down, color: Colors.white),
-        style: const TextStyle(
-            color: Colors.white, fontWeight: FontWeight.w500),
-        dropdownColor: secondaryColor,
-        isDense: true,
-        menuMaxHeight: 300,
-        items: items.map((String item) {
-          return DropdownMenuItem<String>(
-            value: item,
-            child: Text(item, style: const TextStyle(color: Colors.white)),
-          );
-        }).toList(),
-        onChanged: (String? newValue) {
-          if (newValue != null) {
-            setState(() {
-              if (hint == 'Sesi') {
-                selectedSession = newValue;
-              } else if (hint == 'Tingkat') {
-                selectedLevel = newValue;
-              }
-            });
-          }
-        },
-      ),
+    final currentData = _currentPage == 0 ? tahfidzData : tahsinData;
+
+    return ListView.builder(
+      itemCount: students.length,
+      itemBuilder: (context, index) {
+        final student = students[index];
+        final data = currentData[student['id']];
+        final hasHafalan = data != null && data['surat']!.isNotEmpty;
+
+        return Card(
+          child: ListTile(
+            title: Text(
+              selectedLevel == 'SMP' || selectedLevel == 'SMA'
+                  ? '${student['name']} ${student['kelas']}'
+                  : student['name'],
+            ),
+            subtitle: hasHafalan
+                ? Text('Surat: ${data['surat']}, Nilai: ${data['nilai']}')
+                : const Text('Belum ada hafalan'),
+            trailing: IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () => _showInputDialog(student),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -630,7 +263,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
       margin: const EdgeInsets.symmetric(horizontal: 8.0),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [primaryColor, accentColor],
+          colors: [primaryColor, primaryColor.withOpacity(0.7)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -659,6 +292,102 @@ class _KepesantrenanState extends State<Kepesantrenan> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: primaryColor,
+        title:
+            const Text('Kepesantrenan', style: TextStyle(color: Colors.white)),
+      ),
+      body: Column(
+        children: [
+          Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: primaryColor.withOpacity(0.1),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                DropdownButton<String>(
+                  value: selectedSession,
+                  items: sessions
+                      .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                      .toList(),
+                  onChanged: (value) => setState(() {
+                    selectedSession = value!;
+                    tahfidzData = tahfidzDataByDate[selectedDate] ?? {};
+                    tahsinData = tahsinDataByDate[selectedDate] ?? {};
+                    _saveLastSelectedPreferences();
+                  }),
+                ),
+                InkWell(
+                  onTap: _showDatePicker,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(selectedDate,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.calendar_today, size: 16),
+                      ],
+                    ),
+                  ),
+                ),
+                DropdownButton<String>(
+                  value: selectedLevel,
+                  items: levels
+                      .map((l) => DropdownMenuItem(value: l, child: Text(l)))
+                      .toList(),
+                  onChanged: (value) => setState(() {
+                    selectedLevel = value!;
+                    tahfidzData = tahfidzDataByDate[selectedDate] ?? {};
+                    tahsinData = tahsinDataByDate[selectedDate] ?? {};
+                    _saveLastSelectedPreferences();
+                  }),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            height: 120,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: PageView(
+              onPageChanged: (int page) {
+                setState(() {
+                  _currentPage = page;
+                });
+              },
+              children: [
+                _buildPageViewItem('Tahfidz', Icons.menu_book),
+                _buildPageViewItem('Tahsin', Icons.record_voice_over),
+              ],
+            ),
+          ),
+          Expanded(child: _buildStudentList()),
+        ],
       ),
     );
   }
