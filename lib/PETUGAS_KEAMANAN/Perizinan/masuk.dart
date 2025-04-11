@@ -266,36 +266,105 @@ class _MasukPageState extends State<MasukPage> {
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-          child: ElevatedButton(
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HistoryPage()),
-              );
-              _loadDataFromLocal();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 33, 93, 153),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.history, size: 20),
-                SizedBox(width: 8),
-                Text(
-                  'Riwayat Perizinan',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    bool hasSelectedStudents = _filteredIzinList.any((student) => student['isKembali'] == true);
+                    if (!hasSelectedStudents) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Pilih minimal satu santri terlebih dahulu')),
+                      );
+                      return;
+                    }
+                    
+                    bool? confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Konfirmasi'),
+                          content: Text('Apakah Anda yakin ingin menyimpan data santri yang telah kembali?'),
+                          actions: [
+                            TextButton(
+                              child: Text('Batal'),
+                              onPressed: () => Navigator.of(context).pop(false),
+                            ),
+                            TextButton(
+                              child: Text('Simpan'),
+                              onPressed: () => Navigator.of(context).pop(true),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    if (confirm == true) {
+                      _saveAndReturn();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Data berhasil disimpan ke riwayat perizinan')),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.save, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Simpan',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => HistoryPage()),
+                    );
+                    _loadDataFromLocal();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 33, 93, 153),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.history, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Riwayat Perizinan',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
