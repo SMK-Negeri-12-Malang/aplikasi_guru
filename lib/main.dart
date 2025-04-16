@@ -6,7 +6,7 @@ import 'package:aplikasi_guru/GURU/Profil/profil.dart';
 import 'package:aplikasi_guru/GURU_QURAN/Cek_Santri/cek_santri.dart';
 import 'package:aplikasi_guru/GURU_QURAN/Home/home_quran.dart';
 import 'package:aplikasi_guru/GURU_QURAN/Kepesantrenan/Kepesantrenan.dart';
-import 'package:aplikasi_guru/GURU_QURAN/Leaderboard/leaderboard.dart';
+import 'package:aplikasi_guru/GURU_QURAN/Absensi/absensi.dart';
 import 'package:aplikasi_guru/GURU_QURAN/Profil/profil.dart';
 import 'package:aplikasi_guru/MUSYRIF/Home/home_musyrif.dart';
 import 'package:aplikasi_guru/MUSYRIF/Profil/profil.dart';
@@ -436,10 +436,10 @@ class _GuruQuranDashboardState extends State<GuruQuranDashboard> with SingleTick
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<NavItem> _navItems = [
-    NavItem(icon: Icons.menu_book, label: 'Tahfidz'),
+    NavItem(icon: Icons.menu_book, label: 'Absensi'),
     NavItem(icon: Icons.calendar_today, label: 'Cek Santri'), 
     NavItem(icon: Icons.home, label: 'Home'),
-    NavItem(icon: Icons.list, label: 'Absen'),
+    NavItem(icon: Icons.list, label: 'Kepesantrenan'),
     NavItem(icon: Icons.person, label: 'Profil'),
   ];
 
@@ -523,7 +523,7 @@ class _GuruQuranDashboardState extends State<GuruQuranDashboard> with SingleTick
             });
           },
           children: [
-            LeaderboardPage(), // Replace with TahfidzPage()
+            AbsensiPage(), // Replace with TahfidzPage()
             CekSantri(), 
             HomeQuran(), // Replace with DashboardGuruQuranPage()
             Kepesantrenan(),    
@@ -572,13 +572,13 @@ class _GuruQuranDashboardState extends State<GuruQuranDashboard> with SingleTick
   String _getAppBarTitle() {
     switch (_currentIndex) {
       case 0:
-        return 'Tahfidz';
+        return 'Absensi';
       case 1:
         return 'Jadwal';
       case 2:
         return 'Home';
       case 3:
-        return 'Absensi';
+        return 'Kepesantrenan';
       case 4:
         return 'Profil';
       default:
