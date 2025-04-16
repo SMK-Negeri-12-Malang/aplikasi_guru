@@ -11,7 +11,7 @@ class Kepesantrenan extends StatefulWidget {
 }
 
 class _KepesantrenanState extends State<Kepesantrenan> {
-  final Color primaryColor = const Color(0xFF1D2842);
+  final Color primaryColor = const Color(0xFF2E3F7F);
   final List<String> sessions = ['Sesi 1', 'Sesi 2', 'Sesi 3'];
   final List<String> levels = ['SMP', 'SMA'];
   final List<String> grades = ['Mumtaz', 'Jayyid Jiddan', 'Jayyid', 'Maqbul'];

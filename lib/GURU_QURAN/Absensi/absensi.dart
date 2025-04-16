@@ -32,22 +32,38 @@ class _AbsensiPageState extends State<AbsensiPage> {
     });
   }
 
+  String _getFormattedDate() {
+    final now = DateTime.now();
+    return "${now.day}/${now.month}/${now.year}";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Absensi Santri",
-        style:TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blue,
+        title: const Text(
+          "Absensi Santri",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor:  Color(0xFF2E3F7F),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Daftar Absensi Santri",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Daftar Absensi Santri",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  _getFormattedDate(),
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Expanded(
@@ -133,7 +149,7 @@ class _AbsensiPageState extends State<AbsensiPage> {
               heroTag: 'menu',
               backgroundColor: Colors.green,
               onPressed: _toggleFabMenu,
-              child: const Icon(Icons.more_vert,              ),
+              child: const Icon(Icons.more_vert),
             ),
           ),
         ],
