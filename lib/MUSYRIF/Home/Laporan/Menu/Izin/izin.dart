@@ -7,6 +7,9 @@ class IzinModel {
   final String kamar;
   final String halaqo;
   final String musyrif;
+  final String keperluan;
+  final String penjemput;
+  final String kelas; // Add kelas field
 
   IzinModel({
     required this.nama,
@@ -14,6 +17,9 @@ class IzinModel {
     required this.kamar,
     required this.halaqo,
     required this.musyrif,
+    required this.keperluan,
+    required this.penjemput,
+    required this.kelas, // Add to constructor
   });
 }
 
@@ -22,20 +28,29 @@ List<IzinModel> izinList = [
       nama: 'Ahmad',
       tanggal: '01-02-2025 to 05-02-2025',
       kamar: 'Kamar A',
+      kelas: 'Kelas 1',
       halaqo: 'Halaqo 1',
-      musyrif: 'Ustadz Ali'),
+      musyrif: 'Ustadz Ali',
+      keperluan: 'Keperluan 1',
+      penjemput: 'Penjemput 1'),
   IzinModel(
       nama: 'Aisyah',
       tanggal: '02-02-2025 to 06-02-2025',
       kamar: 'Kamar B',
+      kelas: 'Kelas 2',
       halaqo: 'Halaqo 2',
-      musyrif: 'Ustadzah Fatimah'),
+      musyrif: 'Ustadzah Fatimah',
+      keperluan: 'Keperluan 2',
+      penjemput: 'Penjemput 2'),
   IzinModel(
       nama: 'Fatimah',
       tanggal: '03-02-2025 to 07-02-2025',
       kamar: 'Kamar C',
+      kelas: 'Kelas 3',
       halaqo: 'Halaqo 3',
-      musyrif: 'Ustadzah Zainab'),
+      musyrif: 'Ustadzah Zainab',
+      keperluan: 'Keperluan 3',
+      penjemput: 'Penjemput 3'),
 ];
 
 class IzinPage extends StatefulWidget {
@@ -49,6 +64,9 @@ class _IzinState extends State<IzinPage> {
   final TextEditingController _kamarController = TextEditingController();
   final TextEditingController _halaqoController = TextEditingController();
   final TextEditingController _musyrifController = TextEditingController();
+  final TextEditingController _keperluanController = TextEditingController();
+  final TextEditingController _penjemputController = TextEditingController();
+  final TextEditingController _kelasController = TextEditingController(); // Add new controller
 
   final List<IzinModel> _namaSantriList =
       izinList; // Use izinList for autocomplete
@@ -77,7 +95,9 @@ class _IzinState extends State<IzinPage> {
         _tanggalController.text.isNotEmpty &&
         _kamarController.text.isNotEmpty &&
         _halaqoController.text.isNotEmpty &&
-        _musyrifController.text.isNotEmpty) {
+        _musyrifController.text.isNotEmpty &&
+        _keperluanController.text.isNotEmpty &&
+        _penjemputController.text.isNotEmpty) {
       // Ensure 'Kamar' does not contain the word 'Kelas'
       if (_kamarController.text.contains('Kelas')) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -93,7 +113,10 @@ class _IzinState extends State<IzinPage> {
           izin.tanggal == _tanggalController.text &&
           izin.kamar == _kamarController.text &&
           izin.halaqo == _halaqoController.text &&
-          izin.musyrif == _musyrifController.text);
+          izin.musyrif == _musyrifController.text &&
+          izin.keperluan == _keperluanController.text &&
+          izin.penjemput == _penjemputController.text &&
+          izin.kelas == _kelasController.text);
 
       if (!isDuplicate) {
         setState(() {
@@ -104,6 +127,9 @@ class _IzinState extends State<IzinPage> {
               kamar: _kamarController.text,
               halaqo: _halaqoController.text,
               musyrif: _musyrifController.text,
+              keperluan: _keperluanController.text,
+              penjemput: _penjemputController.text,
+              kelas: _kelasController.text,
             ),
           );
         });
@@ -113,6 +139,9 @@ class _IzinState extends State<IzinPage> {
         _kamarController.clear();
         _halaqoController.clear();
         _musyrifController.clear();
+        _keperluanController.clear();
+        _penjemputController.clear();
+        _kelasController.clear();
 
         Navigator.pop(context, true); // Pass true to indicate data was saved
       } else {
@@ -177,13 +206,33 @@ class _IzinState extends State<IzinPage> {
                           Icons.calendar_today,
                           () => _selectDateRange(context)),
                       SizedBox(height: 16),
-                      _buildTextField(_kamarController, 'Kamar', Icons.room,
-                          readOnly: true),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextField(
+                                _kamarController, 'Kamar', Icons.room,
+                                readOnly: true),
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: _buildTextField(
+                                _kelasController, 'Kelas', Icons.school,
+                                readOnly: true),
+                          ),
+                        ],
+                      ),
                       SizedBox(height: 16),
                       _buildTextField(_halaqoController, 'Halaqo', Icons.group),
                       SizedBox(height: 16),
                       _buildTextField(_musyrifController, 'Musyrif',
                           Icons.supervisor_account),
+                      SizedBox(height: 16),
+                      _buildTextField(_keperluanController, 'Keperluan',
+                          Icons.notes,
+                          maxLines: 3),
+                      SizedBox(height: 16),
+                      _buildTextField(_penjemputController, 'Penjemput',
+                          Icons.person_outline),
                       SizedBox(height: 24),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -307,11 +356,12 @@ class _IzinState extends State<IzinPage> {
                 ),
               ),
               title: Text(santri.nama),
-              subtitle: Text(santri.kamar),
+              subtitle: Text('${santri.kamar} | ${santri.kelas}'),
               onTap: () {
                 setState(() {
                   _namaController.text = santri.nama;
                   _kamarController.text = santri.kamar;
+                  _kelasController.text = santri.kelas;
                   _halaqoController.text = santri.halaqo;
                   _musyrifController.text = santri.musyrif;
                   _showDropdown = false;
@@ -322,5 +372,18 @@ class _IzinState extends State<IzinPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _namaController.dispose();
+    _tanggalController.dispose();
+    _kamarController.dispose();
+    _halaqoController.dispose();
+    _musyrifController.dispose();
+    _keperluanController.dispose();
+    _penjemputController.dispose();
+    _kelasController.dispose();
+    super.dispose();
   }
 }

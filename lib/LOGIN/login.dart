@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
           } else if (response.$4 != null) { // Security Guard login
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => HomePetugas()),
+              MaterialPageRoute(builder: (context) => PetugasKeamananDashboard()),
             );
             return; // Add return to prevent further execution
           }
@@ -120,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePetugas()),
+          MaterialPageRoute(builder: (context) => PetugasKeamananDashboard()),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -169,23 +169,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       Image.asset(
                         'assets/images/logo.png', // Replace with your asset path
                         height: 80,
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'IBS',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ),
-                      const Text(
-                        'Islamic Boarding School',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Color.fromARGB(255, 0, 0, 0),
-                        ),
                       ),
                     ],
                   ),

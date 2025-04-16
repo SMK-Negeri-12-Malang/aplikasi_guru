@@ -1,3 +1,4 @@
+import 'package:aplikasi_guru/ANIMASI/shimmer_loading.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,16 +19,34 @@ class _MasukPageState extends State<MasukPage> {
   final TextEditingController _searchController = TextEditingController();
   String? _selectedKelas;
   String? _selectedDate;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _izinList = widget.izinList
-        .where((data) => data['status'] == 'Keluar')
-        .map((data) => Map<String, dynamic>.from(data))
-        .toList();
-    _filteredIzinList = List.from(_izinList);
+    _loadDataFromLocal();
     _searchController.addListener(_applyFilters);
+  }
+
+  Future<void> _loadDataFromLocal() async {
+    try {
+      setState(() => _isLoading = true);
+      final prefs = await SharedPreferences.getInstance();
+      List<String> dataJson = prefs.getStringList('perizinan_data') ?? [];
+      
+      setState(() {
+        _izinList = dataJson
+            .map((str) => json.decode(str) as Map<String, dynamic>)
+            .toList()
+            .where((data) => data['status'] == 'Keluar')
+            .toList();
+        _izinList.sort((a, b) => 
+            (b['waktuKeluar'] ?? '').compareTo(a['waktuKeluar'] ?? ''));
+        _filteredIzinList = List.from(_izinList);
+      });
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   void _applyFilters() {
@@ -61,54 +80,128 @@ class _MasukPageState extends State<MasukPage> {
     }
   }
 
-  void _toggleKembali(int index) {
+  void _toggleKembali(int index) async {
     setState(() {
       _filteredIzinList[index]['isKembali'] =
           !_filteredIzinList[index]['isKembali'];
     });
   }
 
-  void _saveAndReturn() async {
-    final returnedStudents = _filteredIzinList
-        .where((data) => data['isKembali'] == true)
-        .map((data) => Map<String, dynamic>.from(data))
-        .toList();
+  Future<void> _saveAndReturn() async {
+    try {
+      final returnedStudents = _filteredIzinList
+          .where((data) => data['isKembali'] == true)
+          .toList();
 
-    final prefs = await SharedPreferences.getInstance();
-    List<String> allDataJson = prefs.getStringList('perizinan_data') ?? [];
-    List<Map<String, dynamic>> allData = allDataJson
-        .map((str) => json.decode(str) as Map<String, dynamic>)
-        .toList();
-
-    for (var returnedStudent in returnedStudents) {
-      int index =
-          allData.indexWhere((data) => data['nama'] == returnedStudent['nama']);
-      if (index != -1) {
-        allData[index]['status'] = 'Masuk';
-        allData[index]['isKembali'] = true;
+      if (returnedStudents.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Pilih minimal satu santri terlebih dahulu')),
+        );
+        return;
       }
+
+      final prefs = await SharedPreferences.getInstance();
+      List<String> allDataJson = prefs.getStringList('perizinan_data') ?? [];
+      List<Map<String, dynamic>> allData = allDataJson
+          .map((str) => json.decode(str) as Map<String, dynamic>)
+          .toList();
+
+      bool anyFailure = false;
+      for (var returnedStudent in returnedStudents) {
+        try {
+          int index = allData.indexWhere((data) => 
+              data['nama'] == returnedStudent['nama'] && 
+              data['timestamp'] == returnedStudent['timestamp']);
+              
+          if (index != -1) {
+            allData[index]['status'] = 'Masuk';
+            allData[index]['isKembali'] = true;
+            allData[index]['waktuMasuk'] = DateTime.now().toIso8601String();
+          }
+        } catch (e) {
+          anyFailure = true;
+          print('Error updating student: ${returnedStudent['nama']} - $e');
+        }
+      }
+
+      await prefs.setStringList('perizinan_data',
+          allData.map((data) => json.encode(data)).toList());
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Data berhasil disimpan dan masuk ke riwayat perizinan')),
+      );
+
+      // Reload the data instead of navigating
+      await _loadDataFromLocal();
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan: $e')),
+      );
     }
-
-    await prefs.setStringList('perizinan_data',
-        allData.map((data) => json.encode(data)).toList());
-
-    Navigator.pop(context, returnedStudents);
   }
 
-  void _loadDataFromLocal() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> allDataJson = prefs.getStringList('perizinan_data') ?? [];
-    List<Map<String, dynamic>> allData = allDataJson
-        .map((str) => json.decode(str) as Map<String, dynamic>)
-        .toList();
+  Widget _buildListView() {
+    if (_isLoading) {
+      return ListView.builder(
+        padding: EdgeInsets.all(16),
+        itemCount: 5, // Show 5 shimmer items
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: ShimmerLoading(height: 120),
+          );
+        },
+      );
+    }
 
-    setState(() {
-      _izinList = allData
-          .where((data) => data['status'] == 'Keluar')
-          .map((data) => Map<String, dynamic>.from(data))
-          .toList();
-      _filteredIzinList = List.from(_izinList);
-    });
+    return _filteredIzinList.isEmpty
+        ? Center(
+            child: Text('Tidak ada santri yang sedang keluar',
+                style: TextStyle(fontSize: 16)),
+          )
+        : ListView.builder(
+            padding: EdgeInsets.all(16),
+            itemCount: _filteredIzinList.length,
+            itemBuilder: (context, index) {
+              final izin = _filteredIzinList[index];
+              return Card(
+                margin: EdgeInsets.only(bottom: 12),
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: CheckboxListTile(
+                  value: izin['isKembali'] ?? false,
+                  onChanged: (_) => _toggleKembali(index),
+                  title: Text(
+                    izin['nama'],
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          'Kamar: ${izin['kamar']} | Kelas: ${izin['kelas']}'),
+                      Text('Keperluan: ${izin['keperluan']}'),
+                      Text('Tanggal Izin: ${izin['tanggalIzin']}'),
+                      Text('Tanggal Kembali: ${izin['tanggalKembali']}'),
+                    ],
+                  ),
+                  secondary: Icon(
+                    izin['isKembali'] == true
+                        ? Icons.check_circle
+                        : Icons.pending,
+                    color: izin['isKembali'] == true
+                        ? Colors.green
+                        : Colors.orange,
+                  ),
+                  contentPadding: EdgeInsets.all(12),
+                ),
+              );
+            },
+          );
   }
 
   @override
@@ -119,12 +212,8 @@ class _MasukPageState extends State<MasukPage> {
         child: AppBar(
           backgroundColor: Color(0xFF2E3F7F),
           elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: _saveAndReturn,
-          ),
           title: Text(
-            'Daftar Santri Izin',
+            'Daftar Santri Keluar',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
@@ -203,52 +292,7 @@ class _MasukPageState extends State<MasukPage> {
             ),
           ),
           Expanded(
-            child: _filteredIzinList.isEmpty
-                ? Center(
-                    child: Text('Tidak ada santri yang sedang izin',
-                        style: TextStyle(fontSize: 16)),
-                  )
-                : ListView.builder(
-                    padding: EdgeInsets.all(16),
-                    itemCount: _filteredIzinList.length,
-                    itemBuilder: (context, index) {
-                      final izin = _filteredIzinList[index];
-                      return Card(
-                        margin: EdgeInsets.only(bottom: 12),
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: CheckboxListTile(
-                          value: izin['isKembali'] ?? false,
-                          onChanged: (_) => _toggleKembali(index),
-                          title: Text(
-                            izin['nama'],
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  'Kamar: ${izin['kamar']} | Kelas: ${izin['kelas']}'),
-                              Text('Keperluan: ${izin['keperluan']}'),
-                              Text('Tanggal Izin: ${izin['tanggalIzin']}'),
-                              Text('Tanggal Kembali: ${izin['tanggalKembali']}'),
-                            ],
-                          ),
-                          secondary: Icon(
-                            izin['isKembali'] == true
-                                ? Icons.check_circle
-                                : Icons.pending,
-                            color: izin['isKembali'] == true
-                                ? Colors.green
-                                : Colors.orange,
-                          ),
-                          contentPadding: EdgeInsets.all(12),
-                        ),
-                      );
-                    },
-                  ),
+            child: _buildListView(),
           ),
         ],
       ),
@@ -271,14 +315,15 @@ class _MasukPageState extends State<MasukPage> {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () async {
-                    bool hasSelectedStudents = _filteredIzinList.any((student) => student['isKembali'] == true);
+                    bool hasSelectedStudents = _filteredIzinList.any(
+                        (student) => student['isKembali'] == true);
                     if (!hasSelectedStudents) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Pilih minimal satu santri terlebih dahulu')),
                       );
                       return;
                     }
-                    
+
                     bool? confirm = await showDialog<bool>(
                       context: context,
                       builder: (BuildContext context) {
@@ -291,7 +336,7 @@ class _MasukPageState extends State<MasukPage> {
                               onPressed: () => Navigator.of(context).pop(false),
                             ),
                             TextButton(
-                              child: Text('Simpan'),
+                              child: Text('Ya'),
                               onPressed: () => Navigator.of(context).pop(true),
                             ),
                           ],
@@ -300,10 +345,7 @@ class _MasukPageState extends State<MasukPage> {
                     );
 
                     if (confirm == true) {
-                      _saveAndReturn();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Data berhasil disimpan ke riwayat perizinan')),
-                      );
+                      await _saveAndReturn();
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -356,7 +398,7 @@ class _MasukPageState extends State<MasukPage> {
                       Text(
                         'Riwayat Perizinan',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
