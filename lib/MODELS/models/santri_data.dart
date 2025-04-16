@@ -12,6 +12,10 @@ class Santri {
   });
 
   bool? get isPresent => null;
+
+  get kehadiran => null;
+
+  get hafalan => null;
   
 }
 

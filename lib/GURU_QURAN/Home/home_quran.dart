@@ -29,7 +29,9 @@ class _HomeQuranState extends State<HomeQuran> {
   bool _isPrefsLoaded = false;
 
   int _currentYearIndex = 2; 
-  
+  PageController _pageController = PageController();
+  int _pageIndex = 0;
+
   final List<Map<String, dynamic>> _academicYears = [
     {
       'period': '2022-2023',
@@ -205,20 +207,9 @@ class _HomeQuranState extends State<HomeQuran> {
     });
   }
 
-  void _navigateYear(int direction) {
-    setState(() {
-      int newIndex = _currentYearIndex + direction;
-      if (newIndex >= 0 && newIndex < _academicYears.length) {
-        _currentYearIndex = newIndex;
-        _prefs.setInt('current_year_index', _currentYearIndex);
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    final currentYear = _academicYears[_currentYearIndex];
-    
     return Scaffold(
       backgroundColor: Colors.transparent, 
       body: Container(
@@ -288,127 +279,250 @@ class _HomeQuranState extends State<HomeQuran> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          child: Card(
-                            elevation: 5,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(15.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "Kehadiran Tahfidz",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF2E3F7F),
-                                    ),
-                                  ),
-                                  SizedBox(height: 10),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.arrow_back_ios, size: 18),
-                                        color: _currentYearIndex > 0 
-                                            ? Color(0xFF2E3F7F) 
-                                            : Colors.grey[400],
-                                        onPressed: _currentYearIndex > 0 
-                                            ? () => _navigateYear(-1) 
-                                            : null,
-                                        constraints: BoxConstraints(),
-                                        padding: EdgeInsets.symmetric(horizontal: 8),
-                                        splashRadius: 20,
-                                      ),
-                                      Row(
-                                        children: [
-                                          Container(
-                                            width: 12,
-                                            height: 12,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Colors.blue,
-                                            ),
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                height: 250, // diperkecil dari 330 ke 200
+                                child: PageView.builder(
+                                  controller: _pageController,
+                                  itemCount: 2, // 2 halaman: persentase & peringkat
+                                  onPageChanged: (index) {
+                                    setState(() {
+                                      // Update indikator saat halaman berubah
+                                      _pageIndex = index;
+                                    });
+                                  },
+                                  itemBuilder: (context, index) {
+                                    final year = _academicYears[_currentYearIndex];
+                                    final santriList = models.SantriDataProvider.getSantriForYear(year['period']);
+                                    final sortedSantri = List.of(santriList)
+                                      ..sort((a, b) => (b.hafalan ?? 0).compareTo(a.hafalan ?? 0));
+                                    final topSantri = sortedSantri.take(3).toList(); // hanya 3 nama
+                                    if (index == 0) {
+                                      return Card(
+                                        elevation: 5,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(15),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(15.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  IconButton(
+                                                    icon: Icon(Icons.arrow_back_ios, size: 16),
+                                                    onPressed: _currentYearIndex > 0 
+                                                      ? () {
+                                                          setState(() {
+                                                            _currentYearIndex--;
+                                                            _saveAcademicYearData(_currentYearIndex);
+                                                          });
+                                                        } 
+                                                      : null,
+                                                    color: _currentYearIndex > 0 ? Color(0xFF2E3F7F) : Colors.grey,
+                                                  ),
+                                                  Text(
+                                                    "Persentase Hafalan & Kehadiran",
+                                                    style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Color(0xFF2E3F7F),
+                                                    ),
+                                                  ),
+                                                  IconButton(
+                                                    icon: Icon(Icons.arrow_forward_ios, size: 16),
+                                                    onPressed: _currentYearIndex < _academicYears.length - 1 
+                                                      ? () {
+                                                          setState(() {
+                                                            _currentYearIndex++;
+                                                            _saveAcademicYearData(_currentYearIndex);
+                                                          });
+                                                        } 
+                                                      : null,
+                                                    color: _currentYearIndex < _academicYears.length - 1 ? Color(0xFF2E3F7F) : Colors.grey,
+                                                  ),
+                                                ],
+                                              ),
+                                              Text(
+                                                year['period'],
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                              SizedBox(height: 10),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                children: [
+                                                  _buildEnhancedProgressIndicator(
+                                                    value: year['hafalanProgress'] ?? 0.0,
+                                                    color: Colors.green,
+                                                    label: 'Hafalan',
+                                                    presentCount: year['hafalanPresent'] ?? 0,
+                                                    absentCount: year['hafalanAbsent'] ?? 0,
+                                                    totalCount: year['hafalanTotal'] ?? 0,
+                                                  ),
+                                                  _buildEnhancedProgressIndicator(
+                                                    value: year['kehadiranProgress'] ?? 0.0,
+                                                    color: Colors.blue,
+                                                    label: 'Kehadiran',
+                                                    presentCount: year['kehadiranPresent'] ?? 0,
+                                                    absentCount: year['kehadiranAbsent'] ?? 0,
+                                                    totalCount: year['kehadiranTotal'] ?? 0,
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
                                           ),
-                                          SizedBox(width: 5),
-                                          Text(
-                                            currentYear['startYear'],
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF2E3F7F),
-                                            ),
+                                        ),
+                                      );
+                                    } else {
+                                      // Halaman peringkat
+                                      return Card(
+                                        elevation: 5,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(15),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(15.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                "Peringkat 3 Besar Santri",
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF2E3F7F),
+                                                ),
+                                              ),
+                                              SizedBox(height: 10),
+                                              SizedBox(
+                                                height: 150, // Increased height to accommodate larger text
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                                  children: [
+                                                    // Juara 2 (kiri)
+                                                    Column(
+                                                      mainAxisAlignment: MainAxisAlignment.end,
+                                                      children: [
+                                                        CircleAvatar(
+                                                          radius: 28, // Increased radius
+                                                          backgroundColor: Colors.grey,
+                                                          child: Text('2', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 20)), // Increased number size
+                                                        ),
+                                                        SizedBox(height: 4),
+                                                        Container(
+                                                          width: 90, // Increased width
+                                                          child: Column(
+                                                            children: [
+                                                              Text(
+                                                                topSantri.length > 1 ? topSantri[1].name : '-', 
+                                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14), // Increased name size
+                                                                textAlign: TextAlign.center,
+                                                                overflow: TextOverflow.ellipsis,
+                                                              ),
+                                                              Text(
+                                                                topSantri.length > 1 ? 'Hafalan: ${topSantri[1].hafalan ?? 0}' : '', 
+                                                                style: TextStyle(fontSize: 12), // Increased hafalan size
+                                                                textAlign: TextAlign.center,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    
+                                                    // Juara 1 (tengah)
+                                                    Column(
+                                                      children: [
+                                                        CircleAvatar(
+                                                          radius: 35, // Increased radius
+                                                          backgroundColor: Colors.amber,
+                                                          child: Text('1', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 24)), // Increased number size
+                                                        ),
+                                                        SizedBox(height: 4),
+                                                        Container(
+                                                          width: 100, // Increased width
+                                                          child: Column(
+                                                            children: [
+                                                              Text(
+                                                                topSantri.length > 0 ? topSantri[0].name : '-', 
+                                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16), // Increased name size
+                                                                textAlign: TextAlign.center,
+                                                                overflow: TextOverflow.ellipsis,
+                                                              ),
+                                                              Text(
+                                                                topSantri.length > 0 ? 'Hafalan: ${topSantri[0].hafalan ?? 0}' : '', 
+                                                                style: TextStyle(fontSize: 14), // Increased hafalan size
+                                                                textAlign: TextAlign.center,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    
+                                                    // Juara 3 (kanan)
+                                                    Column(
+                                                      mainAxisAlignment: MainAxisAlignment.end,
+                                                      children: [
+                                                        CircleAvatar(
+                                                          radius: 28, // Increased radius
+                                                          backgroundColor: Colors.brown,
+                                                          child: Text('3', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 20)), // Increased number size
+                                                        ),
+                                                        SizedBox(height: 4),
+                                                        Container(
+                                                          width: 90, // Increased width
+                                                          child: Column(
+                                                            children: [
+                                                              Text(
+                                                                topSantri.length > 2 ? topSantri[2].name : '-', 
+                                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14), // Increased name size
+                                                                textAlign: TextAlign.center,
+                                                                overflow: TextOverflow.ellipsis,
+                                                              ),
+                                                              Text(
+                                                                topSantri.length > 2 ? 'Hafalan: ${topSantri[2].hafalan ?? 0}' : '', 
+                                                                style: TextStyle(fontSize: 12), // Increased hafalan size
+                                                                textAlign: TextAlign.center,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          SizedBox(width: 10),
-                                          Text(
-                                            '-',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                          SizedBox(width: 10),
-                                          Container(
-                                            width: 12,
-                                            height: 12,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Colors.green,
-                                            ),
-                                          ),
-                                          SizedBox(width: 5),
-                                          Text(
-                                            currentYear['endYear'],
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF2E3F7F),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.arrow_forward_ios, size: 18),
-                                        color: _currentYearIndex < _academicYears.length - 1 
-                                            ? Color(0xFF2E3F7F) 
-                                            : Colors.grey[400],
-                                        onPressed: _currentYearIndex < _academicYears.length - 1 
-                                            ? () => _navigateYear(1) 
-                                            : null,
-                                        constraints: BoxConstraints(),
-                                        padding: EdgeInsets.symmetric(horizontal: 8),
-                                        splashRadius: 20,
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 15),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      _buildEnhancedProgressIndicator(
-                                        value: currentYear['hafalanProgress'],
-                                        color: Colors.blue,
-                                        label: 'Hafalan',
-                                        presentCount: currentYear['hafalanPresent'],
-                                        absentCount: currentYear['hafalanAbsent'],
-                                        totalCount: currentYear['hafalanTotal'],
-                                      ),
-                                      _buildEnhancedProgressIndicator(
-                                        value: currentYear['kehadiranProgress'],
-                                        color: Colors.green,
-                                        label: 'Kehadiran',
-                                        presentCount: currentYear['kehadiranPresent'],
-                                        absentCount: currentYear['kehadiranAbsent'],
-                                        totalCount: currentYear['kehadiranTotal'],
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
                               ),
-                            ),
+                              SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(2, (index) => Container(
+                                  width: 10,
+                                  height: 10,
+                                  margin: EdgeInsets.symmetric(horizontal: 4),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: _pageIndex == index ? Color(0xFF2E3F7F) : Colors.grey[300],
+                                  ),
+                                )),
+                              ),
+                            ],
                           ),
                         ),
                         Padding(
