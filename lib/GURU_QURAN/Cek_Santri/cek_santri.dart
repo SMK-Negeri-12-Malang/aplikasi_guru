@@ -1,9 +1,13 @@
 import 'dart:convert';
+import 'package:aplikasi_guru/GURU_QURAN/Cek_Santri/detail_cek_santri.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CekSantri extends StatefulWidget {
-  const CekSantri({super.key});
+  final List<Map<String, dynamic>>?
+      passedData; // Accept data from Kepesantrenan
+
+  const CekSantri({super.key, this.passedData});
 
   @override
   State<CekSantri> createState() => _CekSantriState();
@@ -17,7 +21,12 @@ class _CekSantriState extends State<CekSantri> {
   @override
   void initState() {
     super.initState();
-    _loadEvaluatedStudents();
+    if (widget.passedData != null) {
+      // Use passed data if available
+      evaluatedStudents = widget.passedData!;
+    } else {
+      _loadEvaluatedStudents();
+    }
   }
 
   Future<void> _loadEvaluatedStudents() async {
@@ -34,7 +43,7 @@ class _CekSantriState extends State<CekSantri> {
   @override
   Widget build(BuildContext context) {
     final filteredStudents = evaluatedStudents.where((student) {
-      final name = student['name'].toLowerCase();
+      final name = student['name']?.toLowerCase() ?? '';
       return name.contains(_searchQuery.toLowerCase());
     }).toList();
 
@@ -117,7 +126,22 @@ class _CekSantriState extends State<CekSantri> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        // Add functionality for card click if needed
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailCekSantri(
+                              studentName: student['name'] ?? '-',
+                              room: student['className'] ?? '-',
+                              className: student['level'] ?? '-',
+                              studentId: student['id'] ?? '-',
+                              session: student['session'] ?? '-',
+                              type: student['type'] ?? '-',
+                              ayatAwal: student['ayatAwal'] ?? '-',
+                              ayatAkhir: student['ayatAkhir'] ?? '-',
+                              nilai: student['nilai'] ?? '-',
+                            ),
+                          ),
+                        );
                       },
                       borderRadius: BorderRadius.circular(12),
                       child: Card(
@@ -126,15 +150,16 @@ class _CekSantriState extends State<CekSantri> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: ListTile(
-                          title: Text(student['name']),
+                          title: Text(student['name'] ?? '-'),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Kelas: ${student['className']}"),
-                              Text("Sesi: ${student['session']}"),
-                              Text("Tipe: ${student['type']}"),
+                              Text("Kelas: ${student['className'] ?? '-'}"),
+                              Text("Sesi: ${student['session'] ?? '-'}"),
+                              Text("Tipe: ${student['type'] ?? '-'}"),
                               Text(
-                                  "Surat: ${student['surat']}, Nilai: ${student['nilai']}"),
+                                  "Ayat Awal: ${student['ayatAwal'] ?? '-'}, Ayat Akhir: ${student['ayatAkhir'] ?? '-'}"),
+                              Text("Nilai: ${student['nilai'] ?? '-'}"),
                             ],
                           ),
                           isThreeLine: true,
