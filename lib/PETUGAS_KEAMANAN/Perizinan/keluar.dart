@@ -1,8 +1,10 @@
+import 'package:aplikasi_guru/ANIMASI/shimmer_loading.dart';
 import 'package:aplikasi_guru/ANIMASI/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:aplikasi_guru/data/test_data.dart';
+
 
 class KeluarPage extends StatefulWidget {
   @override
@@ -10,255 +12,359 @@ class KeluarPage extends StatefulWidget {
 }
 
 class _KeluarPageState extends State<KeluarPage> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _siswaController = TextEditingController();
-  final TextEditingController _kamarController = TextEditingController();
-  final TextEditingController _halaqohController = TextEditingController();
-  final TextEditingController _musyrifController = TextEditingController();
-  final TextEditingController _keperluanController = TextEditingController();
-  final TextEditingController _tanggalIzinController = TextEditingController();
-  final TextEditingController _tanggalKembaliController = TextEditingController();
+  List<Map<String, dynamic>> _dataPerizinan = [];
+  List<Map<String, dynamic>> _filteredDataPerizinan = [];
+  final TextEditingController _searchController = TextEditingController();
+  String? _selectedKelas;
+  String? _selectedDate;
+  bool _isLoading = true;
 
-  final List<String> _kelasOptions = ['Kelas 1', 'Kelas 2', 'Kelas 3']; // Add class options
-  String? _selectedKelas = 'Kelas 1'; // Default selected class
+  @override
+  void initState() {
+    super.initState();
+    _loadDataFromLocal();
+    _searchController.addListener(_applyFilters);
+  }
 
-  Future<void> _selectDateRange(BuildContext context) async {
-    DateTimeRange? picked = await showDateRangePicker(
+  Future<void> _loadDataFromLocal() async {
+    try {
+      setState(() => _isLoading = true);
+      final prefs = await SharedPreferences.getInstance();
+      List<String> dataJson = prefs.getStringList('perizinan_data') ?? [];
+      
+      if (dataJson.isEmpty) {
+        await TestData.resetTestData();
+        dataJson = prefs.getStringList('perizinan_data') ?? [];
+      }
+      
+      setState(() {
+        _dataPerizinan = dataJson
+            .map((str) => json.decode(str) as Map<String, dynamic>)
+            .toList()
+            .where((data) => data['status'] == 'Diperiksa' || 
+                           data['status'] == 'Ditolak' ||
+                           data['status'] == 'Diizinkan')
+            .toList();
+        _filteredDataPerizinan = List.from(_dataPerizinan);
+      });
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _applyFilters() {
+    setState(() {
+      _filteredDataPerizinan = _dataPerizinan.where((data) {
+        final matchesName = data['nama']!
+            .toLowerCase()
+            .contains(_searchController.text.toLowerCase());
+        final matchesKelas = _selectedKelas == null ||
+            data['kelas'] == _selectedKelas;
+        final matchesDate = _selectedDate == null ||
+            data['tanggalIzin'] == _selectedDate;
+        return matchesName && matchesKelas && matchesDate;
+      }).toList();
+    });
+  }
+
+  void _selectDate(BuildContext context) async {
+    final picked = await showDatePicker(
       context: context,
+      initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
-      initialDateRange: DateTimeRange(
-        start: DateTime.now(),
-        end: DateTime.now().add(Duration(days: 1)),
-      ),
     );
     if (picked != null) {
       setState(() {
-        _tanggalIzinController.text =
-            "${picked.start.day}-${picked.start.month}-${picked.start.year}";
-        _tanggalKembaliController.text =
-            "${picked.end.day}-${picked.end.month}-${picked.end.year}";
+        _selectedDate = "${picked.day}-${picked.month}-${picked.year}";
+        _applyFilters();
       });
     }
   }
 
-  Future<void> _saveToLocalStorage(Map<String, dynamic> newData) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      List<String> existingDataJson = prefs.getStringList('perizinan_data') ?? [];
-      List<Map<String, dynamic>> existingData = existingDataJson
-          .map((str) => json.decode(str) as Map<String, dynamic>)
-          .toList();
-      
-      existingData.add(newData);
-      List<String> updatedDataJson = existingData
-          .map((data) => json.encode(data))
-          .toList();
-          
-      await prefs.setStringList('perizinan_data', updatedDataJson);
-    } catch (e) {
-      print('Error saving data: $e');
-      throw e;
+  Future<void> _updateStatus(Map<String, dynamic> data) async {
+    if (data['status'] != 'Diizinkan') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Santri belum diizinkan untuk keluar')),
+      );
+      return;
     }
-  }
 
-  void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        final data = {
-          'nama': _siswaController.text,
-          'kamar': _kamarController.text,
-          'kelas': _selectedKelas!,
-          'halaqoh': _halaqohController.text,
-          'musyrif': _musyrifController.text,
-          'keperluan': _keperluanController.text,
-          'tanggalIzin': _tanggalIzinController.text,
-          'tanggalKembali': _tanggalKembaliController.text,
-          'status': 'Keluar',
-          'isKembali': false,
-          'timestamp': DateTime.now().toIso8601String(),
-        };
-
-        await _saveToLocalStorage(data);
-
-        // Clear form
-        _formKey.currentState!.reset();
-        _selectedKelas = 'Kelas 1';
-        _tanggalIzinController.clear();
-        _tanggalKembaliController.clear();
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Data berhasil disimpan')),
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Konfirmasi'),
+          content: Text('Apakah Anda yakin ingin mengeluarkan santri ini?'),
+          actions: [
+            TextButton(
+              child: Text('Batal'),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            TextButton(
+              child: Text('Ya'),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
         );
+      },
+    );
 
-        Navigator.pop(context, true); // Return true to indicate success
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menyimpan data')),
-        );
-      }
+    if (confirm != true) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    List<String> allDataJson = prefs.getStringList('perizinan_data') ?? [];
+    List<Map<String, dynamic>> allData = allDataJson
+        .map((str) => json.decode(str) as Map<String, dynamic>)
+        .toList();
+
+    int index = allData.indexWhere((item) => 
+        item['nama'] == data['nama'] && 
+        item['timestamp'] == data['timestamp']);
+
+    if (index != -1) {
+      allData[index]['status'] = 'Keluar';
+      allData[index]['waktuKeluar'] = DateTime.now().toIso8601String();
+      await prefs.setStringList('perizinan_data',
+          allData.map((data) => json.encode(data)).toList());
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Status santri berhasil diupdate ke Keluar')),
+      );
+      
+      _loadDataFromLocal();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(80),
         child: AppBar(
           backgroundColor: Color(0xFF2E3F7F),
           elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
           title: Text(
-            'Formulir Keluar',
+            'Daftar Perizinan Santri',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(20),
-            ),
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
           ),
         ),
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(screenWidth * 0.05),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildTextField(_siswaController, 'Nama Siswa', Icons.person),
-                        SizedBox(height: 16),
-                        _buildTextField(_kamarController, 'Kamar', Icons.room),
-                        SizedBox(height: 16),
-                        _buildDropdownField('Kelas', Icons.class_), // Replace text field with dropdown
-                        SizedBox(height: 16),
-                        _buildTextField(_halaqohController, 'Halaqoh', Icons.group),
-                        SizedBox(height: 16),
-                        _buildTextField(_musyrifController, 'Musyrif', Icons.supervisor_account),
-                        SizedBox(height: 16),
-                        _buildTextField(_keperluanController, 'Keperluan', Icons.note),
-                        SizedBox(height: 16),
-                        _buildDateField(_tanggalIzinController, 'Tanggal Izin', Icons.calendar_today, () => _selectDateRange(context)),
-                        SizedBox(height: 16),
-                        _buildDateField(_tanggalKembaliController, 'Tanggal Kembali', Icons.calendar_today, null, readOnly: true),
-                        SizedBox(height: 24),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF2E3F7F),
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+      body: Column(
+        children: [
+          // Filter Section
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedKelas,
+                        decoration: InputDecoration(
+                          labelText: "Pilih Kelas",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          onPressed: _submitForm,
-                          child: Text(
-                            'Simpan Data',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                          filled: true,
+                          fillColor: Colors.white,
                         ),
-                      ],
+                        items: ['Kelas 1', 'Kelas 2', 'Kelas 3']
+                            .map((kelas) => DropdownMenuItem(
+                                  value: kelas,
+                                  child: Text(kelas),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedKelas = value;
+                            _applyFilters();
+                          });
+                        },
+                      ),
                     ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: TextFormField(
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: "Pilih Tanggal",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        onTap: () => _selectDate(context),
+                        controller: TextEditingController(text: _selectedDate ?? ''),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                TextFormField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: "Cari Nama Santri",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    suffixIcon: Icon(Icons.search),
                   ),
                 ),
-              ),
+              ],
             ),
+          ),
+
+          // List Section
+          Expanded(
+            child: _buildListContent(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool readOnly = false}) {
-    return TextFormField(
-      controller: controller,
-      readOnly: readOnly,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Color(0xFF2E3F7F)),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        filled: true,
-        fillColor: Colors.white,
+  Widget _buildListContent() {
+    if (_isLoading) {
+      return ListView.builder(
+        padding: EdgeInsets.all(16),
+        itemCount: 5,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: ShimmerLoading(height: 120),
+          );
+        },
+      );
+    }
+
+    return _filteredDataPerizinan.isEmpty
+        ? Center(
+            child: Text('Tidak ada data perizinan',
+                style: TextStyle(fontSize: 16)),
+          )
+        : ListView.builder(
+            padding: EdgeInsets.all(16),
+            itemCount: _filteredDataPerizinan.length,
+            itemBuilder: (context, index) {
+              final data = _filteredDataPerizinan[index];
+              return _buildPerizinanCard(data);
+            },
+          );
+  }
+
+  Widget _buildPerizinanCard(Map<String, dynamic> data) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 12),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Field ini wajib diisi';
-        }
-        return null;
-      },
+      child: ListTile(
+        title: Text(
+          data['nama'],
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Kamar: ${data['kamar']} | Kelas: ${data['kelas']}'),
+            Text('Keperluan: ${data['keperluan']}'),
+            Text('Status: ${data['status']}',
+                style: TextStyle(
+                  color: data['status'] == 'Diizinkan' ? Colors.green : 
+                         data['status'] == 'Ditolak' ? Colors.red : Colors.orange,
+                  fontWeight: FontWeight.bold
+                )),
+            Text('Tanggal Izin: ${data['tanggalIzin']}'),
+          ],
+        ),
+        trailing: data['status'] == 'Diizinkan' 
+          ? ElevatedButton(
+              onPressed: () => _updateStatus(data),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              child: Text(
+                'Keluar',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            )
+          : Icon(
+              data['status'] == 'Ditolak' ? Icons.block : Icons.pending,
+              color: data['status'] == 'Ditolak' ? Colors.red : Colors.orange,
+            ),
+        onTap: () => _showDetailDialog(data),
+      ),
     );
   }
 
-  Widget _buildDateField(TextEditingController controller, String label, IconData icon, VoidCallback? onTap, {bool readOnly = false}) {
-    return TextFormField(
-      controller: controller,
-      readOnly: readOnly || onTap == null,
-      onTap: onTap,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Color(0xFF2E3F7F)),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+  void _showDetailDialog(Map<String, dynamic> data) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Detail Perizinan'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDetailRow('Nama', data['nama']),
+              _buildDetailRow('Kamar', data['kamar']),
+              _buildDetailRow('Kelas', data['kelas']),
+              _buildDetailRow('Halaqoh', data['halaqoh']),
+              _buildDetailRow('Musyrif', data['musyrif']),
+              _buildDetailRow('Keperluan', data['keperluan']),
+              _buildDetailRow('Tanggal Izin', data['tanggalIzin']),
+              _buildDetailRow('Tanggal Kembali', data['tanggalKembali']),
+              _buildDetailRow('Status', data['status']),
+            ],
+          ),
         ),
-        filled: true,
-        fillColor: Colors.white,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Tutup'),
+          ),
+        ],
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Field ini wajib diisi';
-        }
-        return null;
-      },
     );
   }
 
-  Widget _buildDropdownField(String label, IconData icon) {
-    return DropdownButtonFormField<String>(
-      value: _selectedKelas,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Color(0xFF2E3F7F)),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        filled: true,
-        fillColor: Colors.white,
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('$label: ',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          Expanded(child: Text(value)),
+        ],
       ),
-      onChanged: (String? newValue) {
-        setState(() {
-          _selectedKelas = newValue;
-        });
-      },
-      items: _kelasOptions.map((kelas) {
-        return DropdownMenuItem(
-          value: kelas,
-          child: Text(kelas),
-        );
-      }).toList(),
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 }

@@ -74,112 +74,118 @@ class _HistoryPageState extends State<HistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(80),
-        child: AppBar(
-          backgroundColor: Color(0xFF2E3F7F),
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: Text(
-            'Riwayat Perizinan',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          centerTitle: true,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          _buildFilterSection(),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Text(
-                      'Riwayat Perizinan Santri',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2E3F7F),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Divider(
-                    color: Colors.grey[300],
-                    thickness: 1.5,
-                  ),
-                  SizedBox(height: 10),
-                  Expanded(
-                    child: _filteredHistoryList.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.history,
-                                  color: Colors.grey[400],
-                                  size: 50,
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Tidak ada riwayat perizinan',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : ListView.builder(
-                            padding: EdgeInsets.only(top: 8),
-                            itemCount: _filteredHistoryList.length,
-                            itemBuilder: (context, index) {
-                              final data = _filteredHistoryList[index];
-                              return Card(
-                                margin: EdgeInsets.only(bottom: 10),
-                                elevation: 4,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: ListTile(
-                                  title: Text(
-                                    data['nama'] ?? '',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Kamar: ${data['kamar']} | Kelas: ${data['kelas']}'),
-                                      Text('Status: ${data['status']}'),
-                                      Text('Tanggal Izin: ${data['tanggalIzin']}'),
-                                    ],
-                                  ),
-                                  trailing: Icon(
-                                    Icons.check_circle,
-                                    color: Colors.green,
-                                  ),
-                                  onTap: () => _showDetailBottomSheet(context, data),
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).pop();
+        return false;
+      },
+      child: Scaffold(
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(80),
+          child: AppBar(
+            backgroundColor: Color(0xFF2E3F7F),
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: Text(
+              'Riwayat Perizinan',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            centerTitle: true,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
             ),
           ),
-        ],
+        ),
+        body: Column(
+          children: [
+            _buildFilterSection(),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Text(
+                        'Riwayat Perizinan Santri',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2E3F7F),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Divider(
+                      color: Colors.grey[300],
+                      thickness: 1.5,
+                    ),
+                    SizedBox(height: 10),
+                    Expanded(
+                      child: _filteredHistoryList.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.history,
+                                    color: Colors.grey[400],
+                                    size: 50,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Tidak ada riwayat perizinan',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: EdgeInsets.only(top: 8),
+                              itemCount: _filteredHistoryList.length,
+                              itemBuilder: (context, index) {
+                                final data = _filteredHistoryList[index];
+                                return Card(
+                                  margin: EdgeInsets.only(bottom: 10),
+                                  elevation: 4,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: ListTile(
+                                    title: Text(
+                                      data['nama'] ?? '',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('Kamar: ${data['kamar']} | Kelas: ${data['kelas']}'),
+                                        Text('Status: ${data['status']}'),
+                                        Text('Tanggal Izin: ${data['tanggalIzin']}'),
+                                      ],
+                                    ),
+                                    trailing: Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green,
+                                    ),
+                                    onTap: () => _showDetailBottomSheet(context, data),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
+import 'package:aplikasi_guru/ANIMASI/shimmer_loading.dart';
 import 'package:aplikasi_guru/PETUGAS_KEAMANAN/profil/profil.dart';
 import 'package:aplikasi_guru/PETUGAS_KEAMANAN/Perizinan/masuk.dart';
 import 'package:aplikasi_guru/PETUGAS_KEAMANAN/Perizinan/keluar.dart';
@@ -24,6 +25,7 @@ class _HomePetugasState extends State<HomePetugas> {
   String? _selectedKelas;
   String? _selectedDate;
   int _currentIndex = 0;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -33,19 +35,24 @@ class _HomePetugasState extends State<HomePetugas> {
   }
 
   Future<void> _loadDataFromLocal() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> dataJson = prefs.getStringList('perizinan_data') ?? [];
-    
-    setState(() {
-      _dataPerizinan = dataJson
-          .map((str) => json.decode(str) as Map<String, dynamic>)
-          .toList();
-      // Sort by timestamp to show newest first
-      _dataPerizinan.sort((a, b) => 
-          (b['timestamp'] ?? '').compareTo(a['timestamp'] ?? ''));
-      _filteredDataPerizinan = List.from(_dataPerizinan);
-      _applyFilters();
-    });
+    try {
+      setState(() => _isLoading = true);
+      final prefs = await SharedPreferences.getInstance();
+      List<String> dataJson = prefs.getStringList('perizinan_data') ?? [];
+      
+      setState(() {
+        _dataPerizinan = dataJson
+            .map((str) => json.decode(str) as Map<String, dynamic>)
+            .toList();
+        // Sort by timestamp to show newest first
+        _dataPerizinan.sort((a, b) => 
+            (b['timestamp'] ?? '').compareTo(a['timestamp'] ?? ''));
+        _filteredDataPerizinan = List.from(_dataPerizinan);
+        _applyFilters();
+      });
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _updateLocalStorage() async {
@@ -187,84 +194,6 @@ class _HomePetugasState extends State<HomePetugas> {
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: Offset(0, -1),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _navigateToMasukPage(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _currentIndex == 0
-                        ? const Color.fromARGB(255, 33, 93, 153)
-                        : Colors.white,
-                    foregroundColor: _currentIndex == 0
-                        ? Colors.white
-                        : const Color.fromARGB(255, 33, 93, 153),
-                    side: BorderSide(
-                      color: const Color.fromARGB(255, 33, 93, 153),
-                      width: 1.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                  ),
-                  child: Text(
-                    'Masuk',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _navigateToKeluarPage(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _currentIndex == 1
-                        ? const Color.fromARGB(255, 33, 93, 153)
-                        : Colors.white,
-                    foregroundColor: _currentIndex == 1
-                        ? Colors.white
-                        : const Color.fromARGB(255, 33, 93, 153),
-                    side: BorderSide(
-                      color: const Color.fromARGB(255, 33, 93, 153),
-                      width: 1.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                  ),
-                  child: Text(
-                    'Keluar',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -360,40 +289,42 @@ class _HomePetugasState extends State<HomePetugas> {
                     ],
                   ),
                   SizedBox(height: 20),
-                  _newsList.isEmpty
-                      ? Container(
-                          height: 120,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.warning_amber_rounded,
-                                  color: Colors.white.withOpacity(0.8),
-                                  size: 50,
+                  _isLoading
+                      ? ShimmerLoading(height: 200)
+                      : _newsList.isEmpty
+                          ? Container(
+                              height: 120,
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.warning_amber_rounded,
+                                      color: Colors.white.withOpacity(0.8),
+                                      size: 50,
+                                    ),
+                                    SizedBox(height: 10),
+                                    Text(
+                                      'Belum ada berita',
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.8),
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                SizedBox(height: 10),
-                                Text(
-                                  'Belum ada berita',
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.8),
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
+                              ),
+                            )
+                          : SizedBox(
+                              height: 200,
+                              child: PageView.builder(
+                                itemCount: _newsList.length,
+                                itemBuilder: (context, index) {
+                                  final news = _newsList[index];
+                                  return _buildNewsCard(news);
+                                },
+                              ),
                             ),
-                          ),
-                        )
-                      : SizedBox(
-                          height: 200,
-                          child: PageView.builder(
-                            itemCount: _newsList.length,
-                            itemBuilder: (context, index) {
-                              final news = _newsList[index];
-                              return _buildNewsCard(news);
-                            },
-                          ),
-                        ),
                 ],
               ),
             ),
@@ -520,39 +451,52 @@ class _HomePetugasState extends State<HomePetugas> {
           SizedBox(height: 10),
           _buildFilterSection(),
           SizedBox(height: 10),
-          _filteredDataPerizinan.isEmpty
-              ? Container(
-                  height: 300,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: const Color.fromARGB(255, 153, 153, 153).withOpacity(0.8),
-                          size: 50,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Belum ada data',
-                          style: TextStyle(
-                            color: const Color.fromARGB(255, 153, 153, 153).withOpacity(0.8),
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
+          if (_isLoading)
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: 5,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 10),
+                  child: ShimmerLoading(height: 100),
+                );
+              },
+            )
+          else if (_filteredDataPerizinan.isEmpty)
+            Container(
+              height: 300,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: const Color.fromARGB(255, 153, 153, 153).withOpacity(0.8),
+                      size: 50,
                     ),
-                  ),
-                )
-              : ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: _filteredDataPerizinan.length,
-                  itemBuilder: (context, index) {
-                    final data = _filteredDataPerizinan[index];
-                    return _buildPerizinanCard(data);
-                  },
+                    SizedBox(height: 8),
+                    Text(
+                      'Belum ada data',
+                      style: TextStyle(
+                        color: const Color.fromARGB(255, 153, 153, 153).withOpacity(0.8),
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: _filteredDataPerizinan.length,
+              itemBuilder: (context, index) {
+                final data = _filteredDataPerizinan[index];
+                return _buildPerizinanCard(data);
+              },
+            ),
         ],
       ),
     );
@@ -632,6 +576,35 @@ class _HomePetugasState extends State<HomePetugas> {
   }
 
   Widget _buildPerizinanCard(Map<String, dynamic> data) {
+    Color statusColor;
+    IconData statusIcon;
+    
+    switch(data['status']) {
+      case 'Diperiksa':
+        statusColor = Colors.orange;
+        statusIcon = Icons.pending;
+        break;
+      case 'Ditolak':
+        statusColor = Colors.red;
+        statusIcon = Icons.block;
+        break;
+      case 'Diizinkan':
+        statusColor = Colors.blue;
+        statusIcon = Icons.check_circle_outline;
+        break;
+      case 'Keluar':
+        statusColor = Colors.purple;
+        statusIcon = Icons.exit_to_app;
+        break;
+      case 'Masuk':
+        statusColor = Colors.green;
+        statusIcon = Icons.check_circle;
+        break;
+      default:
+        statusColor = Colors.grey;
+        statusIcon = Icons.help_outline;
+    }
+
     return Card(
       margin: EdgeInsets.only(bottom: 10),
       elevation: 4,
@@ -647,13 +620,14 @@ class _HomePetugasState extends State<HomePetugas> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Kamar: ${data['kamar']} | Kelas: ${data['kelas']}'),
-            Text('Status: ${data['status']}'),
+            Text('Status: ${data['status']}',
+                style: TextStyle(color: statusColor, fontWeight: FontWeight.bold)),
             Text('Tanggal Izin: ${data['tanggalIzin']}'),
           ],
         ),
         trailing: Icon(
-          data['status'] == 'Masuk' ? Icons.check_circle : Icons.pending,
-          color: data['status'] == 'Masuk' ? Colors.green : Colors.orange,
+          statusIcon,
+          color: statusColor,
         ),
         onTap: () => _showBottomSheet(data),
       ),
