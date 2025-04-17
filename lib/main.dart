@@ -551,8 +551,7 @@ class _GuruQuranDashboardState extends State<GuruQuranDashboard>
           },
           children: [
             AbsensiPage(), // Replace with TahfidzPage()
-            CekSantri(), 
-
+            CekSantri(),
             HomeQuran(), // Replace with DashboardGuruQuranPage()
             Kepesantrenan(),
             profilquran(),

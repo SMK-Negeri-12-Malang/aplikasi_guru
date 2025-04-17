@@ -1,158 +1,66 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'rekap_absensi_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AbsensiPage extends StatefulWidget {
-  const AbsensiPage({super.key});
-
   @override
-  State<AbsensiPage> createState() => _AbsensiPageState();
+  _AbsensiPageState createState() => _AbsensiPageState();
 }
 
 class _AbsensiPageState extends State<AbsensiPage> {
-  final List<Map<String, dynamic>> _santriList = [
-    {'id': 1, 'name': 'Ahmad', 'kelas': '7A', 'isPresent': false},
-    {'id': 2, 'name': 'Bilal', 'kelas': '7B', 'isPresent': false},
-    {'id': 3, 'name': 'Cahya', 'kelas': '8A', 'isPresent': false},
-  ];
+  List<Map<String, dynamic>> attendanceData = [];
 
-  bool _showRekapButton = false;
-  double _rotationAngle = 0;
-
-  void _toggleAbsen(int id, bool? value) {
-    setState(() {
-      final santri = _santriList.firstWhere((s) => s['id'] == id);
-      santri['isPresent'] = value ?? false;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
   }
 
-  void _toggleFabMenu() {
-    setState(() {
-      _showRekapButton = !_showRekapButton;
-      _rotationAngle += 0.5;
-    });
+  Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final attendanceJson = prefs.getString('attendanceData');
+    if (attendanceJson != null) {
+      setState(() {
+        attendanceData = List<Map<String, dynamic>>.from(json.decode(attendanceJson));
+      });
+    }
   }
 
-  String _getFormattedDate() {
-    final now = DateTime.now();
-    return "${now.day}/${now.month}/${now.year}";
+  Future<void> _saveData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('attendanceData', json.encode(attendanceData));
+  }
+
+  void _updateAttendance(int index, bool value) {
+    setState(() {
+      attendanceData[index]['isPresent'] = value;
+    });
+    _saveData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Absensi Santri",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor:  Color(0xFF2E3F7F),
+        title: const Text("Halaman Absensi"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Daftar Absensi Santri",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  _getFormattedDate(),
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _santriList.length,
-                itemBuilder: (context, index) {
-                  final santri = _santriList[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                santri['name'],
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text("Kelas: ${santri['kelas']}"),
-                            ],
-                          ),
-                          Checkbox(
-                            value: santri['isPresent'],
-                            onChanged: (value) =>
-                                _toggleAbsen(santri['id'], value),
-                            activeColor: Colors.blue,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
+      body: ListView.builder(
+        itemCount: attendanceData.length,
+        itemBuilder: (context, index) {
+          final student = attendanceData[index];
+          return Card(
+            child: ListTile(
+              title: Text(student['name']),
+              subtitle: Text("Kelas: ${student['class']}"),
+              trailing: Checkbox(
+                value: student['isPresent'],
+                onChanged: (value) {
+                  _updateAttendance(index, value ?? false);
                 },
               ),
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: Stack(
-        alignment: Alignment.bottomRight,
-        children: [
-          AnimatedSlide(
-            offset: _showRekapButton ? const Offset(0, 0) : const Offset(1.5, 0),
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            child: AnimatedOpacity(
-              opacity: _showRekapButton ? 1 : 0,
-              duration: const Duration(milliseconds: 300),
-              child: Padding(
-                padding: const EdgeInsets.only(right: 70),
-                child: FloatingActionButton(
-                  heroTag: 'rekap',
-                  mini: true,
-                  backgroundColor: Colors.grey,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            RekapAbsensiPage(dataSantri: _santriList),
-                      ),
-                    );
-                  },
-                  child: const Icon(Icons.list_alt),
-                ),
-              ),
-            ),
-          ),
-          AnimatedRotation(
-            duration: const Duration(milliseconds: 300),
-            turns: _rotationAngle,
-            child: FloatingActionButton(
-              heroTag: 'menu',
-              backgroundColor: Colors.green,
-              onPressed: _toggleFabMenu,
-              child: const Icon(Icons.more_vert),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
