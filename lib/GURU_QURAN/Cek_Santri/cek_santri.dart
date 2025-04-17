@@ -58,7 +58,8 @@ class _CekSantriState extends State<CekSantri> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Cek Santri"),
+        title: const Text("Cek Santri",
+        style: TextStyle(color: Colors.white,)),
         backgroundColor: const Color(0xFF2E3F7F),
       ),
       body: ListView.builder(
