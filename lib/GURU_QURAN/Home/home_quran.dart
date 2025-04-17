@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aplikasi_guru/GURU_QURAN/Home/Tabel_Santri/santri_table.dart';
 import 'package:aplikasi_guru/MODELS/models/santri_data.dart' as models;
+import 'package:aplikasi_guru/GURU_QURAN/Home/Leaderboard/leaderboard.dart';
 
 class HomeQuran extends StatefulWidget {
   final String? name;
@@ -382,126 +383,88 @@ class _HomeQuranState extends State<HomeQuran> {
                                       );
                                     } else {
                                       // Halaman peringkat
-                                      return Card(
-                                        elevation: 5,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(15),
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(15.0),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                "Peringkat 3 Besar Santri",
-                                                style: TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF2E3F7F),
-                                                ),
+                                      return GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => LeaderboardPage(
+                                                academicYear: year['period'],
                                               ),
-                                              SizedBox(height: 10),
-                                              SizedBox(
-                                                height: 150, // Increased height to accommodate larger text
-                                                child: Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                                  children: [
-                                                    // Juara 2 (kiri)
-                                                    Column(
-                                                      mainAxisAlignment: MainAxisAlignment.end,
-                                                      children: [
-                                                        CircleAvatar(
-                                                          radius: 28, // Increased radius
-                                                          backgroundColor: Colors.grey,
-                                                          child: Text('2', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 20)), // Increased number size
-                                                        ),
-                                                        SizedBox(height: 4),
-                                                        Container(
-                                                          width: 90, // Increased width
-                                                          child: Column(
-                                                            children: [
-                                                              Text(
-                                                                topSantri.length > 1 ? topSantri[1].name : '-', 
-                                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14), // Increased name size
-                                                                textAlign: TextAlign.center,
-                                                                overflow: TextOverflow.ellipsis,
-                                                              ),
-                                                              Text(
-                                                                topSantri.length > 1 ? 'Hafalan: ${topSantri[1].hafalan ?? 0}' : '', 
-                                                                style: TextStyle(fontSize: 12), // Increased hafalan size
-                                                                textAlign: TextAlign.center,
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    
-                                                    // Juara 1 (tengah)
-                                                    Column(
-                                                      children: [
-                                                        CircleAvatar(
-                                                          radius: 35, // Increased radius
-                                                          backgroundColor: Colors.amber,
-                                                          child: Text('1', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 24)), // Increased number size
-                                                        ),
-                                                        SizedBox(height: 4),
-                                                        Container(
-                                                          width: 100, // Increased width
-                                                          child: Column(
-                                                            children: [
-                                                              Text(
-                                                                topSantri.length > 0 ? topSantri[0].name : '-', 
-                                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16), // Increased name size
-                                                                textAlign: TextAlign.center,
-                                                                overflow: TextOverflow.ellipsis,
-                                                              ),
-                                                              Text(
-                                                                topSantri.length > 0 ? 'Hafalan: ${topSantri[0].hafalan ?? 0}' : '', 
-                                                                style: TextStyle(fontSize: 14), // Increased hafalan size
-                                                                textAlign: TextAlign.center,
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    
-                                                    // Juara 3 (kanan)
-                                                    Column(
-                                                      mainAxisAlignment: MainAxisAlignment.end,
-                                                      children: [
-                                                        CircleAvatar(
-                                                          radius: 28, // Increased radius
-                                                          backgroundColor: Colors.brown,
-                                                          child: Text('3', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 20)), // Increased number size
-                                                        ),
-                                                        SizedBox(height: 4),
-                                                        Container(
-                                                          width: 90, // Increased width
-                                                          child: Column(
-                                                            children: [
-                                                              Text(
-                                                                topSantri.length > 2 ? topSantri[2].name : '-', 
-                                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14), // Increased name size
-                                                                textAlign: TextAlign.center,
-                                                                overflow: TextOverflow.ellipsis,
-                                                              ),
-                                                              Text(
-                                                                topSantri.length > 2 ? 'Hafalan: ${topSantri[2].hafalan ?? 0}' : '', 
-                                                                style: TextStyle(fontSize: 12), // Increased hafalan size
-                                                                textAlign: TextAlign.center,
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
+                                            ),
+                                          );
+                                        },
+                                        child: Card(
+                                          elevation: 5,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(15),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(15.0),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  "Peringkat 3 Besar Santri",
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Color(0xFF2E3F7F),
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                                SizedBox(height: 10),
+                                                Expanded(
+                                                  child: LayoutBuilder(
+                                                    builder: (context, constraints) {
+                                                      return Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                                        children: [
+                                                          // Juara 2 (kiri)
+                                                          _buildLeaderboardItem(
+                                                            rank: 2,
+                                                            name: topSantri.length > 1 ? topSantri[1].name : '-',
+                                                            score: topSantri.length > 1 ? '${topSantri[1].hafalan ?? 0}' : '',
+                                                            color: Colors.grey,
+                                                            isSecond: true,
+                                                            maxWidth: constraints.maxWidth / 3.5,
+                                                          ),
+                                                          
+                                                          // Juara 1 (tengah)
+                                                          _buildLeaderboardItem(
+                                                            rank: 1,
+                                                            name: topSantri.isNotEmpty ? topSantri[0].name : '-',
+                                                            score: topSantri.isNotEmpty ? '${topSantri[0].hafalan ?? 0}' : '',
+                                                            color: Colors.amber,
+                                                            isFirst: true,
+                                                            maxWidth: constraints.maxWidth / 3.5,
+                                                          ),
+                                                          
+                                                          // Juara 3 (kanan)
+                                                          _buildLeaderboardItem(
+                                                            rank: 3,
+                                                            name: topSantri.length > 2 ? topSantri[2].name : '-',
+                                                            score: topSantri.length > 2 ? '${topSantri[2].hafalan ?? 0}' : '',
+                                                            color: Colors.brown,
+                                                            isThird: true,
+                                                            maxWidth: constraints.maxWidth / 3.5,
+                                                          ),
+                                                        ],
+                                                      );
+                                                    }
+                                                  ),
+                                                ),
+                                                SizedBox(height: 10),
+                                                Text(
+                                                  'Lihat Detail',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey[600],
+                                                    decoration: TextDecoration.underline,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       );
@@ -660,6 +623,59 @@ class _HomeQuranState extends State<HomeQuran> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLeaderboardItem({
+    required int rank,
+    required String name,
+    required String score,
+    required Color color,
+    bool isFirst = false,
+    bool isSecond = false,
+    bool isThird = false,
+    required double maxWidth,
+  }) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        CircleAvatar(
+          radius: isFirst ? 35 : 28,
+          backgroundColor: color,
+          child: Text(
+            '$rank',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: isFirst ? 24 : 20,
+            ),
+          ),
+        ),
+        SizedBox(height: 4),
+        Container(
+          width: maxWidth,
+          child: Column(
+            children: [
+              Text(
+                name,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: isFirst ? 16 : 14,
+                ),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                'Hafalan: $score',
+                style: TextStyle(
+                  fontSize: isFirst ? 14 : 12,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

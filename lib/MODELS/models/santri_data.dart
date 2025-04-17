@@ -16,6 +16,8 @@ class Santri {
   get kehadiran => null;
 
   get hafalan => null;
+
+  get tahsin => null;
   
 }
 
