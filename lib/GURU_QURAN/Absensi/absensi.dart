@@ -1,61 +1,86 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:aplikasi_guru/SERVICE/Service_Musyrif/data_siswa.dart';
 
 class AbsensiPage extends StatefulWidget {
+  const AbsensiPage({Key? key}) : super(key: key);
+
   @override
-  _AbsensiPageState createState() => _AbsensiPageState();
+  State<AbsensiPage> createState() => _AbsensiPageState();
 }
 
 class _AbsensiPageState extends State<AbsensiPage> {
-  List<Map<String, dynamic>> attendanceData = [];
+  List<Map<String, dynamic>> siswaList = [];
+  Map<String, bool> absensiData = {}; // Data Absensi untuk setiap santri
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    siswaList = DataSiswa.getMockSiswa(); // Ambil data statik dari DataSiswa
+    _loadAbsensi();
   }
 
-  Future<void> _loadData() async {
+  // Mengambil data absensi yang sudah ada sebelumnya
+  Future<void> _loadAbsensi() async {
     final prefs = await SharedPreferences.getInstance();
-    final attendanceJson = prefs.getString('attendanceData');
-    if (attendanceJson != null) {
+    final absensiJson = prefs.getString('attendanceData');
+    if (absensiJson != null) {
+      List<dynamic> data = json.decode(absensiJson);
+      final absensi = {
+        for (var siswa in data) siswa['id']: siswa['isPresent'] ?? false
+      };
       setState(() {
-        attendanceData = List<Map<String, dynamic>>.from(json.decode(attendanceJson));
+        absensiData = absensi.cast<String, bool>();
       });
     }
   }
 
-  Future<void> _saveData() async {
+  // Menyimpan data absensi ke SharedPreferences
+  Future<void> _updateAbsensi(String id, bool isChecked) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('attendanceData', json.encode(attendanceData));
-  }
+    absensiData[id] = isChecked;
 
-  void _updateAttendance(int index, bool value) {
-    setState(() {
-      attendanceData[index]['isPresent'] = value;
-    });
-    _saveData();
+    List<Map<String, dynamic>> dataToSave = siswaList.map((siswa) {
+      final idSantri = siswa['id'];
+      return {
+        'id': idSantri,
+        'name': siswa['name'],
+        'class': siswa['kelas'],
+        'isPresent': absensiData[idSantri] ?? false,
+      };
+    }).toList();
+
+    await prefs.setString('attendanceData', json.encode(dataToSave));
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Halaman Absensi"),
+        title: const Text("Absensi", style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF2E3F7F),
       ),
       body: ListView.builder(
-        itemCount: attendanceData.length,
+        itemCount: siswaList.length,
         itemBuilder: (context, index) {
-          final student = attendanceData[index];
+          final siswa = siswaList[index];
+          final id = siswa['id'];
           return Card(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 2,
             child: ListTile(
-              title: Text(student['name']),
-              subtitle: Text("Kelas: ${student['class']}"),
+              title: Text(
+                siswa['name'],
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text("Kelas: ${siswa['kelas']}"),
               trailing: Checkbox(
-                value: student['isPresent'],
+                value: absensiData[id] ?? false,
                 onChanged: (value) {
-                  _updateAttendance(index, value ?? false);
+                  _updateAbsensi(id, value!); // Update status absensi
                 },
               ),
             ),
