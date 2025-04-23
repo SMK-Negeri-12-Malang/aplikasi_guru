@@ -11,8 +11,9 @@ class JadwalDetailPage extends StatelessWidget {
       backgroundColor: Colors.grey[100],
       body: Column(
         children: [
-          // Custom wave AppBar with gradient
+          
           Container(
+            height: 110,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
@@ -33,57 +34,34 @@ class JadwalDetailPage extends StatelessWidget {
               ),
             ),
             child: SafeArea(
-              child: Column(
+              child: Stack(
                 children: [
-                  // Back button and title
-                  Padding(
-                    padding: EdgeInsets.all(6),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                        Expanded(
-                          child: Text(
-                            'Jadwal $kelasName',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        // Dummy IconButton for symmetry
-                        SizedBox(width: 48),
-                      ],
+                  Positioned(
+                    left: 8,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
                     ),
                   ),
-                  // Subtitle container
-                  Container(
-                    width: double.infinity,
-                    margin: EdgeInsets.all(16),
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
+                  Center(
                     child: Text(
-                      'Daftar Jadwal',
+                      'Jadwal $kelasName',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
                         color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          // Schedule content
+        
           Expanded(
             child: ListView(
               padding: EdgeInsets.all(16),

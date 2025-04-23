@@ -117,12 +117,12 @@ class _GuruDashboardState extends State<GuruDashboard>
   final List<NavItem> _navItems = [
     NavItem(icon: Icons.note_add, label: 'Nilai'),
     NavItem(icon: Icons.calendar_today, label: 'Jadwal'),
-    NavItem(icon: Icons.home, label: 'Home'),
+    NavItem(icon: Icons.home, label: 'Home'),     
     NavItem(icon: Icons.list, label: 'Absen'),
     NavItem(icon: Icons.person, label: 'Profil'),
   ];
 
-  @override
+  @override 
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);

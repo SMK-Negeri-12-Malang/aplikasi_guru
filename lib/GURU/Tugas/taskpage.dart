@@ -302,7 +302,7 @@ void _addNewTask() async {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.calendar_today, color: Colors.blue),
+                            Icon(Icons.calendar_today, color: const Color.fromARGB(255, 28, 121, 197)),
                             SizedBox(width: 10),
                             Text(
                               deadline.isEmpty
@@ -351,7 +351,7 @@ void _addNewTask() async {
                         'checked': false,
                         'image': selectedImage,
                         'file': selectedFile,
-                        'className': widget.className, // Add class name to task
+                        'className': widget.className, 
                       };
 
                       try {
@@ -437,7 +437,7 @@ void _addNewTask() async {
     final now = DateTime.now();
     final deadlineDate = DateFormat('yyyy-MM-dd').parse(deadline);
     final difference = deadlineDate.difference(now).inDays;
-    return difference <= 3 && difference >= 0; // Show warning for tasks due within 3 days
+    return difference <= 3 && difference >= 0; 
   }
 
   Widget _buildTaskList() {
@@ -598,9 +598,9 @@ void _addNewTask() async {
 
   Widget _buildCategorySelector() {
     return Container(
-      height: 180, // Reduced height
-      margin: EdgeInsets.only(top: 0), // Added top margin to reduce space
-      padding: EdgeInsets.only(left: 15), // Added left padding
+      height: 180,
+      margin: EdgeInsets.only(top: 0), 
+      padding: EdgeInsets.only(left: 15), 
       child: Row(
         children: [
           Expanded(
@@ -613,20 +613,20 @@ void _addNewTask() async {
                 String kelas = kelasList[index];
                 bool isSelected = selectedIndex == index;
                 return Container(
-                  margin: EdgeInsets.symmetric(vertical: 5), // Reduced from 5
+                  margin: EdgeInsets.symmetric(vertical: 5),
                   decoration: BoxDecoration(
                     color: isSelected ? Colors.white : Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(15), // Reduced from 20
+                    borderRadius: BorderRadius.circular(15), 
                     boxShadow: [
                       BoxShadow(
                         color: Colors.blue.shade100.withOpacity(0.5),
-                        blurRadius: 8, // Reduced from 10
-                        offset: Offset(0, 4), // Reduced from 5
+                        blurRadius: 8,
+                        offset: Offset(0, 4), 
                       ),
                     ],
                     border: Border.all(
                       color: isSelected ? const Color.fromARGB(255, 11, 83, 143) : Colors.transparent,
-                      width: 1.5, // Reduced from 2
+                      width: 1.5,
                     ),
                   ),
                   child: Row(
@@ -636,7 +636,7 @@ void _addNewTask() async {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              padding: EdgeInsets.all(3), // Reduced from 4
+                              padding: EdgeInsets.all(3),
                               decoration: BoxDecoration(
                                 color: isSelected ? Colors.blue.shade50 : Colors.white,
                                 shape: BoxShape.circle,
@@ -644,22 +644,22 @@ void _addNewTask() async {
                               child: Icon(
                                 Icons.assignment,
                                 color: isSelected ? Colors.blue.shade900 : Colors.blue.shade300,
-                                size: 28, // Reduced from 35
+                                size: 28, 
                               ),
                             ),
-                            SizedBox(height: 8), // Reduced from 12
+                            SizedBox(height: 8), 
                             Text(
                               kelas,
                               style: TextStyle(
-                                fontSize: 18, // Reduced from 22
+                                fontSize: 18, 
                                 fontWeight: FontWeight.bold,
                                 color: isSelected ? Colors.blue.shade900 : Colors.blue.shade300,
                               ),
                             ),
                             if (selectedClass == kelas)
                               Container(
-                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 3), // Reduced padding
-                                margin: EdgeInsets.only(top: 4), // Reduced from 5
+                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 3), 
+                                margin: EdgeInsets.only(top: 4),
                                 decoration: BoxDecoration(
                                   color: Colors.blue.shade50,
                                   borderRadius: BorderRadius.circular(15),
@@ -670,7 +670,7 @@ void _addNewTask() async {
                                       : 'Selesai: $checkedCount',
                                   style: TextStyle(
                                     color: Colors.blue.shade700,
-                                    fontSize: 11, // Reduced from 13
+                                    fontSize: 11, 
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -699,50 +699,56 @@ void _addNewTask() async {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 22), // Reduced vertical padding
+              height: 110,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    spreadRadius: 5,
+                    blurRadius: 15,
+                    offset: Offset(0, 3),
+                  ),
+                ],
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.blue.shade900.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
               ),
               child: SafeArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Stack(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.arrow_back, color: Colors.white),
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                            Text(
-                              'Tugas Kelas',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                          ],
+                    Positioned(
+                      left: 8,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
                         ),
-                        IconButton(
+                      ),
+                    ),
+                    Center(
+                      child: Text(
+                        'Tugas Kelas',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 8,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: IconButton(
                           icon: Icon(
                             isSearching ? Icons.close : Icons.search,
                             color: Colors.white,
@@ -756,41 +762,33 @@ void _addNewTask() async {
                             });
                           },
                         ),
-                      ],
-                    ),
-                    if (isSearching) ...[
-                      SizedBox(height: 10),
-                      TextField(
-                        controller: searchController,
-                        style: TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Cari tugas...',
-                          hintStyle: TextStyle(color: Colors.white70),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.white),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.white),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.white),
-                          ),
-                          prefixIcon: Icon(Icons.search, color: Colors.white),
-                        ),
-                        onChanged: (value) {
-                          setState(() {});
-                        },
                       ),
-                    ] else ...[
-                    ],
+                    ),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 10), // Reduced spacing from 20 to 10
+            if (isSearching) ...[
+              Padding(
+                padding: EdgeInsets.all(16),
+                child: TextField(
+                  controller: searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Cari tugas...',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                ),
+              ),
+            ],
+            SizedBox(height: 10), 
             Row(
               children: [
                 Expanded(
@@ -871,12 +869,12 @@ void _addNewTask() async {
                     ),
                     IconButton(
                       icon: Icon(Icons.add_task, color: Colors.blue.shade600),
-                      onPressed: _addNewTask, // Use the new function here
+                      onPressed: _addNewTask,
                     ),
                   ],
                 ),
               ),
-              _buildTaskList(), // Replace the existing Expanded ListView.builder with this
+              _buildTaskList(), 
             ] else ...[
               Expanded(
                 child: Center(

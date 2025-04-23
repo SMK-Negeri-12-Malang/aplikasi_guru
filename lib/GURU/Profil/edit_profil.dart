@@ -67,6 +67,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        centerTitle: true,
         title: Text(
           'Edit Profil',
           style: TextStyle(
@@ -75,114 +80,121 @@ class _EditProfilePageState extends State<EditProfilePage> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: const Color.fromARGB(255, 20, 87, 155),
+        backgroundColor: Color(0xFF2E3F7F),
         elevation: 0,
       ),
       body: Container(
+        height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
+            stops: [0.0, 1.0],
             colors: [
-              const Color.fromARGB(255, 20, 87, 155),
-              const Color.fromARGB(255, 255, 255, 255),
+              Color(0xFF2E3F7F),
+              Color.fromARGB(255, 255, 255, 255),
             ],
           ),
         ),
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Stack(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 3,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                            offset: Offset(0, 3),
+          child: Container(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height - AppBar().preferredSize.height,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 3,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: GestureDetector(
+                          onTap: _pickImage,
+                          child: CircleAvatar(
+                            radius: 60,
+                            backgroundImage: _profileImage != null
+                                ? FileImage(_profileImage!)
+                                : AssetImage('assets/profile_picture.png') as ImageProvider,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 20, 87, 155),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 24),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          _buildTextField('Nama', _nameController, Icons.person),
+                          SizedBox(height: 16),
+                          _buildTextField('Email', _emailController, Icons.email),
+                          SizedBox(height: 16),
+                          _buildTextField('Nomor Telepon', _phoneController, Icons.phone),
+                          SizedBox(height: 16),
+                          _buildTextField('Alamat', _addressController, Icons.location_on),
                         ],
                       ),
-                      child: GestureDetector(
-                        onTap: _pickImage,
-                        child: CircleAvatar(
-                          radius: 60,
-                          backgroundImage: _profileImage != null
-                              ? FileImage(_profileImage!)
-                              : AssetImage('assets/profile_picture.png') as ImageProvider,
-                        ),
+                    ),
+                  ),
+                  SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: _saveProfile,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 20, 87, 155),
+                      minimumSize: Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 4,
+                    ),
+                    child: Text(
+                      'Simpan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 20, 87, 155),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: Icon(
-                          Icons.camera_alt,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 24),
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        _buildTextField('Nama', _nameController, Icons.person),
-                        SizedBox(height: 16),
-                        _buildTextField('Email', _emailController, Icons.email),
-                        SizedBox(height: 16),
-                        _buildTextField('Nomor Telepon', _phoneController, Icons.phone),
-                        SizedBox(height: 16),
-                        _buildTextField('Alamat', _addressController, Icons.location_on),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: _saveProfile,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 20, 87, 155),
-                    minimumSize: Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 4,
-                  ),
-                  child: Text(
-                    'Simpan',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

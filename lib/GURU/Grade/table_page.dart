@@ -29,7 +29,7 @@ class _TablePageState extends State<TablePage> {
   Map<int, TextEditingController> controllers = {};
   bool isEditing = false;
   bool isLoadingData = true;
-  List<String> columns = ['Nilai']; // Fixed single column
+  List<String> columns = ['Nilai'];
   bool hasUnsavedChanges = false;
   bool isSaving = false;
 
@@ -551,114 +551,132 @@ class _TablePageState extends State<TablePage> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        body: SafeArea(
-          child: Column(
-            children: [
-              // Custom header
-              Container(
-                padding: EdgeInsets.all(25),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 16, 89, 150),
-                  borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(15),
+        body: Column(
+          children: [
+            Container(
+              height: 110,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    spreadRadius: 5,
+                    blurRadius: 15,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+              child: SafeArea(
+                child: Center(
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        left: 8,
+                        top: 0,
+                        bottom: 0,
+                        child: Center(
+                          child: IconButton(
+                            icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                            onPressed: () async {
+                              if (await _onWillPop()) {
+                                Navigator.pop(context);
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Text(
+                          '${widget.className} (${widget.tableName})',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () async {
-                        if (await _onWillPop()) {
-                          Navigator.pop(context);
-                        }
-                      },
-                    ),
-                    Icon(Icons.table_chart, size: 30, color: Colors.white),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        '${widget.className} (${widget.tableName})',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
               ),
-              Expanded(
-                child: isLoadingData
-                    ? _buildLoadingIndicator()
-                    : Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            TextField(
-                              controller: searchController,
-                              decoration: InputDecoration(
-                                labelText: 'Cari Nama Siswa',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                                prefixIcon: Icon(Icons.search),
-                              ),
-                              onChanged: _filterStudents,
+            ),
+            Expanded(
+              child: isLoadingData
+                  ? _buildLoadingIndicator()
+                  : Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          TextField(
+                            controller: searchController,
+                            decoration: InputDecoration(
+                              labelText: 'Cari Nama Siswa',
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              prefixIcon: Icon(Icons.search),
                             ),
-                            SizedBox(height: 16),
-                            Expanded(
-                              child: isLoadingData
-                                  ? _buildShimmerTable()
-                                  : SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.vertical,
-                                        child: DataTable(
-                                          columns: [
-                                            DataColumn(label: Text('No. Absen')),
-                                            DataColumn(label: Text('Nama Siswa')),
-                                            DataColumn(label: Text('Nilai')),
-                                            DataColumn(label: Text('Predikat')), // Add this column
-                                          ],
-                                          rows: List.generate(filteredStudents.length, (index) {
-                                            final student = filteredStudents[index];
-                                            int studentIndex = widget.students.indexOf(student);
-                                            final nilai = student['grades']?[widget.tableName] ?? 0;
-                                            final predicate = _getPredicate(nilai);
-                                            
-                                            return DataRow(
-                                              cells: [
-                                                DataCell(Text((index + 1).toString())),
-                                                DataCell(Text(student['name'])),
-                                                DataCell(
-                                                  isEditing
-                                                      ? TextFormField(
-                                                          initialValue: nilai != 0 ? nilai.toString() : '',
-                                                          keyboardType: TextInputType.number,
-                                                          onChanged: (value) {
-                                                            setState(() {
-                                                              student['grades'] ??= {};
-                                                              student['grades'][widget.tableName] = value.isEmpty ? 0 : int.tryParse(value) ?? 0;
-                                                              hasUnsavedChanges = true;
-                                                            });
-                                                          },
-                                                        )
-                                                      : Text(nilai != 0 ? nilai.toString() : '-'),
-                                                ),
-                                                DataCell(Text(predicate)), // Add predicate cell
-                                              ],
-                                            );
-                                          }),
-                                        ),
+                            onChanged: _filterStudents,
+                          ),
+                          SizedBox(height: 16),
+                          Expanded(
+                            child: isLoadingData
+                                ? _buildShimmerTable()
+                                : SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.vertical,
+                                      child: DataTable(
+                                        columns: [
+                                          DataColumn(label: Text('No. Absen')),
+                                          DataColumn(label: Text('Nama Siswa')),
+                                          DataColumn(label: Text('Nilai')),
+                                          DataColumn(label: Text('Predikat')), 
+                                        ],
+                                        rows: List.generate(filteredStudents.length, (index) {
+                                          final student = filteredStudents[index];
+                                          int studentIndex = widget.students.indexOf(student);
+                                          final nilai = student['grades']?[widget.tableName] ?? 0;
+                                          final predicate = _getPredicate(nilai);
+                                          
+                                          return DataRow(
+                                            cells: [
+                                              DataCell(Text((index + 1).toString())),
+                                              DataCell(Text(student['name'])),
+                                              DataCell(
+                                                isEditing
+                                                    ? TextFormField(
+                                                        initialValue: nilai != 0 ? nilai.toString() : '',
+                                                        keyboardType: TextInputType.number,
+                                                        onChanged: (value) {
+                                                          setState(() {
+                                                            student['grades'] ??= {};
+                                                            student['grades'][widget.tableName] = value.isEmpty ? 0 : int.tryParse(value) ?? 0;
+                                                            hasUnsavedChanges = true;
+                                                          });
+                                                        },
+                                                      )
+                                                    : Text(nilai != 0 ? nilai.toString() : '-'),
+                                              ),
+                                              DataCell(Text(predicate)), 
+                                            ],
+                                          );
+                                        }),
                                       ),
                                     ),
-                            ),
-                          ],
-                        ),
+                                  ),
+                          ),
+                        ],
                       ),
-              ),
-            ],
-          ),
+                    ),
+            ),
+          ],
         ),
         floatingActionButton: isLoadingData
             ? null
@@ -754,13 +772,13 @@ class _TablePageState extends State<TablePage> {
               DataColumn(label: Container(width: 80, height: 20, color: Colors.white)),
               DataColumn(label: Container(width: 150, height: 20, color: Colors.white)),
               DataColumn(label: Container(width: 80, height: 20, color: Colors.white)),
-              DataColumn(label: Container(width: 80, height: 20, color: Colors.white)), // Add this for predicate
+              DataColumn(label: Container(width: 80, height: 20, color: Colors.white)), 
             ],
             rows: List.generate(10, (index) => DataRow(cells: [
               DataCell(Container(width: 80, height: 20, color: Colors.white)),
               DataCell(Container(width: 150, height: 20, color: Colors.white)),
               DataCell(Container(width: 80, height: 20, color: Colors.white)),
-              DataCell(Container(width: 80, height: 20, color: Colors.white)), // Add this for predicate
+              DataCell(Container(width: 80, height: 20, color: Colors.white)), 
             ])),
           ),
         ),

@@ -16,6 +16,7 @@ class _JadwalPageState extends State<JadwalPage> {
       body: Column(
         children: [
           Container(
+            height: 110,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
@@ -35,44 +36,16 @@ class _JadwalPageState extends State<JadwalPage> {
                 bottomRight: Radius.circular(30),
               ),
             ),
+            
             child: SafeArea(
-              child: Padding(
-                padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Jadwal Pelajaran',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Text(
-                        'Pilih Kelas',
-                        style: TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
+              child: Center( 
+                child: Text(
+                  'Jadwal Pelajaran',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -83,7 +56,7 @@ class _JadwalPageState extends State<JadwalPage> {
               itemCount: kelas.length,
               itemBuilder: (context, index) {
                 return Container(
-                  height: 120, // Increased from 90 to 120
+                  height: 110, 
                   margin: EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -106,7 +79,7 @@ class _JadwalPageState extends State<JadwalPage> {
                     ),
                   ),
                   child: ListTile(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 25, vertical: 25), // Increased vertical padding
+                    contentPadding: EdgeInsets.symmetric(horizontal: 25, vertical: 25), 
                     title: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -114,7 +87,7 @@ class _JadwalPageState extends State<JadwalPage> {
                         Text(
                           kelas[index],
                           style: TextStyle(
-                            fontSize: 22, // Increased from 18 to 22
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF2E3F7F),
                           ),
@@ -130,15 +103,18 @@ class _JadwalPageState extends State<JadwalPage> {
                       ],
                     ),
                     trailing: Container(
-                      padding: EdgeInsets.all(16), // Increased from 12 to 16
+                      width: 50,
+                      height: 50,
                       decoration: BoxDecoration(
                         color: Color(0xFF2E3F7F).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(
-                        Icons.arrow_forward_ios,
-                        color: Color(0xFF2E3F7F),
-                        size: 28, // Increased from 24 to 28
+                      child: Center(
+                        child: Icon(
+                          Icons.arrow_forward_ios,
+                          color: Color(0xFF2E3F7F),
+                          size: 25,
+                        ),
                       ),
                     ),
                     onTap: () {
