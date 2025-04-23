@@ -71,10 +71,9 @@ class _KepesantrenanState extends State<Kepesantrenan> {
   Future<void> _saveData() async {
     await _prefs.setString('hafalanDataByDate', json.encode(hafalanDataByDate));
 
-    // Save evaluated students' data for CekSantri
     final evaluatedStudents = hafalanData.entries.map((entry) {
       final studentId = entry.key.split('_')[0];
-      final type = entry.key.split('_')[1]; // Extract type (Tahfidz/Tahsin)
+      final type = entry.key.split('_')[1];
       final studentData = entry.value;
       return {
         'id': studentId,
@@ -98,12 +97,11 @@ class _KepesantrenanState extends State<Kepesantrenan> {
 
   void _showInputDialog(Map<String, dynamic> student) {
     final key = '${student['id']}_${_currentPage == 0 ? 'Tahfidz' : 'Tahsin'}';
-    final data = hafalanData[key] ??
-        {
-          'ayatAwal': '',
-          'ayatAkhir': '',
-          'nilai': grades[0],
-        };
+    final data = hafalanData[key] ?? {
+      'ayatAwal': '',
+      'ayatAkhir': '',
+      'nilai': grades[0],
+    };
     String ayatAwal = data['ayatAwal'] ?? '';
     String ayatAkhir = data['ayatAkhir'] ?? '';
     String nilai = data['nilai'] ?? grades[0];
@@ -151,7 +149,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                 };
                 hafalanDataByDate[selectedDate] = Map.from(hafalanData);
               });
-              _saveData(); // Automatically save to CekSantri
+              _saveData();
               Navigator.pop(context);
             },
             child: const Text('Simpan'),
@@ -216,7 +214,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
         final nilai = data['nilai'] ?? '-';
 
         return GestureDetector(
-          onTap: () => _showInputDialog(student), // Make the card clickable
+          onTap: () => _showInputDialog(student),
           child: Card(
             child: ListTile(
               title: Text(
@@ -232,7 +230,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                   Text('Nilai: $nilai'),
                 ],
               ),
-              trailing: Icon(Icons.edit, color: Colors.grey),
+              trailing: const Icon(Icons.edit, color: Colors.grey),
             ),
           ),
         );
@@ -243,13 +241,46 @@ class _KepesantrenanState extends State<Kepesantrenan> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: primaryColor,
-        title:
-            const Text('Kepesantrenan', style: TextStyle(color: Colors.white)),
-      ),
       body: Column(
         children: [
+          Container(
+            height: 110,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  spreadRadius: 5,
+                  blurRadius: 15,
+                  offset: Offset(0, 3),
+                ),
+              ],
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 1.0), // Add padding to move the title down
+                child: Center(
+                  child: Text(
+                    'Kepesantrenan',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Filter panel
           Container(
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(16),
@@ -312,6 +343,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
               ],
             ),
           ),
+          // Tahfidz/Tahsin switch
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             padding: const EdgeInsets.all(8),
@@ -350,11 +382,8 @@ class _KepesantrenanState extends State<Kepesantrenan> {
               ],
             ),
           ),
-          Expanded(
-            child: _currentPage == 0
-                ? Expanded(child: _buildStudentList()) // Tahfidz list
-                : Expanded(child: _buildStudentList()), // Tahsin list
-          ),
+          // Student list
+          Expanded(child: _buildStudentList()),
         ],
       ),
     );

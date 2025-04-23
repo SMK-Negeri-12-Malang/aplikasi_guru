@@ -28,7 +28,7 @@ class SantriTablePage extends StatefulWidget {
 
 class _SantriTablePageState extends State<SantriTablePage>
     with TickerProviderStateMixin {
-  List<models.Santri> _santriData = [];  
+  List<models.Santri> _santriData = [];
   bool _isLoading = true;
   String _searchQuery = '';
   Map<int, bool> _attendanceStatus = {};
@@ -222,7 +222,7 @@ class _SantriTablePageState extends State<SantriTablePage>
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.category} - ${widget.academicYear}'),
-        backgroundColor: widget.color,
+        backgroundColor: Colors.blue,
       ),
       body: Column(
         children: [
@@ -239,14 +239,14 @@ class _SantriTablePageState extends State<SantriTablePage>
                       children: [
                         CircularProgressIndicator(
                           value: _currentProgress,
-                          backgroundColor: widget.color.withOpacity(0.2),
+                          backgroundColor: Colors.blue.withOpacity(0.2),
                           valueColor:
-                              AlwaysStoppedAnimation<Color>(widget.color),
+                              AlwaysStoppedAnimation<Color>(Colors.blue),
                           strokeWidth: 6,
                         ),
                         CircleAvatar(
                           radius: 30,
-                          backgroundColor: widget.color,
+                          backgroundColor: Colors.blue,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -336,7 +336,7 @@ class _SantriTablePageState extends State<SantriTablePage>
                               width: MediaQuery.of(context).size.width,
                               child: DataTable(
                                 headingRowColor: MaterialStateProperty.all(
-                                  widget.color.withOpacity(0.2),
+                                  Colors.lightBlue.shade100,
                                 ),
                                 columnSpacing: 16.0,
                                 horizontalMargin: 12.0,
@@ -393,7 +393,7 @@ class _SantriTablePageState extends State<SantriTablePage>
                                                 horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
                                               color: isPresent
-                                                  ? Colors.green.shade100
+                                                  ? Colors.blue.shade100
                                                   : Colors.red.shade100,
                                               borderRadius:
                                                   BorderRadius.circular(12),

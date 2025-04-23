@@ -58,11 +58,49 @@ class _AbsensiPageState extends State<AbsensiPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Absensi", style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF2E3F7F),
-      ),
-      body: ListView.builder(
+    backgroundColor: const Color(0xFFF3F6FD),
+      body: Column(
+        children: [
+          // Header Container menggantikan AppBar
+          Container(
+            height: 110,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  spreadRadius: 5,
+                  blurRadius: 15,
+                  offset: Offset(0, 3),
+                ),
+              ],
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 1.0), // Add padding to move the title down
+                child: Center(
+                  child: Text(
+                    'Absensi Santri',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+       child: ListView.builder(
         itemCount: siswaList.length,
         itemBuilder: (context, index) {
           final siswa = siswaList[index];
@@ -86,6 +124,9 @@ class _AbsensiPageState extends State<AbsensiPage> {
             ),
           );
         },
+      ),
+          ),
+        ],
       ),
     );
   }

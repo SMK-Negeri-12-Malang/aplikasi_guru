@@ -43,6 +43,42 @@ class DataSiswa {
         'session': 'Sesi 3',
         'level': 'SMA',
       },
+      {
+        'id': '7',
+        'name': 'Ali Akbar',
+        'kelas': '7A',
+        'session': 'Sesi 1',
+        'level': 'SMP',
+      },
+      {
+        'id': '8',
+        'name': 'Nina Sari',
+        'kelas': '8B',
+        'session': 'Sesi 2',
+        'level': 'SMP',
+      },
+      {
+        'id': '9',
+        'name': 'Rudi Hartono',
+        'kelas': '9C',
+        'session': 'Sesi 3',
+        'level': 'SMP',
+      }, 
+      {
+        'id': '10',
+        'name': 'Lina Susanti',
+        'kelas': '10A',
+        'session': 'Sesi 1',
+        'level': 'SMA',
+
+      },
+      {
+        'id': '11',
+        'name': 'Ardhito Pramono',
+        'kelas': '11B',
+        'session': 'Sesi 2',
+        'level': 'SMA',
+        },
     ];
   }
 }
