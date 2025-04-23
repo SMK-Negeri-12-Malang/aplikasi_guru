@@ -56,60 +56,120 @@ class _CekSantriState extends State<CekSantri> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredSiswa = siswaList.where((siswa) {
+      final id = siswa['id'];
+      final isPresent = absensiData[id] ?? false;
+      final tahfidzKey = '${id}_Tahfidz';
+      final tahsinKey = '${id}_Tahsin';
+      final isTahfidzFilled = hafalanData[tahfidzKey] != null;
+      final isTahsinFilled = hafalanData[tahsinKey] != null;
+      return isPresent && (!isTahfidzFilled || !isTahsinFilled);
+    }).toList();
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Cek Santri",
-        style: TextStyle(color: Colors.white,)),
-        backgroundColor: const Color(0xFF2E3F7F),
-      ),
-      body: ListView.builder(
-        itemCount: siswaList.length,
-        itemBuilder: (context, index) {
-          final siswa = siswaList[index];
-          final id = siswa['id'];
-          final isPresent = absensiData[id] ?? false;
-          final tahfidzKey = '${id}_Tahfidz';
-          final tahsinKey = '${id}_Tahsin';
-
-          final isTahfidzFilled = hafalanData[tahfidzKey] != null;
-          final isTahsinFilled = hafalanData[tahsinKey] != null;
-
-          final keteranganAbsensi = isPresent ? '✅ Hadir' : '❌ Tidak Hadir';
-
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            elevation: 2,
-            child: ListTile(
-              title: Text(
-                siswa['name'],
-                style: const TextStyle(fontWeight: FontWeight.bold),
+      backgroundColor: const Color(0xFFF3F6FD),
+      body: Column(
+        children: [
+          // Header Container menggantikan AppBar
+          Container(
+            height: 110,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Kelas: ${siswa['kelas']}"),
-                  const SizedBox(height: 4),
-                  Text("Absensi: $keteranganAbsensi"),
-                  Row(
-                    children: [
-                      const Text('Tahfidz'),
-                      Checkbox(
-                        value: isTahfidzFilled,
-                        onChanged: null, // Tidak bisa diubah dari halaman ini
-                      ),
-                      const Text('Tahsin'),
-                      Checkbox(
-                        value: isTahsinFilled,
-                        onChanged: null, // Tidak bisa diubah dari halaman ini
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  spreadRadius: 5,
+                  blurRadius: 15,
+                  offset: Offset(0, 3),
+                ),
+              ],
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 1.0), // Add padding to move the title down
+                child: Center(
+                  child: Text(
+                    'Cek Santri',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Isi konten santri
+          Expanded(
+            child: ListView.builder(
+              itemCount: filteredSiswa.length,
+              itemBuilder: (context, index) {
+                final siswa = filteredSiswa[index];
+                final id = siswa['id'];
+                final tahfidzKey = '${id}_Tahfidz';
+                final tahsinKey = '${id}_Tahsin';
+                final isTahfidzFilled = hafalanData[tahfidzKey] != null;
+                final isTahsinFilled = hafalanData[tahsinKey] != null;
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                ],
-              ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        siswa['name'],
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text("Kelas: ${siswa['kelas']}"),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Text('Tahfidz'),
+                          Checkbox(
+                            value: isTahfidzFilled,
+                            onChanged: null,
+                          ),
+                          const SizedBox(width: 16),
+                          const Text('Tahsin'),
+                          Checkbox(
+                            value: isTahsinFilled,
+                            onChanged: null,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
