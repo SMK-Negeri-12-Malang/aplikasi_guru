@@ -108,8 +108,8 @@ class _DashboardPageState extends State<DashboardPage> {
       String? profileImagePath = prefs.getString('profile_image_path');
 
       setState(() {
-        _name = userName ?? 'Loading...'; // Show loading if null
-        _email = userEmail ?? 'Loading...'; // Show loading if null
+        _name = userName ?? 'Loading...';
+        _email = userEmail ?? 'Loading...';
         _profileImagePath = profileImagePath;
       });
     } catch (e) {
@@ -239,7 +239,7 @@ class _DashboardPageState extends State<DashboardPage> {
     setState(() {
       _newsList.add(news);
     });
-    _saveNewsToLocal(); // Save after adding new news
+    _saveNewsToLocal(); 
   }
 
   String _getHariBesok() {
@@ -332,7 +332,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 color: Colors.red,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white,
+                  color:  Colors.white,
                   width: 0.5,
                 ),
               ),
@@ -362,7 +362,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildNotificationItem(Map<String, dynamic> notification, int index) {
     return Dismissible(
-      key: UniqueKey(), // Use UniqueKey for stable deletion
+      key: UniqueKey(), 
       background: Container(
         color: Colors.red,
         alignment: Alignment.centerRight,
@@ -380,8 +380,8 @@ class _DashboardPageState extends State<DashboardPage> {
             _deadlineNotifications.removeAt(index);
             // Update parent state if bottom sheet is open
             if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop(); // Close bottom sheet
-              _showNotification(); // Reopen with updated data
+              Navigator.of(context).pop(); 
+              _showNotification(); 
             }
           });
           _showDeleteSuccessSnackbar();
@@ -439,8 +439,8 @@ class _DashboardPageState extends State<DashboardPage> {
                     _deadlineNotifications.removeAt(index);
                     // Update parent state if bottom sheet is open
                     if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop(); // Close bottom sheet
-                      _showNotification(); // Reopen with updated data
+                      Navigator.of(context).pop(); 
+                      _showNotification();
                     }
                   });
                   _showDeleteSuccessSnackbar();
@@ -587,22 +587,22 @@ class _DashboardPageState extends State<DashboardPage> {
                   color:
                       const Color.fromARGB(255, 255, 255, 255).withOpacity(0.1),
                   blurRadius: 15,
-                  offset: Offset(5, 5), // Right and bottom shadow
+                  offset: Offset(5, 5), 
                   spreadRadius: -2,
                 ),
                 BoxShadow(
                   color:
                       const Color.fromARGB(255, 255, 255, 255).withOpacity(0.2),
                   blurRadius: 15,
-                  offset: Offset(-5, -5), // Left and top highlight
+                  offset: Offset(-5, -5), 
                   spreadRadius: -2,
                 ),
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.all(12), // Increased padding
+              padding: const EdgeInsets.all(12), 
               child: Container(
-                height: 200, // Increased height from 180 to 200
+                height: 200,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -661,7 +661,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           ),
                       ],
                     ),
-                    SizedBox(height: 20), // Increased spacing
+                    SizedBox(height: 20), 
                     Expanded(
                       child: _showingDeadlines
                           ? _buildDeadlineList()
@@ -898,7 +898,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     _getJadwalMengajarBesok();
     return Scaffold(
-      backgroundColor: Colors.transparent, // Changed to transparent
+      backgroundColor: Colors.transparent, 
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -1057,7 +1057,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                         );
                                       },
                                     ),
-                              SizedBox(height: 20), // Add bottom padding
+                              SizedBox(height: 20), 
                             ],
                           ),
                         ),
@@ -1108,7 +1108,7 @@ class _DashboardPageState extends State<DashboardPage> {
           context,
           MaterialPageRoute(
             builder: (context) => tugaskelas(
-              className: title, // Pass class name here
+              className: title, 
               onTaskAdded: (task, className) {
                 updateDeadlineNotifications(task, title);
               },
@@ -1117,7 +1117,7 @@ class _DashboardPageState extends State<DashboardPage> {
         );
       },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 6), // Reduced from 8
+        margin: EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(15),
@@ -1137,12 +1137,12 @@ class _DashboardPageState extends State<DashboardPage> {
             borderRadius: BorderRadius.circular(15),
             child: Container(
               padding: EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 16), // Reduced padding
-              height: 85, // Reduced from 100
+                  horizontal: 16, vertical: 16), 
+              height: 85,
               child: Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(10), // Reduced from 12
+                    padding: EdgeInsets.all(10), 
                     decoration: BoxDecoration(
                       color: Color(0xFF2E3F7F).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
@@ -1150,10 +1150,10 @@ class _DashboardPageState extends State<DashboardPage> {
                     child: Icon(
                       Icons.class_,
                       color: Color(0xFF2E3F7F),
-                      size: 26, // Reduced from 30
+                      size: 26, 
                     ),
                   ),
-                  SizedBox(width: 16), // Reduced from 20
+                  SizedBox(width: 16), 
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1163,16 +1163,16 @@ class _DashboardPageState extends State<DashboardPage> {
                           title,
                           style: TextStyle(
                             color: Color(0xFF2E3F7F),
-                            fontSize: 16, // Reduced from 18
+                            fontSize: 16, 
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 4), // Reduced from 6
+                        SizedBox(height: 4), 
                         Text(
                           'Lihat detail tugas kelas',
                           style: TextStyle(
                             color: Colors.grey[600],
-                            fontSize: 13, // Reduced from 14
+                            fontSize: 13,
                           ),
                         ),
                       ],
@@ -1187,7 +1187,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     child: Icon(
                       Icons.arrow_forward_ios,
                       color: Color(0xFF2E3F7F),
-                      size: 18, // Reduced from 20
+                      size: 18, 
                     ),
                   ),
                 ],
@@ -1222,7 +1222,7 @@ class _DashboardPageState extends State<DashboardPage> {
       );
     }
 
-    return Column(  // Changed from SizedBox to Column
+    return Column(  
       children: [
         SizedBox(
           height: 155,
@@ -1346,8 +1346,8 @@ class _DashboardPageState extends State<DashboardPage> {
             },
           ),
         ),
-        SizedBox(height: 8), // Add spacing between card and dots
-        Row(  // Moved dots outside the Stack
+        SizedBox(height: 8), 
+        Row(  
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
             _newsList.length,
@@ -1358,7 +1358,7 @@ class _DashboardPageState extends State<DashboardPage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: index == _currentNewsIndex
-                    ? const Color(0xFF2E3F7F)  // Changed to match theme color
+                    ? const Color(0xFF2E3F7F)  
                     : const Color(0xFF2E3F7F).withOpacity(0.3),
               ),
             ),

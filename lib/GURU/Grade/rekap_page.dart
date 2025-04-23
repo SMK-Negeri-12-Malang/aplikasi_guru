@@ -296,114 +296,133 @@ class _RekapPageState extends State<RekapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Custom header instead of AppBar
-            Container(
-              padding: EdgeInsets.all(25),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 16, 90, 150),
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(15),
-                ),
+      body: Column(
+        children: [
+          Container(
+            height: 110,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Rekap Nilai - ${widget.className}',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  SizedBox(width: 40), // Balance the back button
-                ],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  spreadRadius: 5,
+                  blurRadius: 15,
+                  offset: Offset(0, 3),
+                ),
+              ],
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
               ),
             ),
-            Expanded(
-              child: isLoading
-                  ? _buildLoadingIndicator() // Replace shimmer with new loading indicator
-                  : widget.classStudents.isEmpty
-                      ? Center(
-                          child: Text(
-                            'Tidak ada data siswa untuk kelas ini.',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
-                        )
-                      : Column(
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.all(16),
-                              child: TextField(
-                                controller: searchController,
-                                decoration: InputDecoration(
-                                  labelText: 'Cari Siswa',
-                                  prefixIcon: Icon(Icons.search),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
+            child: SafeArea(
+              child: Center(
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: 8,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: Text(
+                        'Rekap Nilai - ${widget.className}',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: isLoading
+                ? _buildLoadingIndicator() // Replace shimmer with new loading indicator
+                : widget.classStudents.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Tidak ada data siswa untuk kelas ini.',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      )
+                    : Column(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.all(16),
+                            child: TextField(
+                              controller: searchController,
+                              decoration: InputDecoration(
+                                labelText: 'Cari Siswa',
+                                prefixIcon: Icon(Icons.search),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                onChanged: _filterStudents,
                               ),
+                              onChanged: _filterStudents,
                             ),
-                            Expanded(
+                          ),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
                               child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: SingleChildScrollView(
-                                  child: DataTable(
-                                    columns: [
-                                      DataColumn(label: Text('No')),
-                                      DataColumn(label: Text('Nama Siswa')),
-                                      ...widget.classTables.map((category) =>
-                                        DataColumn(
-                                          label: Tooltip(
-                                            message: 'Nilai $category',
-                                            child: Text(
-                                              category,
-                                              style: TextStyle(fontWeight: FontWeight.bold),
-                                            ),
+                                child: DataTable(
+                                  columns: [
+                                    DataColumn(label: Text('No')),
+                                    DataColumn(label: Text('Nama Siswa')),
+                                    ...widget.classTables.map((category) =>
+                                      DataColumn(
+                                        label: Tooltip(
+                                          message: 'Nilai $category',
+                                          child: Text(
+                                            category,
+                                            style: TextStyle(fontWeight: FontWeight.bold),
                                           ),
                                         ),
                                       ),
-                                      DataColumn(label: Text('Rata-rata')),
-                                      DataColumn(label: Text('Predikat')),
-                                    ],
-                                    rows: filteredStudents.asMap().entries.map((entry) {
-                                      var student = entry.value;
-                                      var grades = student['grades'] ?? {};
-                                      double average = _calculateAverage(grades);
-                                      String predicate = _getPredicate(average);
+                                    ),
+                                    DataColumn(label: Text('Rata-rata')),
+                                    DataColumn(label: Text('Predikat')),
+                                  ],
+                                  rows: filteredStudents.asMap().entries.map((entry) {
+                                    var student = entry.value;
+                                    var grades = student['grades'] ?? {};
+                                    double average = _calculateAverage(grades);
+                                    String predicate = _getPredicate(average);
 
-                                      return DataRow(
-                                        cells: [
-                                          DataCell(Text('${entry.key + 1}')),
-                                          DataCell(Text(student['name'] ?? '')),
-                                          ...widget.classTables.map((category) =>
-                                            DataCell(_buildGradeCell(grades[category], category: category)),
-                                          ),
-                                          DataCell(_buildGradeCell(average.toStringAsFixed(1))),
-                                          DataCell(Text(predicate)),
-                                        ],
-                                      );
-                                    }).toList(),
-                                  ),
+                                    return DataRow(
+                                      cells: [
+                                        DataCell(Text('${entry.key + 1}')),
+                                        DataCell(Text(student['name'] ?? '')),
+                                        ...widget.classTables.map((category) =>
+                                          DataCell(_buildGradeCell(grades[category], category: category)),
+                                        ),
+                                        DataCell(_buildGradeCell(average.toStringAsFixed(1))),
+                                        DataCell(Text(predicate)),
+                                      ],
+                                    );
+                                  }).toList(),
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-            ),
-          ],
-        ),
+                          ),
+                        ],
+                      ),
+          ),
+        ],
       ),
       floatingActionButton: isLoading || widget.classStudents.isEmpty
           ? null

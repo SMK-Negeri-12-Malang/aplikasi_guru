@@ -53,7 +53,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   void _editTask() async {
     File? selectedImage = widget.task['image'];
-    PlatformFile? selectedFile = widget.task['file']; // Add this line
+    PlatformFile? selectedFile = widget.task['file']; 
     String taskName = widget.task['name'];
     String deadline = widget.task['deadline'];
     String description = widget.task['description'] ?? '';
@@ -159,7 +159,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       'deadline': deadline,
                       'description': description,
                       'image': selectedImage,
-                      'file': selectedFile, // Add this line
+                      'file': selectedFile, 
                     });
                   },
                   style: ElevatedButton.styleFrom(
@@ -264,261 +264,288 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        toolbarHeight: 80, 
-        iconTheme: IconThemeData(color: Colors.white), 
-        title: Text(
-          'Detail Tugas',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(30),
-          ),
-        ),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(30),
-            ),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF2E3F7F),
-                Color(0xFF4557A4),
-              ],
-            ),
-          ),
-        ),
-        elevation: 4,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit, color: Colors.white),
-            onPressed: _editTask,
-          ),
-        ],
-      ),
-      backgroundColor: Colors.grey[50],
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (widget.task['image'] != null || widget.task['file'] != null)
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
+      body: Column(
+        children: [
+          Container(
+            height: 110,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  spreadRadius: 5,
+                  blurRadius: 15,
+                  offset: Offset(0, 3),
                 ),
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'File Tugas',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2E3F7F),
+              ],
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+            child: SafeArea(
+              child: Center(
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: 8,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
                         ),
                       ),
-                      if (widget.task['image'] != null)
-                        GestureDetector(
-                          onTap: _showFullImage,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(15),
-                            child: Image.file(
-                              widget.task['image'],
-                              width: double.infinity,
-                              height: 200,
-                              fit: BoxFit.cover,
+                    ),
+                    Center(
+                      child: Text(
+                        'Detail Tugas',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 8,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: IconButton(
+                          icon: Icon(Icons.edit, color: Colors.white),
+                          onPressed: _editTask,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (widget.task['image'] != null || widget.task['file'] != null)
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'File Tugas',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2E3F7F),
+                              ),
                             ),
-                          ),
-                        )
-                      else if (widget.task['file'] != null)
-                        Container(
-                          padding: EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.grey[300]!),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.file_present, color: Colors.blue),
-                              SizedBox(width: 10),
-                              Expanded(
-                                child: InkWell( // Wrap with InkWell
-                                  onTap: () async {
-                                    final file = widget.task['file'];
-                                    if (file != null) {
-                                      try {
-                                        final result = await OpenFile.open(file.path);
-                                        if (result.type != ResultType.done) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('Tidak dapat membuka file: ${result.message}'),
-                                              behavior: SnackBarBehavior.floating,
+                            if (widget.task['image'] != null)
+                              GestureDetector(
+                                onTap: _showFullImage,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: Image.file(
+                                    widget.task['image'],
+                                    width: double.infinity,
+                                    height: 200,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              )
+                            else if (widget.task['file'] != null)
+                              Container(
+                                padding: EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: Colors.grey[300]!),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.file_present, color: Colors.blue),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: InkWell( 
+                                        onTap: () async {
+                                          final file = widget.task['file'];
+                                          if (file != null) {
+                                            try {
+                                              final result = await OpenFile.open(file.path);
+                                              if (result.type != ResultType.done) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text('Tidak dapat membuka file: ${result.message}'),
+                                                    behavior: SnackBarBehavior.floating,
+                                                  ),
+                                                );
+                                              }
+                                            } catch (e) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text('Error: Tidak dapat membuka file'),
+                                                  behavior: SnackBarBehavior.floating,
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        },
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              widget.task['file'].name,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                          );
+                                            Text(
+                                              '${(widget.task['file'].size / 1024).toStringAsFixed(2)} KB',
+                                              style: TextStyle(
+                                                color: Colors.grey[600],
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.open_in_new, color: Colors.blue),
+                                      onPressed: () async {
+                                        final file = widget.task['file'];
+                                        if (file != null) {
+                                          try {
+                                            final result = await OpenFile.open(file.path);
+                                            if (result.type != ResultType.done) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text('Tidak dapat membuka file: ${result.message}'),
+                                                  behavior: SnackBarBehavior.floating,
+                                                ),
+                                              );
+                                            }
+                                          } catch (e) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Error: Tidak dapat membuka file'),
+                                                behavior: SnackBarBehavior.floating,
+                                              ),
+                                            );
+                                          }
                                         }
-                                      } catch (e) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Error: Tidak dapat membuka file'),
-                                            behavior: SnackBarBehavior.floating,
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  },
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        widget.task['file'].name,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      Text(
-                                        '${(widget.task['file'].size / 1024).toStringAsFixed(2)} KB',
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  SizedBox(height: 20),
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  widget.task['name'],
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF2E3F7F),
                                   ),
                                 ),
                               ),
-                              IconButton(
-                                icon: Icon(Icons.open_in_new, color: Colors.blue), // Changed from download icon
-                                onPressed: () async {
-                                  final file = widget.task['file'];
-                                  if (file != null) {
-                                    try {
-                                      final result = await OpenFile.open(file.path);
-                                      if (result.type != ResultType.done) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Tidak dapat membuka file: ${result.message}'),
-                                            behavior: SnackBarBehavior.floating,
-                                          ),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Error: Tidak dapat membuka file'),
-                                          behavior: SnackBarBehavior.floating,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
-                              ),
+                              if (widget.task['checked'])
+                                Chip(
+                                  label: Text(
+                                    'Selesai',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
                             ],
                           ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            SizedBox(height: 20),
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.task['name'],
+                          SizedBox(height: 12),
+                          Text(
+                            widget.className,
                             style: TextStyle(
-                              fontSize: 22,
+                              fontSize: 16,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  _buildDeadlineInfo(),
+                  SizedBox(height: 20),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Container(
+                      width: double.infinity, // Full width
+                      constraints: BoxConstraints(
+                        minHeight: 200, 
+                      ),
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Deskripsi Tugas',
+                            style: TextStyle(
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF2E3F7F),
                             ),
                           ),
-                        ),
-                        if (widget.task['checked'])
-                          Chip(
-                            label: Text(
-                              'Selesai',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            backgroundColor: Colors.green,
+                          SizedBox(height: 10),
+                          Text(
+                            widget.task['description'] ?? 'Tidak ada deskripsi',
+                            style: TextStyle(fontSize: 16),
                           ),
-                      ],
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      widget.className,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[700],
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 20),
-            _buildDeadlineInfo(),
-            SizedBox(height: 20),
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Container(
-                width: double.infinity, // Full width
-                constraints: BoxConstraints(
-                  minHeight: 200, // Minimum height
-                ),
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Deskripsi Tugas',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      widget.task['description'] ?? 'Tidak ada deskripsi',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -1,8 +1,11 @@
+import 'dart:async';
+import 'dart:developer' as developer;
 import 'package:aplikasi_guru/PETUGAS_KEAMANAN/Home/home_petugas.dart';
 import 'package:aplikasi_guru/main.dart';
 import 'package:aplikasi_guru/ANIMASI/user_data_manager.dart';
 import 'package:flutter/material.dart';
 import '../SERVICE/auth_service.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,11 +20,33 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final _authService = AuthService();
   bool _isLoading = false;
+  Timer? _loadingTimer;
 
   @override
   void initState() {
     super.initState();
     _checkExistingLogin();
+  }
+
+  Future<bool> _checkInternetConnection() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
+  }
+
+  void _startLoadingTimer() {
+    _loadingTimer = Timer(const Duration(seconds: 4), () {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Waktu login habis. Silakan coba lagi')),
+        );
+      }
+    });
+  }
+
+  void _cancelLoadingTimer() {
+    _loadingTimer?.cancel();
+    _loadingTimer = null;
   }
 
   Future<void> _checkExistingLogin() async {
@@ -32,38 +57,60 @@ class _LoginScreenState extends State<LoginScreen> {
       
       if (email != null && password != null) {
         setState(() => _isLoading = true);
+        _startLoadingTimer();
         
         try {
+          bool hasInternet = await _checkInternetConnection();
+          if (!hasInternet) {
+            throw Exception('No internet connection');
+          }
+          
           final response = await _authService.login(email, password);
+          _cancelLoadingTimer();
           
           if (response.$1 != null) { // Guru login
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => homeview()),
             );
-            return; // Add return to prevent further execution
+            return;
           } else if (response.$2 != null) { // Musyrif login
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => MusyrifDashboard()),
             );
-            return; // Add return to prevent further execution
+            return;
           } else if (response.$3 != null) { // Guru Quran login
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => GuruQuranDashboard()),
             );
-            return; // Add return to prevent further execution
+            return;
           } else if (response.$4 != null) { // Security Guard login
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => PetugasKeamananDashboard()),
             );
-            return; // Add return to prevent further execution
+            return;
+          } else {
+            await UserDataManager.clearUserData();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Email atau password salah. Silakan login kembali')),
+            );
           }
         } catch (e) {
-          // If auto-login fails, we'll just show the login screen
-          await UserDataManager.clearUserData(); // Clear invalid credentials
+          _cancelLoadingTimer();
+          await UserDataManager.clearUserData();
+          
+          if (e.toString().contains('No internet connection')) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Tidak ada koneksi internet. Silakan periksa jaringan Anda')),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Terjadi kesalahan. Silakan coba lagi')),
+            );
+          }
         } finally {
           if (mounted) {
             setState(() => _isLoading = false);
@@ -74,65 +121,117 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
+      _showErrorMessage('Email dan password tidak boleh kosong');
+      return;
+    }
+    
     setState(() => _isLoading = true);
+    _startLoadingTimer();
 
     try {
-      final (guru, musyrif, guruQuran, securityGuard) = await _authService.login(
-        _emailController.text,
+      bool hasInternet = await _checkInternetConnection();
+      if (!hasInternet) {
+        throw Exception('No internet connection');
+      }
+      
+      developer.log('Attempting login with email: ${_emailController.text.trim()}');
+      
+      final response = await _authService.login(
+        _emailController.text.trim(),
         _passwordController.text,
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => throw TimeoutException('Login timeout'),
       );
 
-      if (guru != null) {
+      _cancelLoadingTimer();
+      
+      developer.log('Login response received: $response');
+
+      if (response.$1 != null) {
+        print("Guru login successful");
         await UserDataManager.saveUserData(
-          guru.name,
-          guru.email,
+          response.$1!.name,
+          response.$1!.email,
           _passwordController.text
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => homeview()),
-        );
-      } else if (musyrif != null) {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => homeview()),
+          );
+        }
+      } else if (response.$2 != null) {
+        print("Musyrif login successful");
         await UserDataManager.saveUserData(
-          musyrif.name,
-          musyrif.email,
+          response.$2!.name,
+          response.$2!.email,
           _passwordController.text
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MusyrifDashboard()),
-        );
-      } else if (guruQuran != null) {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => MusyrifDashboard()),
+          );
+        }
+      } else if (response.$3 != null) {
+        print("Guru Quran login successful");
         await UserDataManager.saveUserData(
-          guruQuran.name,
-          guruQuran.email,
+          response.$3!.name,
+          response.$3!.email,
           _passwordController.text
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => GuruQuranDashboard()),
-        );
-      } else if (securityGuard != null) {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => GuruQuranDashboard()),
+          );
+        }
+      } else if (response.$4 != null) {
+        print("Security Guard login successful");
         await UserDataManager.saveUserData(
-          securityGuard.name,
-          securityGuard.email,
+          response.$4!.name,
+          response.$4!.email,
           _passwordController.text
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => PetugasKeamananDashboard()),
-        );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => PetugasKeamananDashboard()),
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login gagal. Periksa email dan password')),
-        );
+        developer.log('Login failed: Invalid credentials');
+        _showErrorMessage('Email atau password salah');
       }
+    } on TimeoutException {
+      _cancelLoadingTimer();
+      _showErrorMessage('Koneksi timeout. Silakan coba lagi');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Terjadi kesalahan. Silakan coba lagi')),
-      );
+      _cancelLoadingTimer();
+      developer.log('Login error: $e');
+      if (e.toString().contains('No internet connection')) {
+        _showErrorMessage('Tidak ada koneksi internet');
+      } else {
+        _showErrorMessage('Terjadi kesalahan: ${e.toString()}');
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showErrorMessage(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -140,6 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _cancelLoadingTimer();
     super.dispose();
   }
 
@@ -163,11 +263,10 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo Section
                   Column(
                     children: [
                       Image.asset(
-                        'assets/images/logo.png', // Replace with your asset path
+                        'assets/images/logo.png',
                         height: 80,
                       ),
                     ],
@@ -175,7 +274,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 40),
 
-                  // Welcome Text Section
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     padding: const EdgeInsets.symmetric(
@@ -198,9 +296,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         const SizedBox(height: 20),
 
-                        // Email Input
                         TextField(
                           controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                             labelText: 'Email:',
                             border: OutlineInputBorder(
@@ -212,14 +310,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
 
                         const SizedBox(height: 20),
-
-                        // Password Input
+ 
                         TextField(
                           controller: _passwordController,
-                          obscureText:
-                              !_isPasswordVisible, // Terkait visibilitas
+                          obscureText: !_isPasswordVisible,
                           decoration: InputDecoration(
-                            labelText: 'Password:',
+                            labelText: 'Password:', 
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -233,8 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               onPressed: () {
                                 setState(() {
-                                  _isPasswordVisible =
-                                      !_isPasswordVisible; // Toggle visibilitas
+                                  _isPasswordVisible = !_isPasswordVisible;
                                 });
                               },
                             ),
@@ -246,11 +341,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
 
-
-
                         const SizedBox(height: 20),
 
-                        // Login Button
                         ElevatedButton(
                           onPressed: _isLoading ? null : _handleLogin,
                           style: ElevatedButton.styleFrom(
@@ -273,7 +365,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                         ),
-
                       ],
                     ),
                   ),

@@ -112,62 +112,51 @@ class _NewsPageState extends State<NewsPage> {
       body: Column(
         children: [
           Container(
+            height: 110,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blue.shade900, Colors.blue.shade700],
+                colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  spreadRadius: 5,
+                  blurRadius: 15,
+                  offset: Offset(0, 3),
+                ),
+              ],
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(30),
                 bottomRight: Radius.circular(30),
               ),
             ),
             child: SafeArea(
-              child: Padding(
-                padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 24),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                        Expanded(
-                          child: Text(
-                            "Tambah Informasi",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        SizedBox(width: 40), // For symmetry
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Text(
-                        'Isi Informasi',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 8,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  Center(
+                    child: Text(
+                      'Tambah Informasi',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -245,7 +234,7 @@ class _NewsPageState extends State<NewsPage> {
                             child: Image.file(
                               _selectedImage!,
                               width: double.infinity,
-                              // Remove height constraint and fit to show original aspect ratio
+                              
                               fit: BoxFit.contain,
                             ),
                           ),
@@ -260,7 +249,7 @@ class _NewsPageState extends State<NewsPage> {
                     child: ElevatedButton(
                       onPressed: _submitNews,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.indigo[600],
+                        backgroundColor: Color(0xFF2E3F7F),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

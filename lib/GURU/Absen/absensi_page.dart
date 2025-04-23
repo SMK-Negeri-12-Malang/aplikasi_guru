@@ -64,7 +64,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
         
-        // Get unique class names
+       
         Set<String> classes = {};
         for (var student in data) {
           if (student['kelas'] != null) {
@@ -72,16 +72,15 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
           }
         }
         
-        // Initialize data structures
+       
         Map<String, List<Map<String, dynamic>>> groupedStudents = {};
         Map<String, bool> savedStatus = {};
         
-        // Group students by class
+       
         for (String className in classes) {
           groupedStudents[className] = [];
           savedStatus[className] = false;
-          
-          // Add students to their respective classes
+         
           for (var student in data) {
             if (student['kelas'] == className) {
               groupedStudents[className]!.add({
@@ -102,8 +101,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
           siswaData = groupedStudents;
           attendanceSavedStatus = savedStatus;
           isLoading = false;
-          
-          // Automatically select the first class
+         
           if (sortedClasses.isNotEmpty) {
             selectedClass = sortedClasses[0];
             selectedIndex = 0;
@@ -112,7 +110,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                 .where((siswa) => siswa['checked'])
                 .length;
             
-            // Animate to first class
+     
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (_categoryPageController.hasClients) {
                 _categoryPageController.animateToPage(
@@ -479,8 +477,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
             },
           ),
         ),
-        // Dot indicators moved below
-        SizedBox(height: 16), // Space between card and indicators
+        SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
@@ -567,317 +564,311 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      body: SafeArea(
-        child: isLoading
-            ? AppAnimations.shimmerLoading(
-                isLoading: true,
-                child: Center(child: CircularProgressIndicator()),
-              )
-            : Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppAnimations.fadeSlideIn(
-              animation: _controller,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 22),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(30),
-                    bottomRight: Radius.circular(30),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color.fromARGB(255, 10, 55, 122).withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: Offset(0, 5),
+      body: Column(
+        children: [
+          Container(
+            height: 110,
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 22),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  spreadRadius: 5,
+                  blurRadius: 15,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Absensi Kelas',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
+                    SizedBox(height: 4), 
+                    Text(
+                      'Pilih kelas untuk mulai absensi',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 14,
+                      ),
+                    ),
+                    SizedBox(height: 10), 
                   ],
                 ),
-                child: SafeArea(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Absensi Kelas',
+              ),
+            ),
+          ),
+          SizedBox(height: 20),
+          _buildClassSelector(),
+          SizedBox(height: 20),
+          if (selectedClass != null) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Daftar Siswa',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade900,
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: attendanceSavedStatus[selectedClass!]! ? null : _toggleCheckAllStudents,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 19, 91, 155),
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    child: Text(
+                      _areAllChecked ? 'Batalkan Semua' : 'Centang Semua',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                padding: EdgeInsets.all(16),
+                itemCount: siswaData[selectedClass]?.length ?? 0,
+                itemBuilder: (context, index) {
+                  var siswa = siswaData[selectedClass]![index];
+                  return AnimatedListItem(
+                    index: index,
+                    controller: _controller,
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 300),
+                      margin: EdgeInsets.symmetric(vertical: 6),
+                      decoration: BoxDecoration(
+                        color: siswa['checked']
+                            ? Colors.blue.shade50
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: siswa['checked']
+                              ? Colors.blue.shade100
+                              : Colors.grey.shade100,
+                          child: Text(
+                            siswa['name'][0],
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
+                              color: siswa['checked']
+                                  ? Colors.blue.shade900
+                                  : Colors.grey.shade700,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          siswa['name'],
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: siswa['checked']
+                                ? Colors.blue.shade900
+                                : Colors.black87,
+                          ),
+                        ),
+                        subtitle: _isEditing
+                            ? TextField(
+                                decoration: InputDecoration(
+                                  hintText: 'Tambahkan keterangan',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    siswa['note'] = value;
+                                  });
+                                },
+                              )
+                            : Text(
+                                siswa['note'] ?? '',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                        trailing: Transform.scale(
+                          scale: 1.2,
+                          child: Checkbox(
+                            value: siswa['checked'],
+                            onChanged: attendanceSavedStatus[selectedClass!]! && !_isEditing ? null : (value) => _toggleCheck(index),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            activeColor: const Color.fromARGB(255, 17, 85, 153),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  if (!attendanceSavedStatus[selectedClass!]!) ...[
+                    ElevatedButton(
+                      onPressed: _saveAttendance,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade800,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        elevation: 5,
+                        shadowColor: Colors.blue.shade200,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.save_rounded, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(
+                            'Simpan Absensi',
+                            style: TextStyle(
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Pilih kelas untuk mulai absensi',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 16,
+                    ),
+                  ],
+                  if (attendanceSavedStatus[selectedClass!]!) ...[
+                    SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: _showCheckedStudents,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.shade600,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            elevation: 5,
+                            shadowColor: Colors.blue.shade200,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.visibility, color: Colors.white),
+                              SizedBox(width: 8),
+                              Text(
+                                'Lihat Absensi',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+                        ElevatedButton(
+                          onPressed: _toggleEditing,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange.shade600,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            elevation: 5,
+                            shadowColor: Colors.orange.shade200,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit, color: Colors.white),
+                              SizedBox(width: 8),
+                              Text(
+                                _isEditing ? 'Selesai Edit' : 'Edit Absensi',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ] else ...[
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.class_outlined,
+                      size: 50,
+                      color: const Color.fromARGB(255, 255, 255, 255),
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Pilih kelas terlebih dahulu',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            SizedBox(height: 20),
-            _buildClassSelector(),
-            SizedBox(height: 20),
-            if (selectedClass != null) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Daftar Siswa',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade900,
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: attendanceSavedStatus[selectedClass!]! ? null : _toggleCheckAllStudents,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 19, 91, 155),
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                      child: Text(
-                        _areAllChecked ? 'Batalkan Semua' : 'Centang Semua',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  padding: EdgeInsets.all(16),
-                  itemCount: siswaData[selectedClass]?.length ?? 0,
-                  itemBuilder: (context, index) {
-                    var siswa = siswaData[selectedClass]![index];
-                    return AnimatedListItem(
-                      index: index,
-                      controller: _controller,
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: 300),
-                        margin: EdgeInsets.symmetric(vertical: 6),
-                        decoration: BoxDecoration(
-                          color: siswa['checked']
-                              ? Colors.blue.shade50
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: siswa['checked']
-                                ? Colors.blue.shade100
-                                : Colors.grey.shade100,
-                            child: Text(
-                              siswa['name'][0],
-                              style: TextStyle(
-                                color: siswa['checked']
-                                    ? Colors.blue.shade900
-                                    : Colors.grey.shade700,
-                              ),
-                            ),
-                          ),
-                          title: Text(
-                            siswa['name'],
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: siswa['checked']
-                                  ? Colors.blue.shade900
-                                  : Colors.black87,
-                            ),
-                          ),
-                          subtitle: _isEditing
-                              ? TextField(
-                                  decoration: InputDecoration(
-                                    hintText: 'Tambahkan keterangan',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      siswa['note'] = value;
-                                    });
-                                  },
-                                )
-                              : Text(
-                                  siswa['note'] ?? '',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                          trailing: Transform.scale(
-                            scale: 1.2,
-                            child: Checkbox(
-                              value: siswa['checked'],
-                              onChanged: attendanceSavedStatus[selectedClass!]! && !_isEditing ? null : (value) => _toggleCheck(index),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              activeColor: const Color.fromARGB(255, 17, 85, 153),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    if (!attendanceSavedStatus[selectedClass!]!) ...[
-                      ElevatedButton(
-                        onPressed: _saveAttendance,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade800,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          elevation: 5,
-                          shadowColor: Colors.blue.shade200,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.save_rounded, color: Colors.white),
-                            SizedBox(width: 8),
-                            Text(
-                              'Simpan Absensi',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    if (attendanceSavedStatus[selectedClass!]!) ...[
-                      SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ElevatedButton(
-                            onPressed: _showCheckedStudents,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade600,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              elevation: 5,
-                              shadowColor: Colors.blue.shade200,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.visibility, color: Colors.white),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Lihat Absensi',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: _toggleEditing,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange.shade600,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              elevation: 5,
-                              shadowColor: Colors.orange.shade200,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit, color: Colors.white),
-                                SizedBox(width: 8),
-                                Text(
-                                  _isEditing ? 'Selesai Edit' : 'Edit Absensi',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ] else ...[
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.class_outlined,
-                        size: 50,
-                        color: const Color.fromARGB(255, 255, 255, 255),
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'Pilih kelas terlebih dahulu',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey.shade700,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
           ],
-        ),
+        ],
       ),
     );
   }
