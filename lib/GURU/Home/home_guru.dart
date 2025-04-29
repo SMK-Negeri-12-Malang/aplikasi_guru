@@ -849,42 +849,122 @@ class _DashboardPageState extends State<DashboardPage> {
               final daysLeft = deadline.difference(DateTime.now()).inDays;
 
               return Container(
-                width: 200,
+                width: MediaQuery.of(context).size.width - 60, // Match schedule card width
                 margin: EdgeInsets.only(right: 10),
                 decoration: BoxDecoration(
-                  color: daysLeft == 0
-                      ? const Color.fromARGB(255, 253, 253, 253)
-                      : const Color.fromARGB(255, 255, 255, 255),
-                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: Offset(3, 3),
+                      spreadRadius: 1,
+                    ),
+                  ],
                 ),
-                padding: EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                padding: EdgeInsets.all(16),
+                child: Row(
                   children: [
-                    Text(
-                      notification['taskName'],
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 4,
+                            offset: Offset(2, 2),
+                          ),
+                        ],
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      child: Icon(
+                        Icons.assignment_outlined,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
-                    SizedBox(height: 5),
-                    Text(
-                      'Kelas: ${notification['className']}',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    Text(
-                      daysLeft == 0
-                          ? 'Deadline: Hari ini'
-                          : 'Deadline: ${daysLeft} hari lagi',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: const Color.fromARGB(255, 77, 185, 34),
-                        fontWeight:
-                            daysLeft == 0 ? FontWeight.bold : FontWeight.normal,
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            notification['taskName'],
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: const Color.fromARGB(255, 11, 49, 105),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(255, 19, 83, 146)!.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'Kelas: ${notification['className']}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: const Color.fromARGB(255, 13, 66, 126),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: daysLeft == 0
+                                  ? Colors.red.withOpacity(0.1)
+                                  : Colors.green.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: daysLeft == 0
+                                    ? Colors.red.withOpacity(0.3)
+                                    : Colors.green.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  daysLeft == 0
+                                      ? Icons.warning_outlined
+                                      : Icons.timer_outlined,
+                                  size: 14,
+                                  color: daysLeft == 0
+                                      ? Colors.red
+                                      : Colors.green,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  daysLeft == 0
+                                      ? 'Deadline: Hari ini'
+                                      : 'Deadline: ${daysLeft} hari lagi',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: daysLeft == 0
+                                        ? Colors.red
+                                        : Colors.green,
+                                    fontWeight: daysLeft == 0
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

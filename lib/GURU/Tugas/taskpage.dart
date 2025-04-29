@@ -302,7 +302,7 @@ void _addNewTask() async {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.calendar_today, color: const Color.fromARGB(255, 28, 121, 197)),
+                            Icon(Icons.calendar_today, color: const Color.fromARGB(255, 16, 72, 129)),
                             SizedBox(width: 10),
                             Text(
                               deadline.isEmpty
@@ -407,7 +407,7 @@ void _addNewTask() async {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: const Color.fromARGB(255, 16, 72, 129),
                     foregroundColor: Colors.white,
                   ),
                   child: Text('Tambah'),
@@ -834,7 +834,7 @@ void _addNewTask() async {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.arrow_downward, color: Colors.blue.shade700),
+                        icon: Icon(Icons.arrow_downward, color: const Color.fromARGB(255, 16, 72, 129)),
                         onPressed: () {
                           if (_currentCategoryPage < kelasList.length - 1) {
                             _categoryPageController.nextPage(
@@ -868,7 +868,7 @@ void _addNewTask() async {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.add_task, color: Colors.blue.shade600),
+                      icon: Icon(Icons.add_task, color: const Color.fromARGB(255, 16, 72, 129)),
                       onPressed: _addNewTask,
                     ),
                   ],

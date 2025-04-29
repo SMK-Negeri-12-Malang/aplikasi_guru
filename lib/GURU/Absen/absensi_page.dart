@@ -725,7 +725,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                                 siswa['note'] ?? '',
                                 style: TextStyle(
                                   color: Colors.grey.shade600,
-                                ),
+                                ), 
                               ),
                         trailing: Transform.scale(
                           scale: 1.2,
@@ -852,7 +852,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                     Icon(
                       Icons.class_outlined,
                       size: 50,
-                      color: const Color.fromARGB(255, 255, 255, 255),
+                      color: Colors.grey.shade700,
                     ),
                     SizedBox(height: 16),
                     Text(

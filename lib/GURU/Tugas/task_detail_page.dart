@@ -163,7 +163,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     });
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: const Color.fromARGB(255, 16, 72, 129),
                     foregroundColor: Colors.white,
                   ),
                   child: Text('Simpan'),
@@ -377,7 +377,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(Icons.file_present, color: Colors.blue),
+                                    Icon(Icons.file_present, color: const Color.fromARGB(255, 16, 72, 129)),
                                     SizedBox(width: 10),
                                     Expanded(
                                       child: InkWell( 
@@ -427,7 +427,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                       ),
                                     ),
                                     IconButton(
-                                      icon: Icon(Icons.open_in_new, color: Colors.blue),
+                                      icon: Icon(Icons.open_in_new, color: const Color.fromARGB(255, 16, 72, 129)),
                                       onPressed: () async {
                                         final file = widget.task['file'];
                                         if (file != null) {
