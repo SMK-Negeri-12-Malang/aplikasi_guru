@@ -579,17 +579,6 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
               child: Center(
                 child: Stack(
                   children: [
-                    Positioned(
-                      left: 8,
-                      top: 0,
-                      bottom: 0,
-                      child: Center(
-                        child: IconButton(
-                          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ),
-                    ),
                     Center(
                       child: Text(
                         'Daftar Nilai Setiap Kelas',
