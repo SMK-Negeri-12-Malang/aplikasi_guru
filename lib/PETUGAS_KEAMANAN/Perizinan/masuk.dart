@@ -1,4 +1,5 @@
 import 'package:aplikasi_guru/ANIMASI/shimmer_loading.dart';
+import 'package:aplikasi_guru/data/test_data.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,19 +32,24 @@ class _MasukPageState extends State<MasukPage> {
   Future<void> _loadDataFromLocal() async {
     try {
       setState(() => _isLoading = true);
-      final prefs = await SharedPreferences.getInstance();
-      List<String> dataJson = prefs.getStringList('perizinan_data') ?? [];
+      List<Map<String, dynamic>> allData = await TestData.getAllData();
       
       setState(() {
-        _izinList = dataJson
-            .map((str) => json.decode(str) as Map<String, dynamic>)
-            .toList()
-            .where((data) => data['status'] == 'Keluar')
+        // Only show students with status 'Keluar' and not yet returned
+        _izinList = allData
+            .where((data) => 
+                data['status'] == 'Keluar' && 
+                data['isKembali'] == false)
             .toList();
         _izinList.sort((a, b) => 
             (b['waktuKeluar'] ?? '').compareTo(a['waktuKeluar'] ?? ''));
         _filteredIzinList = List.from(_izinList);
       });
+    } catch (e) {
+      print('Error loading data: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memuat data: $e')),
+      );
     } finally {
       setState(() => _isLoading = false);
     }
@@ -100,44 +106,41 @@ class _MasukPageState extends State<MasukPage> {
         return;
       }
 
-      final prefs = await SharedPreferences.getInstance();
-      List<String> allDataJson = prefs.getStringList('perizinan_data') ?? [];
-      List<Map<String, dynamic>> allData = allDataJson
-          .map((str) => json.decode(str) as Map<String, dynamic>)
-          .toList();
+      List<Map<String, dynamic>> allData = await TestData.getAllData();
 
-      bool anyFailure = false;
+      // Update status for returned students
       for (var returnedStudent in returnedStudents) {
-        try {
-          int index = allData.indexWhere((data) => 
-              data['nama'] == returnedStudent['nama'] && 
-              data['timestamp'] == returnedStudent['timestamp']);
-              
-          if (index != -1) {
-            allData[index]['status'] = 'Masuk';
-            allData[index]['isKembali'] = true;
-            allData[index]['waktuMasuk'] = DateTime.now().toIso8601String();
-          }
-        } catch (e) {
-          anyFailure = true;
-          print('Error updating student: ${returnedStudent['nama']} - $e');
+        int index = allData.indexWhere((data) => 
+            data['id'] == returnedStudent['id']);
+            
+        if (index != -1) {
+          allData[index] = {
+            ...allData[index],
+            'status': 'Masuk',
+            'isKembali': true,
+            'waktuMasuk': DateTime.now().toIso8601String(),
+          };
         }
       }
 
-      await prefs.setStringList('perizinan_data',
-          allData.map((data) => json.encode(data)).toList());
+      // Save updated data
+      await TestData.updateData(allData);
 
-      // Show success message
+      // Remove processed items from current list
+      setState(() {
+        _izinList.removeWhere((data) => 
+          returnedStudents.any((student) => student['id'] == data['id']));
+        _filteredIzinList = List.from(_izinList);
+      });
+        
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Data berhasil disimpan dan masuk ke riwayat perizinan')),
+        SnackBar(content: Text('Data berhasil disimpan ke riwayat perizinan')),
       );
 
-      // Reload the data instead of navigating
-      await _loadDataFromLocal();
-
     } catch (e) {
+      print('Error saving data: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi kesalahan: $e')),
+        SnackBar(content: Text('Gagal menyimpan data: $e')),
       );
     }
   }

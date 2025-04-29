@@ -71,24 +71,61 @@ class TestData {
   ];
 
   static Future<void> initializeTestData() async {
-    final prefs = await SharedPreferences.getInstance();
-    
-    // Check if data already exists
-    if (prefs.getStringList('perizinan_data') == null) {
-      List<String> testDataJson = sampleData
-          .map((data) => json.encode(data))
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String>? existingData = prefs.getStringList('perizinan_data');
+      
+      if (existingData == null || existingData.isEmpty) {
+        List<String> testDataJson = sampleData
+            .map((data) => json.encode({
+                  ...data,
+                  'timestamp': DateTime.now().toIso8601String(),
+                  'id': DateTime.now().millisecondsSinceEpoch.toString(),
+                }))
+            .toList();
+        await prefs.setStringList('perizinan_data', testDataJson);
+      }
+    } catch (e) {
+      print('Error initializing test data: $e');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getAllData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> dataJson = prefs.getStringList('perizinan_data') ?? [];
+      return dataJson
+          .map((str) => json.decode(str) as Map<String, dynamic>)
           .toList();
-          
-      await prefs.setStringList('perizinan_data', testDataJson);
+    } catch (e) {
+      print('Error getting all data: $e');
+      return [];
+    }
+  }
+
+  static Future<void> updateData(List<Map<String, dynamic>> newData) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> dataJson = newData.map((data) => json.encode(data)).toList();
+      await prefs.setStringList('perizinan_data', dataJson);
+    } catch (e) {
+      print('Error updating data: $e');
     }
   }
 
   static Future<void> resetTestData() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> testDataJson = sampleData
-        .map((data) => json.encode(data))
-        .toList();
-        
-    await prefs.setStringList('perizinan_data', testDataJson);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> testDataJson = sampleData
+          .map((data) => json.encode({
+                ...data,
+                'timestamp': DateTime.now().toIso8601String(),
+                'id': DateTime.now().millisecondsSinceEpoch.toString(),
+              }))
+          .toList();
+      await prefs.setStringList('perizinan_data', testDataJson);
+    } catch (e) {
+      print('Error resetting test data: $e');
+    }
   }
 }

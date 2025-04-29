@@ -6,8 +6,8 @@ import 'package:aplikasi_guru/PETUGAS_KEAMANAN/Perizinan/masuk.dart';
 import 'package:aplikasi_guru/PETUGAS_KEAMANAN/Perizinan/keluar.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:aplikasi_guru/data/test_data.dart';
 
 class HomePetugas extends StatefulWidget {
   @override
@@ -15,8 +15,8 @@ class HomePetugas extends StatefulWidget {
 }
 
 class _HomePetugasState extends State<HomePetugas> {
-  String _name = 'Nama Petugas';
-  String _email = 'email@domain.com';
+  String _name = 'Loading...';
+  String _email = 'Loading...';
   String? _profileImagePath;
   List<Map<String, dynamic>> _dataPerizinan = [];
   List<Map<String, dynamic>> _filteredDataPerizinan = [];
@@ -24,43 +24,90 @@ class _HomePetugasState extends State<HomePetugas> {
   final TextEditingController _searchController = TextEditingController();
   String? _selectedKelas;
   String? _selectedDate;
-  int _currentIndex = 0;
   bool _isLoading = true;
+  int _currentIndex = 0; // Added to fix the undefined variable issue
 
   @override
   void initState() {
     super.initState();
-    _loadDataFromLocal();
+    _initializeData();
     _searchController.addListener(_applyFilters);
+    _loadProfileData();
   }
 
-  Future<void> _loadDataFromLocal() async {
+  Future<void> _loadProfileData() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      
+      String? userName = prefs.getString('user_name');
+      String? userEmail = prefs.getString('user_email');
+      String? profileImagePath = prefs.getString('profile_image_path');
+
+      setState(() {
+        _name = userName ?? 'Loading...';
+        _email = userEmail ?? 'Loading...';
+        _profileImagePath = profileImagePath;
+      });
+    } catch (e) {
+      print('Error loading profile data: $e');
+      setState(() {
+        _name = 'Error loading data';
+        _email = 'Please try again';
+      });
+    }
+  }
+
+  // Update profile navigation to refresh data when returning
+  void _navigateToProfilePage() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => profilsatpam(),
+      ),
+    );
+    // Reload profile data when returning from profile page
+    _loadProfileData();
+  }
+
+  Future<void> _initializeData() async {
     try {
       setState(() => _isLoading = true);
-      final prefs = await SharedPreferences.getInstance();
-      List<String> dataJson = prefs.getStringList('perizinan_data') ?? [];
-      
-      setState(() {
-        _dataPerizinan = dataJson
-            .map((str) => json.decode(str) as Map<String, dynamic>)
-            .toList();
-        // Sort by timestamp to show newest first
-        _dataPerizinan.sort((a, b) => 
-            (b['timestamp'] ?? '').compareTo(a['timestamp'] ?? ''));
-        _filteredDataPerizinan = List.from(_dataPerizinan);
-        _applyFilters();
-      });
+      await TestData.initializeTestData();
+      await _loadDataFromLocal();
+    } catch (e) {
+      print('Error initializing data: $e');
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
+  Future<void> _loadDataFromLocal() async {
+    try {
+      List<Map<String, dynamic>> allData = await TestData.getAllData();
+      setState(() {
+        _dataPerizinan = allData;
+        _dataPerizinan.sort((a, b) => 
+            (b['timestamp'] ?? '').compareTo(a['timestamp'] ?? ''));
+        _filteredDataPerizinan = List.from(_dataPerizinan);
+        _applyFilters();
+      });
+    } catch (e) {
+      print('Error loading data: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memuat data: $e')),
+      );
+    }
+  }
+
   Future<void> _updateLocalStorage() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> updatedDataJson = _dataPerizinan
-        .map((data) => json.encode(data))
-        .toList();
-    await prefs.setStringList('perizinan_data', updatedDataJson);
+    try {
+      await TestData.updateData(_dataPerizinan);
+    } catch (e) {
+      print('Error updating storage: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal menyimpan perubahan: $e')),
+      );
+    }
   }
 
   void _applyFilters() {
@@ -92,15 +139,6 @@ class _HomePetugasState extends State<HomePetugas> {
         _applyFilters();
       });
     }
-  }
-
-  void _navigateToProfilePage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => profilsatpam(),
-      ),
-    );
   }
 
   void _navigateToMasukPage() async {
