@@ -60,92 +60,124 @@ class _CekSantriState extends State<CekSantri> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F6FD),
-      appBar: AppBar(
-        title: const Text(
-          'Cek Santri',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color(0xFF2E3F7F),
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: siswaList.length,
-          itemBuilder: (context, index) {
-            final siswa = siswaList[index];
-            final id = siswa['id'].toString();
-            final tahfidz = tahfidzData[id] ?? false;
-            final tahsin = tahsinData[id] ?? false;
-            final absen = absensiData[id] ?? false;
-
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DetailCekSantri(
-                      studentName: siswa['name'],
-                      room: siswa['room'] ?? 'Tidak diketahui',
-                      className: siswa['kelas'],
-                      studentId: siswa['id'].toString(),
-                      session: 'Sesi 1', // Contoh data sesi
-                      type: tahfidz ? 'Tahfidz' : tahsin ? 'Tahsin' : 'Belum diisi',
-                      ayatAwal: tahfidz ? '1' : tahsin ? '1' : '-',
-                      ayatAkhir: tahfidz ? '10' : tahsin ? '10' : '-',
-                      nilai: tahfidz || tahsin ? 'Mumtaz' : '-',
-                    ),
-                  ),
-                );
-              },
-              child: Card(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+      backgroundColor: Colors.grey[100],
+      body: Column(
+        children: [
+          Container(
+            height: 110,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  spreadRadius: 5,
+                  blurRadius: 15,
+                  offset: Offset(0, 3),
                 ),
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        siswa['name'],
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text("Kelas: ${siswa['kelas']}"),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildStatusCheckbox(
-                            label: 'Tahfidz',
-                            value: tahfidz,
-                            onChanged: null,
-                          ),
-                          _buildStatusCheckbox(
-                            label: 'Tahsin',
-                            value: tahsin,
-                            onChanged: null,
-                          ),
-                          _buildStatusCheckbox(
-                            label: 'Absen',
-                            value: absen,
-                            onChanged: null,
-                          ),
-                        ],
-                      ),
-                    ],
+              ],
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+            child: SafeArea(
+              child: Center(
+                child: Text(
+                  'Cek Santri',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ListView.builder(
+                itemCount: siswaList.length,
+                itemBuilder: (context, index) {
+                  final siswa = siswaList[index];
+                  final id = siswa['id'].toString();
+                  final tahfidz = tahfidzData[id] ?? false;
+                  final tahsin = tahsinData[id] ?? false;
+                  final absen = absensiData[id] ?? false;
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailCekSantri(
+                            studentName: siswa['name'],
+                            room: siswa['room'] ?? 'Tidak diketahui',
+                            className: siswa['kelas'],
+                            studentId: siswa['id'].toString(),
+                            session: 'Sesi 1', // Contoh data sesi
+                            type: tahfidz ? 'Tahfidz' : tahsin ? 'Tahsin' : 'Belum diisi',
+                            ayatAwal: tahfidz ? '1' : tahsin ? '1' : '-',
+                            ayatAkhir: tahfidz ? '10' : tahsin ? '10' : '-',
+                            nilai: tahfidz || tahsin ? 'Mumtaz' : '-',
+                          ),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              siswa['name'],
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text("Kelas: ${siswa['kelas']}"),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _buildStatusCheckbox(
+                                  label: 'Tahfidz',
+                                  value: tahfidz,
+                                  onChanged: null,
+                                ),
+                                _buildStatusCheckbox(
+                                  label: 'Tahsin',
+                                  value: tahsin,
+                                  onChanged: null,
+                                ),
+                                _buildStatusCheckbox(
+                                  label: 'Absen',
+                                  value: absen,
+                                  onChanged: null,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
