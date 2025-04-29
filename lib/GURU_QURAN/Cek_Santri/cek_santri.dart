@@ -99,7 +99,7 @@ class _CekSantriState extends State<CekSantri> {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16,16),
               child: ListView.builder(
                 itemCount: siswaList.length,
                 itemBuilder: (context, index) {
