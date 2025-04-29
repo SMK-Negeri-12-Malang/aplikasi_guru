@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 class DetailCekSantri extends StatelessWidget {
