@@ -69,14 +69,14 @@ class CustomPageTransitionBuilder extends PageTransitionsBuilder {
   }
 }
 
-// Enum to represent user roles
+
 enum UserRole { guru, musyrif, guru_quran, petugas_keamanan }
 
-// Main dashboard view that decides which role's dashboard to display
+
 class homeview extends StatefulWidget {
   final UserRole role;
 
-  // Default to guru role if not specified
+  
   const homeview({Key? key, this.role = UserRole.guru}) : super(key: key);
 
   @override
@@ -87,7 +87,7 @@ class _DashboardPageState extends State<homeview>
     with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    // Show the appropriate dashboard based on role
+    
     if (widget.role == UserRole.guru) {
       return GuruDashboard();
     } else if (widget.role == UserRole.guru_quran) {
@@ -100,7 +100,7 @@ class _DashboardPageState extends State<homeview>
   }
 }
 
-// Teacher's dashboard implementation
+
 class GuruDashboard extends StatefulWidget {
   @override
   _GuruDashboardState createState() => _GuruDashboardState();
@@ -272,7 +272,7 @@ class _GuruDashboardState extends State<GuruDashboard>
   }
 }
 
-// Musyrif's dashboard implementation
+
 class MusyrifDashboard extends StatefulWidget {
   @override
   _MusyrifDashboardState createState() => _MusyrifDashboardState();
@@ -441,7 +441,7 @@ class _MusyrifDashboardState extends State<MusyrifDashboard>
   }
 }
 
-// Guru Quran dashboard implementation
+
 class GuruQuranDashboard extends StatefulWidget {
   @override
   _GuruQuranDashboardState createState() => _GuruQuranDashboardState();
@@ -550,9 +550,9 @@ class _GuruQuranDashboardState extends State<GuruQuranDashboard>
             });
           },
           children: [
-            AbsensiPage(), // Replace with TahfidzPage()
+            AbsensiPage(), 
             CekSantri(),
-            HomeQuran(), // Replace with DashboardGuruQuranPage()
+            HomeQuran(), 
             Kepesantrenan(),
             profilquran(),
           ],
@@ -614,7 +614,7 @@ class _GuruQuranDashboardState extends State<GuruQuranDashboard>
   }
 }
 
-// Petugas Keamanan dashboard implementation
+
 class PetugasKeamananDashboard extends StatefulWidget {
   @override
   _PetugasKeamananDashboardState createState() =>
@@ -701,7 +701,7 @@ class _PetugasKeamananDashboardState extends State<PetugasKeamananDashboard>
           },
           children: [
             MasukPage(
-                izinList: []), // Pass an empty list or the appropriate value for 'izinList'
+                izinList: []), 
             HomePetugas(),
             KeluarPage(),
           ],
@@ -709,7 +709,7 @@ class _PetugasKeamananDashboardState extends State<PetugasKeamananDashboard>
         bottomNavigationBar: SlideTransition(
           position: _slideAnimation,
           child: Container(
-            height: 65, // Set fixed height
+            height: 65, 
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
