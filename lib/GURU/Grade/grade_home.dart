@@ -32,6 +32,11 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
     'IPS',
     'Bahasa Inggris'
   ];
+  String? selectedSemester;
+  List<String> semesters = [
+    'Semester 1',
+    'Semester 2',
+  ];
 
   @override
   void initState() {
@@ -594,45 +599,95 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
               ),
             ),
           ),
-          // Move subject dropdown below AppBar
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 3,
-                  offset: Offset(0, 2),
+          // Subject and Semester dropdowns side by side
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 3,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        hint: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Text('Pilih Mata Pelajaran'),
+                        ),
+                        value: selectedSubject,
+                        items: subjects.map((String subject) {
+                          return DropdownMenuItem<String>(
+                            value: subject,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 12),
+                              child: Text(subject),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedSubject = newValue;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 3,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        hint: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Text('Pilih Semester'),
+                        ),
+                        value: selectedSemester,
+                        items: semesters.map((String semester) {
+                          return DropdownMenuItem<String>(
+                            value: semester,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 12),
+                              child: Text(semester),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedSemester = newValue;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
                 ),
               ],
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                isExpanded: true,
-                hint: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('Pilih Mata Pelajaran'),
-                ),
-                value: selectedSubject,
-                items: subjects.map((String subject) {
-                  return DropdownMenuItem<String>(
-                    value: subject,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(subject),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedSubject = newValue;
-                  });
-                },
-              ),
             ),
           ),
           Expanded(

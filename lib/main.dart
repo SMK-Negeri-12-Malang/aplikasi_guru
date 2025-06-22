@@ -460,7 +460,7 @@ class _GuruQuranDashboardState extends State<GuruQuranDashboard>
     NavItem(icon: Icons.calendar_today, label: 'Cek Santri'), 
 
     NavItem(icon: Icons.home, label: 'Home'),
-    NavItem(icon: Icons.list, label: 'Kepesantrenan'),
+    NavItem(icon: Icons.list, label: 'Tazqin '),
     NavItem(icon: Icons.person, label: 'Profil'),
   ];
 
@@ -630,9 +630,9 @@ class _PetugasKeamananDashboardState extends State<PetugasKeamananDashboard>
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<NavItem> _navItems = [
-    NavItem(icon: Icons.login, label: 'Masuk'),
+    NavItem(icon: Icons.door_front_door, label: 'Izin Masuk'),
     NavItem(icon: Icons.home, label: 'Home'),
-    NavItem(icon: Icons.logout, label: 'Keluar'),
+    NavItem(icon: Icons.meeting_room, label: 'Izin Keluar'), //open_in_new
   ];
 
   @override
