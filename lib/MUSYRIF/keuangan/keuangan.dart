@@ -15,6 +15,11 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
   PageController _pageController = PageController(viewportFraction: 0.9);
   int _currentPage = 0;
   List<Map<String, dynamic>> filteredSantri = [];
+  PageController _roomPageController = PageController(initialPage: 0);
+  int _currentKamarIndex = 0;
+
+  // Add new state variable for search
+  String searchQuery = "";
 
   @override
   void initState() {
@@ -32,7 +37,122 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
   @override
   void dispose() {
     _pageController.dispose();
+    _roomPageController.dispose();
     super.dispose();
+  }
+
+  Widget _buildRoomSelector() {
+    return Container(
+      height: 120,
+      child: Stack(
+        children: [
+          PageView.builder(
+            controller: _roomPageController,
+            itemCount: kamarList.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentKamarIndex = index;
+                selectedKamar = kamarList[index];
+                updateFilteredSantri(selectedKamar);
+              });
+            },
+            itemBuilder: (context, index) {
+              return AnimatedBuilder(
+                animation: _roomPageController,
+                builder: (context, child) {
+                  double value = 1.0;
+                  if (_roomPageController.position.haveDimensions) {
+                    value = 1 - (_roomPageController.page! - index).abs();
+                    value = 0.8 + (value * 0.2);
+                  }
+                  return Center(
+                    child: Transform.scale(
+                      scale: value,
+                      child: Container(
+                        margin: EdgeInsets.symmetric(horizontal: 40),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: selectedKamar == kamarList[index]
+                                ? [Color(0xFF2E3F7F), Color(0xFF4557A4)]
+                                : [Colors.white, Colors.white],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: selectedKamar == kamarList[index]
+                                  ? Color(0xFF2E3F7F).withOpacity(0.3)
+                                  : Colors.grey.withOpacity(0.2),
+                              blurRadius: 8,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: selectedKamar == kamarList[index]
+                                ? Colors.transparent
+                                : Colors.grey.shade300,
+                            width: 1,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            kamarList[index],
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: selectedKamar == kamarList[index]
+                                  ? Colors.white
+                                  : Color(0xFF2E3F7F),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+          // Navigation arrows
+          Positioned.fill(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.chevron_left, size: 30),
+                  onPressed: _currentKamarIndex > 0
+                      ? () {
+                          _roomPageController.previousPage(
+                            duration: Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
+                  color: _currentKamarIndex > 0
+                      ? Color(0xFF2E3F7F)
+                      : Colors.grey.shade300,
+                ),
+                IconButton(
+                  icon: Icon(Icons.chevron_right, size: 30),
+                  onPressed: _currentKamarIndex < kamarList.length - 1
+                      ? () {
+                          _roomPageController.nextPage(
+                            duration: Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
+                  color: _currentKamarIndex < kamarList.length - 1
+                      ? Color(0xFF2E3F7F)
+                      : Colors.grey.shade300,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -40,8 +160,13 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
+    // Modify filteredSantri calculation
+    final displayedSantri = filteredSantri.where((santri) =>
+      santri["nama"].toString().toLowerCase().contains(searchQuery.toLowerCase())
+    ).toList();
+
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 233, 233, 233),
+      backgroundColor: Colors.white,  // Changed to white for banking app look
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -90,192 +215,169 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(screenWidth * 0.04),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Add search field before room selector
+                  Container(
+                    margin: EdgeInsets.only(bottom: 16),
+                    child: TextField(
+                      onChanged: (value) {
+                        setState(() {
+                          searchQuery = value;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Cari nama santri...',
+                        prefixIcon: Icon(Icons.search),
+                        suffixIcon: searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(Icons.clear),
+                                onPressed: () {
+                                  setState(() {
+                                    searchQuery = '';
+                                  });
+                                  // Clear the text field
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    FocusScope.of(context).unfocus();
+                                  });
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Color(0xFF2E3F7F)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Color(0xFF2E3F7F).withOpacity(0.5)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Color(0xFF2E3F7F), width: 2),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                  
                   Text(
                     "Pilih Kamar",
                     style: TextStyle(
-                      fontSize: screenWidth * 0.045,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF2E3F7F),
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.02),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: screenHeight * 0.15,
-                          child: PageView.builder(
-                            controller: _pageController,
-                            itemCount: kamarList.length,
-                            onPageChanged: (index) {
-                              setState(() {
-                                _currentPage = index;
-                                selectedKamar = kamarList[index];
-                                updateFilteredSantri(selectedKamar);
-                              });
-                            },
-                            scrollDirection: Axis.vertical,
-                            itemBuilder: (context, index) {
-                              return _buildRoomCard(
-                                index,
-                                selectedKamar == kamarList[index],
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 16),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.arrow_upward),
-                            onPressed: () {
-                              if (_currentPage > 0) {
-                                _pageController.previousPage(
-                                  duration: Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut,
-                                );
-                              }
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.arrow_downward),
-                            onPressed: () {
-                              if (_currentPage < kamarList.length - 1) {
-                                _pageController.nextPage(
-                                  duration: Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut,
-                                );
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                      SizedBox(width: 8),
-                      
-                      Container(
-                        height: screenHeight * 0.15,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            kamarList.length,
-                            (index) => Container(
-                              margin: EdgeInsets.symmetric(vertical: 2),
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: _currentPage == index
-                                    ? Color(0xFF2E3F7F)
-                                    : Colors.grey[300],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: screenHeight * 0.02),
-                  ListView.builder(
+                  SizedBox(height: 12),
+                  _buildRoomSelector(),
+                  SizedBox(height: 20),
+                  // Use filtered list instead of original
+                  ListView.separated(
                     physics: NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
-                    itemCount: filteredSantri.length,
+                    itemCount: displayedSantri.length,
+                    separatorBuilder: (context, index) => Divider(
+                      height: 1,
+                      color: Colors.grey.shade200,
+                    ),
                     itemBuilder: (context, index) {
-                      final santri = filteredSantri[index];
-                      return Container(
-                        margin: EdgeInsets.only(bottom: screenHeight * 0.015),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DetailKeuangan(
-                                  namaSantri: santri["nama"],
-                                  virtualAccount: santri["virtualAccount"],
-                                  saldo: santri["saldo"],
-                                  uangMasuk: santri["uangMasuk"],
-                                  uangKeluar: santri["uangKeluar"],
-                                  transactions: santri["transactions"],
-                                ),
+                      final santri = displayedSantri[index];
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DetailKeuangan(
+                                namaSantri: santri["nama"],
+                                virtualAccount: santri["virtualAccount"],
+                                saldo: santri["saldo"],
+                                uangMasuk: santri["uangMasuk"],
+                                uangKeluar: santri["uangKeluar"],
+                                transactions: santri["transactions"],
                               ),
-                            );
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    CircleAvatar(
-                                      backgroundColor: Color(0xFF2E3F7F),
-                                      child: Text(
-                                        santri["nama"][0].toUpperCase(),
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                    Text(
+                                      santri["nama"],
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
                                       ),
                                     ),
-                                    SizedBox(width: 16),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          santri["nama"],
-                                          style: TextStyle(
-                                            fontSize: screenWidth * 0.04,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF2E3F7F),
-                                          ),
-                                        ),
-                                        Text(
-                                          "Saldo: Rp ${CurrencyFormat.formatRupiah(santri["saldo"])}",
-                                          style: TextStyle(
-                                            fontSize: screenWidth * 0.035,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
+                                    SizedBox(height: 4),
+                                    Text(
+                                      "VA: ${santri["virtualAccount"]}",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
                                     ),
                                   ],
                                 ),
-                                SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    _buildTransactionInfo(
-                                      "Masuk",
-                                      santri["uangMasuk"],
-                                      Colors.green,
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    "Rp ${CurrencyFormat.formatRupiah(santri["saldo"])}",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2E3F7F),
                                     ),
-                                    _buildTransactionInfo(
-                                      "Keluar",
-                                      santri["uangKeluar"],
-                                      Colors.red,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.arrow_upward,
+                                        size: 12,
+                                        color: Colors.green,
+                                      ),
+                                      Text(
+                                        "Rp ${CurrencyFormat.formatRupiah(santri["uangMasuk"])}",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Icon(
+                                        Icons.arrow_downward,
+                                        size: 12,
+                                        color: Colors.red,
+                                      ),
+                                      Text(
+                                        "Rp ${CurrencyFormat.formatRupiah(santri["uangKeluar"])}",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              SizedBox(width: 8),
+                              Icon(
+                                Icons.chevron_right,
+                                color: Colors.grey,
+                                size: 20,
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -287,64 +389,6 @@ class _KeuanganSantriPageState extends State<KeuanganSantriPage> {
           ),
         ],
       ),
-    );
-  }
-
-
-  Widget _buildRoomCard(int index, bool isSelected) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    return TweenAnimationBuilder(
-      tween: Tween<double>(
-        begin: isSelected ? 0.0 : 0.3,
-        end: isSelected ? 1.0 : 0.8,
-      ),
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      builder: (context, double value, child) {
-        return Transform(
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.001)
-            ..translate(0.0, isSelected ? 0.0 : 20.0)
-            ..scale(value),
-          alignment: Alignment.center,
-          child: Container(
-            margin: EdgeInsets.symmetric(
-              vertical: screenHeight * 0.01,
-              horizontal: screenWidth * 0.02,
-            ),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isSelected
-                    ? [Color(0xFF2E3F7F), Color(0xFF4557A4)]
-                    : [Colors.grey[300]!, Colors.grey[400]!],
-              ),
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: isSelected
-                      ? Color(0xFF2E3F7F).withOpacity(0.3)
-                      : Colors.black12,
-                  blurRadius: 8,
-                  offset: Offset(0, 4),
-                  spreadRadius: isSelected ? 2 : 0,
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                kamarList[index],
-                style: TextStyle(
-                  fontSize: screenWidth * 0.045,
-                  color: isSelected ? Colors.white : Colors.black87,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 

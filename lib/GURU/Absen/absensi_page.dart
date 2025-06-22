@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:aplikasi_guru/GURU/Absen/history_page.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AbsensiKelasPage extends StatefulWidget {
   const AbsensiKelasPage({super.key});
@@ -29,10 +31,28 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
   List<Map<String, dynamic>> savedAttendance = [];
   bool _isAttendanceSaved = false;
   bool _areAllChecked = false;
-  bool _isEditing = false;
 
-  late PageController _categoryPageController;
-  int _currentCategoryPage = 0;
+  // Add these new state variables
+  DateTime selectedDate = DateTime.now();
+  String? selectedSubject;
+  final List<String> subjects = [
+    'Matematika',
+    'Bahasa Indonesia',
+    'IPA',
+    'IPS',
+    'Bahasa Inggris'
+  ];
+
+  // Add these new variables
+  String? lastSelectedClass;
+  String? lastSelectedSubject;
+  DateTime? lastSelectedDate;
+
+  // Add new variables for attendance status
+  final List<String> absenceTypes = ['Alpha', 'Izin', 'Sakit'];
+  Map<String, String> studentAbsenceStatus = {};
+
+  SharedPreferences? _prefs;
 
   @override
   void initState() {
@@ -41,16 +61,23 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _categoryPageController = PageController(viewportFraction: 0.85);
     _controller.forward();
     _fetchData();
+    _initSharedPreferences();
+    _clearOldChecks(); // Clear old checks on app start
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkTodayAttendance();
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _categoryPageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initSharedPreferences() async {
+    _prefs = await SharedPreferences.getInstance();
   }
 
   Future<void> _fetchData() async {
@@ -64,7 +91,6 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
         
-       
         Set<String> classes = {};
         for (var student in data) {
           if (student['kelas'] != null) {
@@ -72,18 +98,18 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
           }
         }
         
-       
         Map<String, List<Map<String, dynamic>>> groupedStudents = {};
         Map<String, bool> savedStatus = {};
         
-       
         for (String className in classes) {
           groupedStudents[className] = [];
           savedStatus[className] = false;
          
+          // Collect students for this class
+          List<Map<String, dynamic>> classStudents = [];
           for (var student in data) {
             if (student['kelas'] == className) {
-              groupedStudents[className]!.add({
+              classStudents.add({
                 'name': student['name'],
                 'id': student['id'],
                 'absen': student['id'].toString().padLeft(2, '0'),
@@ -92,6 +118,10 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
               });
             }
           }
+
+          // Sort students by name
+          classStudents.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
+          groupedStudents[className] = classStudents;
         }
         
         List<String> sortedClasses = classes.toList()..sort();
@@ -105,20 +135,12 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
           if (sortedClasses.isNotEmpty) {
             selectedClass = sortedClasses[0];
             selectedIndex = 0;
-            _currentCategoryPage = 0;
             checkedCount = siswaData[selectedClass]!
                 .where((siswa) => siswa['checked'])
                 .length;
-            
-     
+             
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (_categoryPageController.hasClients) {
-                _categoryPageController.animateToPage(
-                  0,
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              }
+              _controller.forward();
             });
           }
         });
@@ -157,407 +179,358 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
     });
   }
 
-  void _saveAttendance() {
-    if (selectedClass != null) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)),
-            title: Text('Konfirmasi Simpan Absensi'),
-            content: Text('Apakah Anda yakin ingin menyimpan absensi?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Batal', style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0))),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _confirmSaveAttendance();
-                },
-                child: Text('Simpan', style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255))),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 17, 82, 136),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-            ],
-          );
-        },
-      );
+  // Add this method to show date picker
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2025),
+    );
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+        // Reset if date changes
+        _resetAttendance();
+      });
     }
   }
 
-  void _confirmSaveAttendance() {
-    HapticFeedback.mediumImpact();
-    setState(() {
-      DateTime now = DateTime.now();
-      String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
-      for (var siswa in siswaData[selectedClass]!) {
-        if (siswa['checked']) {
-          savedAttendance.add({
-            'name': siswa['name'],
-            'absen': siswa['absen'],
-            'date': formattedDate,
-          });
+  // Add this method to reset attendance
+  void _resetAttendance() {
+    if (selectedClass != null) {
+      setState(() {
+        for (var siswa in siswaData[selectedClass]!) {
+          siswa['checked'] = false;
+          siswa['note'] = null;
+          studentAbsenceStatus.remove(siswa['id']);
         }
-      }
-      attendanceSavedStatus[selectedClass!] = true;
-    });
+        checkedCount = 0;
+        _areAllChecked = false;
+        attendanceSavedStatus[selectedClass!] = false;
+      });
+    }
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Absensi berhasil disimpan!'),
-          ],
-        ),
-        backgroundColor: Colors.green.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: EdgeInsets.all(10),
+  // Add new method to check if attendance is already taken today
+  Future<void> _checkTodayAttendance() async {
+    if (selectedClass != null && selectedSubject != null) {
+      bool hasAttendance = await _hasAttendanceForToday();
+      bool isCheckedToday = await _isSubjectCheckedToday();
+      
+      setState(() {
+        attendanceSavedStatus[selectedClass!] = hasAttendance || isCheckedToday;
+      });
+    }
+  }
+
+  // Modify _buildDateTimeSubjectSelector to check attendance on subject/class change
+  Widget _buildDateTimeSubjectSelector() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          // Single date button instead of Row with time
+          OutlinedButton.icon(
+            onPressed: () => _selectDate(context),
+            icon: Icon(Icons.calendar_today),
+            label: Text(DateFormat('dd/MM/yyyy').format(selectedDate)),
+            style: OutlinedButton.styleFrom(
+              minimumSize: Size(double.infinity, 45), // Make button full width
+            ),
+          ),
+          SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: selectedClass,
+                  decoration: InputDecoration(
+                    labelText: 'Pilih Kelas',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: kelasList.map((String kelas) {
+                    return DropdownMenuItem(
+                      value: kelas,
+                      child: Text(kelas),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) async {
+                    setState(() {
+                      if (selectedClass != newValue) {
+                        selectedClass = newValue;
+                        _resetAttendance();
+                      }
+                    });
+                    await _checkTodayAttendance();
+                  },
+                ),
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: selectedSubject,
+                  decoration: InputDecoration(
+                    labelText: 'Mata Pelajaran',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: subjects.map((String subject) {
+                    return DropdownMenuItem(
+                      value: subject,
+                      child: Text(subject),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) async {
+                    setState(() {
+                      if (selectedSubject != newValue) {
+                        selectedSubject = newValue;
+                        _resetAttendance();
+                      }
+                    });
+                    await _checkTodayAttendance();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  void _showCheckedStudents() {
-    if (selectedClass != null) {
-      List<Map<String, dynamic>> checkedStudents = siswaData[selectedClass]!
-          .where((siswa) => siswa['checked'])
-          .toList();
-      List<Map<String, dynamic>> uncheckedStudents = siswaData[selectedClass]!
-          .where((siswa) => !siswa['checked'])
-          .toList();
+  // Modify the _saveAttendance method
+  void _saveAttendance() async {
+    if (selectedClass == null || selectedSubject == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Pilih kelas dan mata pelajaran terlebih dahulu'),
+          backgroundColor: const Color.fromARGB(255, 229, 147, 53),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
-            children: [
-              Icon(Icons.people, color: const Color.fromARGB(255, 13, 65, 124)),
-              SizedBox(width: 8),
-              Text('Daftar Kehadiran'),
-            ],
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        int totalStudents = siswaData[selectedClass]?.length ?? 0;
+        String currentTime = DateFormat('HH:mm').format(DateTime.now());
+        
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-          content: Container(
-            width: double.maxFinite,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (checkedStudents.isNotEmpty) ...[
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        border: Border.all(color: Colors.green.shade200),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.check_circle, color: Colors.green),
-                              SizedBox(width: 8),
-                              Text(
-                                'Hadir (${checkedStudents.length})',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Divider(),
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: checkedStudents.length,
-                            itemBuilder: (context, index) {
-                              final student = checkedStudents[index];
-                              return Container(
-                                margin: EdgeInsets.symmetric(vertical: 4),
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      backgroundColor: Colors.green.shade100,
-                                      radius: 20,
-                                      child: Text(
-                                        student['name'][0],
-                                        style: TextStyle(
-                                          color: Colors.green.shade700,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            student['name'],
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          if (student['note'] != null && student['note'].isNotEmpty)
-                                            Text(
-                                              'Ket: ${student['note']}',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey.shade600,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                  ],
-                  if (uncheckedStudents.isNotEmpty) ...[
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        border: Border.all(color: Colors.red.shade200),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.cancel, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text(
-                                'Tidak Hadir (${uncheckedStudents.length})',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.red,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Divider(),
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: uncheckedStudents.length,
-                            itemBuilder: (context, index) {
-                              final student = uncheckedStudents[index];
-                              return Container(
-                                margin: EdgeInsets.symmetric(vertical: 4),
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      backgroundColor: Colors.red.shade100,
-                                      radius: 20,
-                                      child: Text(
-                                        student['name'][0],
-                                        style: TextStyle(
-                                          color: Colors.red.shade700,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            student['name'],
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          if (student['note'] != null && student['note'].isNotEmpty)
-                                            Text(
-                                              'Ket: ${student['note']}',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey.shade600,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+          title: Text('Konfirmasi Simpan Absensi'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Detail Absensi:'),
+              SizedBox(height: 8),
+              Text('Kelas: $selectedClass'),
+              Text('Mata Pelajaran: $selectedSubject'),
+              Text('Tanggal: ${DateFormat('dd/MM/yyyy').format(selectedDate)}'),
+              Text('Waktu: $currentTime'),
+              Text('Jumlah Hadir: $checkedCount dari $totalStudents siswa'),
+              if (checkedCount < totalStudents) ...[
+                Text(
+                  'Tidak Hadir: ${totalStudents - checkedCount} siswa',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ],
+            ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Tutup'),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color.fromARGB(255, 16, 72, 129),
+              child: Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _confirmSaveAttendance();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 17, 82, 136),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
+              child: Text('Simpan', style: TextStyle(color: Colors.white)),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  Future<void> _confirmSaveAttendance() async {
+    try {
+      setState(() => isLoading = true);
+
+      String currentTime = DateFormat('HH:mm').format(DateTime.now());
+
+      Map<String, dynamic> attendanceData = {
+        'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+        'time': currentTime, // Add current time
+        'subject': selectedSubject,
+        'class': selectedClass,
+        'totalStudents': siswaData[selectedClass]!.length,
+        'presentCount': checkedCount,
+        'students': siswaData[selectedClass]!.map((student) => {
+          'id': student['id'],
+          'name': student['name'],
+          'present': student['checked'],
+          'status': student['checked'] ? 'Hadir' : studentAbsenceStatus[student['id']] ?? 'Alpha',
+          'note': student['note'] ?? '',
+        }).toList(),
+        'savedAt': DateTime.now().toString(), // Add full timestamp for reference
+      };
+
+      await _saveToHistory(attendanceData);
+      _resetAttendance();
+      
+      setState(() {
+        isLoading = false;
+        attendanceSavedStatus[selectedClass!] = true;  // Mark as saved
+      });
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 8),
+              Text('Absensi berhasil disimpan!'),
+            ],
+          ),
+          backgroundColor: Colors.green.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: EdgeInsets.all(10),
+        ),
+      );
+    } catch (e) {
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menyimpan absensi: ${e.toString()}'),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
   }
 
-  void _toggleEditing() {
+  Future<void> _saveToHistory(Map<String, dynamic> attendanceData) async {
+    if (_prefs == null) return;
+
+    List<String> history = _prefs!.getStringList('attendance_history') ?? [];
+    history.add(jsonEncode(attendanceData));
+    await _prefs!.setStringList('attendance_history', history);
+  }
+
+  void _showCheckedStudents() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AbsensiHistoryPage(),
+      ),
+    );
+  }
+
+  // Add new method to check today's attendance
+  Future<bool> _hasAttendanceForToday() async {
+    if (_prefs == null) return false;
+    
+    List<String> history = _prefs!.getStringList('attendance_history') ?? [];
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    
+    for (String item in history) {
+      final attendance = json.decode(item) as Map<String, dynamic>;
+      if (attendance['date'] == today && 
+          attendance['subject'] == selectedSubject &&
+          attendance['class'] == selectedClass) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Store today's checked subjects per class
+  Future<void> _markSubjectAsChecked() async {
+    if (_prefs == null) return;
+
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final key = '${today}_${selectedClass}_${selectedSubject}';
+    await _prefs!.setBool(key, true);
+  }
+
+  // Check if subject is already checked today
+  Future<bool> _isSubjectCheckedToday() async {
+    if (_prefs == null) return false;
+
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final key = '${today}_${selectedClass}_${selectedSubject}';
+    return _prefs!.getBool(key) ?? false;
+  }
+
+  // Add method to clear today's checks (call this at midnight or app start)
+  Future<void> _clearOldChecks() async {
+    if (_prefs == null) return;
+    
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final allKeys = _prefs!.getKeys();
+    
+    for (String key in allKeys) {
+      if (key.startsWith('${today}_')) continue;  // Keep today's records
+      if (key.contains('_')) {  // Only remove our attendance check keys
+        await _prefs!.remove(key);
+      }
+    }
+  }
+
+  double _getAppBarHeight(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final double statusBarHeight = mediaQuery.padding.top;
+    final double screenHeight = mediaQuery.size.height;
+    
+    // Reduced height calculation
+    final double responsiveHeight = screenHeight * 0.08; // Reduced from 0.1
+    return statusBarHeight + responsiveHeight;
+  }
+
+  // Add these methods for responsive sizing
+  double _getResponsiveIconSize(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    return screenWidth * 0.05 > 30 ? 30 : screenWidth * 0.05 < 20 ? 20 : screenWidth * 0.05;
+  }
+
+  double _getResponsiveTextSize(BuildContext context, double baseSize) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double scaleFactor = screenWidth / 400; // Base width
+    return baseSize * (scaleFactor < 0.8 ? 0.8 : scaleFactor > 1.2 ? 1.2 : scaleFactor);
+  }
+
+  // Method to clear absence status for a student
+  void _clearAbsenceStatus(String studentId) {
     setState(() {
-      _isEditing = !_isEditing;
+      studentAbsenceStatus.remove(studentId);
+      if (selectedClass != null) {
+        final siswaList = siswaData[selectedClass!];
+        if (siswaList != null) {
+          for (var siswa in siswaList) {
+            if (siswa['id'] == studentId) {
+              siswa['note'] = null;
+              break;
+            }
+          }
+        }
+      }
     });
-  }
-
-  Widget _buildClassSelector() {
-    return Column(
-      children: [
-        Container(
-          height: MediaQuery.of(context).size.height * 0.15,
-          child: PageView.builder(
-            controller: _categoryPageController,
-            itemCount: kelasList.length,
-            onPageChanged: (index) {
-              setState(() {
-                _currentCategoryPage = index;
-                selectedClass = kelasList[index];
-                selectedIndex = index;
-                checkedCount = siswaData[selectedClass]!
-                    .where((siswa) => siswa['checked'])
-                    .length;
-              });
-            },
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              return AnimatedBuilder(
-                animation: _categoryPageController,
-                builder: (context, child) {
-                  double value = 1.0;
-                  if (_categoryPageController.position.haveDimensions) {
-                    value = _categoryPageController.page! - index;
-                    value = (1 - (value.abs() * 0.3)).clamp(0.85, 1.0);
-                  }
-                  return Transform.scale(
-                    scale: value,
-                    child: _buildClassCard(index),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-        SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            kelasList.length,
-            (index) => Container(
-              width: 8,
-              height: 8,
-              margin: EdgeInsets.symmetric(horizontal: 6),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _currentCategoryPage == index
-                    ? Colors.blue.shade700
-                    : Colors.grey.shade300,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildClassCard(int index) {
-    String kelas = kelasList[index];
-    bool isSelected = selectedIndex == index;
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.white : Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.shade100.withOpacity(0.5),
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
-        ],
-        border: Border.all(
-          color: isSelected ? Colors.blue.shade300 : Colors.transparent,
-          width: 1.5,
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.class_,
-            color: isSelected ? Colors.blue.shade900 : Colors.blue.shade300,
-            size: 28,
-          ),
-          SizedBox(height: 8),
-          Text(
-            kelas,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.blue.shade900 : Colors.blue.shade300,
-            ),
-          ),
-          if (selectedClass == kelas)
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-              margin: EdgeInsets.only(top: 4),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Text(
-                checkedCount == (siswaData[selectedClass]?.length ?? 0)
-                    ? 'Hadir Semua ✓'
-                    : 'Hadir: $checkedCount',
-                style: TextStyle(
-                  color: Colors.blue.shade700,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -568,7 +541,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
         children: [
           Container(
             height: 110,
-            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 22),
+            padding: EdgeInsets.symmetric(horizontal: 22),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
@@ -589,13 +562,14 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
               ],
             ),
             child: SafeArea(
-              child: Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Absensi Kelas',
@@ -605,24 +579,53 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Pilih kelas untuk mulai absensi',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                          ),
+                        ),
                       ],
                     ),
-                    SizedBox(height: 4), 
-                    Text(
-                      'Pilih kelas untuk mulai absensi',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 14,
+                  ),
+                  InkWell(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AbsensiHistoryPage(),
                       ),
                     ),
-                    SizedBox(height: 10), 
-                  ],
-                ),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.history,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Riwayat',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
           SizedBox(height: 20),
-          _buildClassSelector(),
+          _buildDateTimeSubjectSelector(),
           SizedBox(height: 20),
           if (selectedClass != null) ...[
             Padding(
@@ -684,60 +687,98 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                           ),
                         ],
                       ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: siswa['checked']
-                              ? Colors.blue.shade100
-                              : Colors.grey.shade100,
-                          child: Text(
-                            siswa['name'][0],
-                            style: TextStyle(
-                              color: siswa['checked']
-                                  ? Colors.blue.shade900
-                                  : Colors.grey.shade700,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          siswa['name'],
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: siswa['checked']
-                                ? Colors.blue.shade900
-                                : Colors.black87,
-                          ),
-                        ),
-                        subtitle: _isEditing
-                            ? TextField(
-                                decoration: InputDecoration(
-                                  hintText: 'Tambahkan keterangan',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                onChanged: (value) {
-                                  setState(() {
-                                    siswa['note'] = value;
-                                  });
-                                },
-                              )
-                            : Text(
-                                siswa['note'] ?? '',
+                      child: Column(
+                        children: [
+                          ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: siswa['checked']
+                                  ? Colors.blue.shade100
+                                  : Colors.grey.shade100,
+                              child: Text(
+                                siswa['name'][0],
                                 style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                ), 
+                                  color: siswa['checked']
+                                      ? Colors.blue.shade900
+                                      : Colors.grey.shade700,
+                                ),
                               ),
-                        trailing: Transform.scale(
-                          scale: 1.2,
-                          child: Checkbox(
-                            value: siswa['checked'],
-                            onChanged: attendanceSavedStatus[selectedClass!]! && !_isEditing ? null : (value) => _toggleCheck(index),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
                             ),
-                            activeColor: const Color.fromARGB(255, 17, 85, 153),
+                            title: Text(
+                              siswa['name'],
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: siswa['checked']
+                                    ? Colors.blue.shade900
+                                    : Colors.black87,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (!siswa['checked']) ...[
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: DropdownButtonFormField<String>(
+                                          value: studentAbsenceStatus[siswa['id']],
+                                          isDense: true, // Make the button more compact
+                                          decoration: InputDecoration(
+                                            contentPadding: EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 5, // Reduced vertical padding
+                                            ),
+                                            hintText: 'Pilih Status',
+                                            hintStyle: TextStyle(fontSize: 13), // Smaller hint text
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                              borderSide: BorderSide(width: 1),
+                                            ),
+                                            constraints: BoxConstraints(
+                                              maxHeight: 35, // Set maximum height
+                                            ),
+                                          ),
+                                          items: absenceTypes.map((type) {
+                                            return DropdownMenuItem(
+                                              value: type,
+                                              child: Text(
+                                                type,
+                                                style: TextStyle(fontSize: 13), // Smaller text
+                                              ),
+                                            );
+                                          }).toList(),
+                                          onChanged: (attendanceSavedStatus[selectedClass!] ?? false) ? null : (value) {
+                                            setState(() {
+                                              if (value != null) {
+                                                studentAbsenceStatus[siswa['id']] = value;
+                                                siswa['note'] = value;
+                                              }
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      if (studentAbsenceStatus[siswa['id']] != null && (attendanceSavedStatus[selectedClass!] ?? false) == false)
+                                        IconButton(
+                                          icon: Icon(Icons.clear, color: Colors.red),
+                                          onPressed: () => _clearAbsenceStatus(siswa['id']),
+                                        ),
+                                    ],
+                                  ),
+                                ] 
+                              ],
+                            ),
+                            trailing: Transform.scale(
+                              scale: 1.2,
+                              child: Checkbox(
+                                value: siswa['checked'],
+                                onChanged: attendanceSavedStatus[selectedClass!]! ? null : (value) => _toggleCheck(index),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                activeColor: const Color.fromARGB(255, 17, 85, 153),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   );
@@ -780,54 +821,33 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                   ],
                   if (attendanceSavedStatus[selectedClass!]!) ...[
                     SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    Column(
                       children: [
+                        Text(
+                          'Absensi untuk hari ini sudah diisi',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                        SizedBox(height: 8),
                         ElevatedButton(
                           onPressed: _showCheckedStudents,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade600,
+                            backgroundColor: const Color.fromARGB(255, 30, 111, 182),
                             foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                            padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),
                             ),
-                            elevation: 5,
-                            shadowColor: Colors.blue.shade200,
                           ),
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.visibility, color: Colors.white),
                               SizedBox(width: 8),
                               Text(
                                 'Lihat Absensi',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: _toggleEditing,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange.shade600,
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            elevation: 5,
-                            shadowColor: Colors.orange.shade200,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.edit, color: Colors.white),
-                              SizedBox(width: 8),
-                              Text(
-                                _isEditing ? 'Selesai Edit' : 'Edit Absensi',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,

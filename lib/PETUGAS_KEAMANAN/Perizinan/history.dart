@@ -86,7 +86,10 @@ class _HistoryPageState extends State<HistoryPage> {
             backgroundColor: Color(0xFF2E3F7F),
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white),
+              icon: Icon(Icons.arrow_back_ios, 
+                color: Colors.white,
+                size: 20,
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
             title: Text(

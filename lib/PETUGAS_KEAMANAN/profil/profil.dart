@@ -46,7 +46,10 @@ class _orofilState extends State<profilsatpam> {
             pinned: true,
             automaticallyImplyLeading: false, // Keep this to control how the back button appears
             leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white),
+              icon: Icon(Icons.arrow_back_ios, 
+                color: Colors.white,
+                size: 20,
+              ),
               onPressed: () {
                 Navigator.pop(context);
               },

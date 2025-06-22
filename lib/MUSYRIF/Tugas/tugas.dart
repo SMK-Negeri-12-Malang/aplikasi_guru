@@ -1,5 +1,6 @@
+import 'package:aplikasi_guru/MUSYRIF/Tugas/riwayat_mutabaah.dart';
 import 'package:flutter/material.dart';
-import 'tabel_tugas.dart'; // Import tabel_tugas.dart
+import 'tabel_mutabaah.dart'; // Update import
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TugasPage extends StatefulWidget {
@@ -9,23 +10,21 @@ class TugasPage extends StatefulWidget {
 
 class _TugasPageState extends State<TugasPage> {
   int _selectedSesi = 0;
-  String? _selectedCategory;
-  final List<String> categories = ["Tahsin", "Tahfidz", "Mutabaah"];
+  final List<String> sessions = ["Pagi", "Sore", "Malam"];
   final PageController _pageController = PageController();
   DateTime selectedDate = DateTime.now();
   String searchQuery = ""; // Add search query state variable
+  final GlobalKey<TabelMutabaahState> _tabelKey = GlobalKey<TabelMutabaahState>();
 
   @override
   void initState() {
     super.initState();
     _loadPagePosition();
-    _loadSelectedCategory();
   }
 
   Future<void> _savePagePosition() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('selectedSesi', _selectedSesi);
-    await prefs.setString('selectedCategory', _selectedCategory ?? '');
     await prefs.setString('selectedDate', selectedDate.toIso8601String());
   }
 
@@ -39,171 +38,169 @@ class _TugasPageState extends State<TugasPage> {
     });
   }
 
-  Future<void> _loadSelectedCategory() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _selectedCategory = prefs.getString('selectedCategory');
-    });
+  void _resetScores() {
+    // Renamed but kept for compatibility
+    setState(() {});
   }
 
-  void _resetScores() {
-    // Notify TabelTugas to reset scores
-    setState(() {});
+  void _handleSaveComplete(bool success) {
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Data mutabaah berhasil disimpan'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _showSaveConfirmation() async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.save, color: const Color(0xFF2E3F7F)),
+              SizedBox(width: 8),
+              Text('Konfirmasi Simpan'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Apakah Anda yakin ingin menyimpan perubahan?'),
+              SizedBox(height: 12),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Batal', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _tabelKey.currentState?.saveMutabaahData();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2E3F7F),
+                foregroundColor: Colors.white,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.check),
+                  SizedBox(width: 8),
+                  Text('Ya, Simpan'),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    String sesi = ["Siang", "Sore", "Malam"][_selectedSesi];
-
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(90), // Increased from 60
+        preferredSize: Size.fromHeight(110),
         child: Container(
-          padding: EdgeInsets.only(top: 20), // Increased from 10
+          padding: EdgeInsets.symmetric(horizontal: 22),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25),
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
             ),
-          ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            centerTitle: true,
-            automaticallyImplyLeading: false, // This removes the back button
-            title: Text(
-              "Tugas Santri",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 25,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                spreadRadius: 5,
+                blurRadius: 15,
+                offset: Offset(0, 3),
               ),
+            ],
+          ),
+          child: SafeArea(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Mutabaah Santri',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Catat aktivitas santri',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
       ),
-     
       body: Column(
         children: [
-          Container(
-            height: 120,
-            child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _selectedSesi = index;
-                });
-                _savePagePosition();
-              },
-              itemCount: 3,
-              itemBuilder: (context, index) {
-                return AnimatedBuilder(
-                  animation: _pageController,
-                  builder: (context, child) {
-                    double value = 1.0;
-                    if (_pageController.position.haveDimensions) {
-                      value = _pageController.page! - index;
-                      value = (1 - (value.abs() * 0.3)).clamp(0.85, 1.0);
-                    }
-                    return Transform.scale(
-                      scale: value,
-                      child: Container(
-                        margin:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 8,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            ["Siang", "Sore", "Malam"][index],
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              shadows: [
-                                Shadow(
-                                  blurRadius: 4,
-                                  color: Colors.black45,
-                                  offset: Offset(2, 2),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          // Add dot indicators here
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(3, (index) {
-              return Container(
-                margin: EdgeInsets.symmetric(horizontal: 4),
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _selectedSesi == index 
-                      ? Color(0xFF2E3F7F) 
-                      : Colors.grey.shade300,
-                ),
-              );
-            }),
-          ),
-          SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
                 Row(
                   children: [
                     Expanded(
                       flex: 1,
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedCategory,
+                      child: DropdownButtonFormField<int>(
+                        value: _selectedSesi,
                         decoration: InputDecoration(
-                          labelText: "Pilih Kategori",
+                          labelText: "Pilih Sesi",
                           border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12)
+                          ),
                           filled: true,
                           fillColor: Colors.white,
                           contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         ),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedCategory = newValue;
-                          });
-                          _savePagePosition();
+                        items: List.generate(sessions.length, (index) => 
+                          DropdownMenuItem(
+                            value: index,
+                            child: Text(
+                              sessions[index],
+                              style: TextStyle(fontWeight: FontWeight.bold)
+                            ),
+                          )
+                        ),
+                        onChanged: (int? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              _selectedSesi = newValue;
+                            });
+                          }
                         },
-                        items: categories
-                            .map((category) => DropdownMenuItem(
-                                  value: category,
-                                  child: Text(category,
-                                      style:
-                                          TextStyle(fontWeight: FontWeight.bold)),
-                                ))
-                            .toList(),
                       ),
                     ),
                     SizedBox(width: 8),
@@ -214,7 +211,8 @@ class _TugasPageState extends State<TugasPage> {
                         decoration: InputDecoration(
                           labelText: "Pilih Tanggal",
                           border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12)
+                          ),
                           filled: true,
                           fillColor: Colors.white,
                           contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -229,9 +227,7 @@ class _TugasPageState extends State<TugasPage> {
                           if (pickedDate != null && pickedDate != selectedDate) {
                             setState(() {
                               selectedDate = pickedDate;
-                              _resetScores();
                             });
-                            _savePagePosition();
                           }
                         },
                         controller: TextEditingController(
@@ -246,7 +242,8 @@ class _TugasPageState extends State<TugasPage> {
                   decoration: InputDecoration(
                     labelText: "Cari Nama Santri",
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12)
+                    ),
                     filled: true,
                     fillColor: Colors.white,
                     contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -263,14 +260,69 @@ class _TugasPageState extends State<TugasPage> {
             ),
           ),
           Expanded(
-            child: _selectedCategory == null
-                ? Center(child: Text("Silakan pilih kategori"))
-                : TabelTugas(
-                    session: sesi,
-                    category: _selectedCategory!,
-                    selectedDate: selectedDate,
-                    searchQuery: searchQuery, // Pass search query to TabelTugas
+            child: TabelMutabaah(
+              key: _tabelKey,
+              session: sessions[_selectedSesi],
+              selectedDate: selectedDate,
+              searchQuery: searchQuery,
+              onSaveComplete: _handleSaveComplete,
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 7, // Takes up 70% of the space
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => RekapHarian()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2E3F7F),
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 3,
+                    ),
+                    child: Text(
+                      'Riwayat Mutabaah',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  flex: 3, // Takes up 30% of the space
+                  child: ElevatedButton(
+                    onPressed: _showSaveConfirmation,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green.shade600,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 3,
+                    ),
+                    child: Icon(
+                      Icons.save,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -68,7 +68,10 @@ class _EditProfilePageState extends State<editprofilsatpam> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios, 
+            color: Colors.white,
+            size: 20,
+          ),
           onPressed: () {
             Navigator.pop(context);
           },
