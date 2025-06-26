@@ -17,7 +17,6 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
   final Map<String, String> classSubjects = {};
   bool isLoading = true;
   final List<String> gradeCategories = [
-    'Tugas',
     'Ulangan',
     'UTS',
     'UAS',
@@ -223,8 +222,6 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _buildCategoryChip(
-                    'Tugas', _isTableComplete(className, 'Tugas'), className),
                 _buildCategoryChip('Ulangan',
                     _isTableComplete(className, 'Ulangan'), className),
                 _buildCategoryChip(
@@ -624,7 +621,7 @@ class _ClassSelectionPageState extends State<ClassSelectionPage> {
                         isExpanded: true,
                         hint: Padding(
                           padding: EdgeInsets.symmetric(horizontal: 12),
-                          child: Text('Pilih Mata Pelajaran'),
+                          child: Text('Pilih Mapel'),
                         ),
                         value: selectedSubject,
                         items: subjects.map((String subject) {

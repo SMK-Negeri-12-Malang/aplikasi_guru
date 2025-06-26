@@ -194,230 +194,308 @@ class _AbsensiKelasPageState extends State<tugaskelas>
 
 void _addNewTask() async {
   if (selectedClass == null) return;
-    
-    File? selectedImage;
-    PlatformFile? selectedFile;
-    DateTime? selectedDate;
-    
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        String taskName = '';
-        String deadline = '';
-        String description = '';
-        
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text('Tambah Tugas Baru'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      height: 70,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
+
+  File? selectedImage;
+  PlatformFile? selectedFile;
+  DateTime? selectedDate;
+  DateTime? selectedAssignmentDate;
+  String assignmentDate = '';
+  String selectedMapel = '';
+  final List<String> mapelList = [
+    'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'IPA', 'IPS', 'PPKN', 'Agama', 'Seni', 'PJOK', 'Lainnya'
+  ];
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      String taskName = '';
+      String deadline = '';
+      String description = '';
+
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text('Tambah Tugas Baru'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 1. Mata Pelajaran
+                  DropdownButtonFormField<String>(
+                    value: selectedMapel.isNotEmpty ? selectedMapel : null,
+                    items: mapelList.map((mapel) {
+                      return DropdownMenuItem(
+                        value: mapel,
+                        child: Text(mapel),
+                      );
+                    }).toList(),
+                    decoration: InputDecoration(
+                      labelText: 'Mata Pelajaran',
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color.fromARGB(255, 247, 244, 244)),
-                      ),
-                      child: InkWell(
-                        onTap: () async {
-                          FilePickerResult? result = await FilePicker.platform.pickFiles();
-                          if (result != null) {
-                            setState(() {
-                              selectedFile = result.files.first;
-                              selectedImage = null;
-                            });
-                          }
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              selectedFile != null 
-                                  ? Icons.file_present
-                                  : Icons.upload_file,
-                              size: 30,
-                              color: const Color.fromARGB(255, 155, 153, 153),
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              selectedFile != null
-                                  ? (selectedFile!.name.length > 20
-                                      ? '${selectedFile!.name.substring(0, 20)}...'
-                                      : selectedFile!.name)
-                                  : 'Tambah File',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                          ],
-                        ),
                       ),
                     ),
-                    SizedBox(height: 10),
-                    TextField(
-                      decoration: InputDecoration(
-                        labelText: 'Nama Tugas',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedMapel = value ?? '';
+                      });
+                    },
+                  ),
+                  SizedBox(height: 10),
+                  // 2. Nama Tugas
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Nama Tugas',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      onChanged: (value) => taskName = value,
                     ),
-                    SizedBox(height: 10),
-                    // Replace TextField with DatePicker button
-                    InkWell(
-                      onTap: () async {
-                        final DateTime? date = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime(2030),
-                          builder: (context, child) {
-                            return Theme(
-                              data: Theme.of(context).copyWith(
-                                colorScheme: ColorScheme.light(
-                                  primary: Colors.blue,
-                                  onPrimary: Colors.white,
-                                  onSurface: Colors.black,
-                                ),
+                    onChanged: (value) => taskName = value,
+                  ),
+                  SizedBox(height: 10),
+                  // 3. Tanggal Penugasan
+                  InkWell(
+                    onTap: () async {
+                      final DateTime? date = await showDatePicker(
+                        context: context,
+                        initialDate: selectedAssignmentDate ?? DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2030),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: ColorScheme.light(
+                                primary: const Color.fromARGB(255, 13, 90, 153),
+                                onPrimary: Colors.white,
+                                onSurface: Colors.black,
                               ),
-                              child: child!,
-                            );
-                          },
-                        );
-                        if (date != null) {
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (date != null) {
+                        setState(() {
+                          selectedAssignmentDate = date;
+                          assignmentDate = DateFormat('yyyy-MM-dd').format(date);
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.event_note, color: const Color.fromARGB(255, 17, 86, 143)),
+                          SizedBox(width: 10),
+                          Text(
+                            assignmentDate.isEmpty
+                                ? 'Pilih Tanggal Penugasan'
+                                : 'Penugasan: $assignmentDate',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: assignmentDate.isEmpty ? Colors.grey : Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  // 4. Deadline
+                  InkWell(
+                    onTap: () async {
+                      final DateTime? date = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate ?? DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime(2030),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: ColorScheme.light(
+                                primary: const Color.fromARGB(255, 13, 80, 134),
+                                onPrimary: Colors.white,
+                                onSurface: Colors.black,
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (date != null) {
+                        setState(() {
+                          selectedDate = date;
+                          deadline = DateFormat('yyyy-MM-dd').format(date);
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.calendar_today, color: const Color.fromARGB(255, 16, 72, 129)),
+                          SizedBox(width: 10),
+                          Text(
+                            deadline.isEmpty
+                                ? 'Pilih Deadline'
+                                : 'Deadline: $deadline',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: deadline.isEmpty ? Colors.grey : Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  // 5. File
+                  Container(
+                    height: 70,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color.fromARGB(255, 247, 244, 244)),
+                    ),
+                    child: InkWell(
+                      onTap: () async {
+                        FilePickerResult? result = await FilePicker.platform.pickFiles();
+                        if (result != null) {
                           setState(() {
-                            selectedDate = date;
-                            deadline = DateFormat('yyyy-MM-dd').format(date);
+                            selectedFile = result.files.first;
+                            selectedImage = null;
                           });
                         }
                       },
-                      child: Container(
-                        padding: EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.calendar_today, color: const Color.fromARGB(255, 16, 72, 129)),
-                            SizedBox(width: 10),
-                            Text(
-                              deadline.isEmpty
-                                  ? 'Pilih Deadline'
-                                  : 'Deadline: $deadline',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: deadline.isEmpty
-                                    ? Colors.grey
-                                    : Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            selectedFile != null 
+                                ? Icons.file_present
+                                : Icons.upload_file,
+                            size: 30,
+                            color: const Color.fromARGB(255, 155, 153, 153),
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            selectedFile != null
+                                ? (selectedFile!.name.length > 20
+                                    ? '${selectedFile!.name.substring(0, 20)}...'
+                                    : selectedFile!.name)
+                                : 'Tambah File',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(height: 10),
-                    TextField(
-                      decoration: InputDecoration(
-                        labelText: 'Deskripsi',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      maxLines: 3,
-                      onChanged: (value) => description = value,
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('Batal'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (taskName.isNotEmpty && deadline.isNotEmpty) {
-                      final taskId = DateTime.now().millisecondsSinceEpoch.toString();
-                      final newTask = {
-                        'id': taskId,
-                        'name': taskName,
-                        'deadline': deadline,
-                        'description': description,
-                        'type': selectedClass,
-                        'checked': false,
-                        'image': selectedImage,
-                        'file': selectedFile,
-                        'className': widget.className, 
-                      };
-
-                      try {
-                        // Save to service first
-                        await _taskManager.saveTaskToClass(widget.className, newTask);
-
-                        // Create notification with proper deadline
-                        await _notificationService.addNotification({
-                          'taskId': taskId,
-                          'taskName': taskName,
-                          'className': widget.className,
-                          'deadline': deadline,
-                          'isCompleted': false,
-                          'type': 'deadline',
-                          'description': description,
-                        });
-
-                        // Update local state
-                        this.setState(() {
-                          siswaData[selectedClass]?.add(Map<String, dynamic>.from(newTask));
-                          checkedCount = siswaData[selectedClass]!
-                              .where((task) => task['checked'])
-                              .length;
-                        });
-
-                        // Save to local storage
-                        await TaskStorage.saveTasks(siswaData);
-
-                        // Notify parent
-                        if (widget.onTaskAdded != null) {
-                          widget.onTaskAdded!(newTask, selectedClass!);
-                        }
-
-                        Navigator.pop(context);
-                        
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Tugas baru berhasil ditambahkan'),
-                            backgroundColor: Colors.green,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      } catch (e) {
-                        print('Error adding task: $e');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Gagal menambahkan tugas'),
-                            backgroundColor: Colors.red,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 16, 72, 129),
-                    foregroundColor: Colors.white,
                   ),
-                  child: Text('Tambah'),
+                  SizedBox(height: 10),
+                  // 6. Deskripsi
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Deskripsi',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    maxLines: 3,
+                    onChanged: (value) => description = value,
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  // Validasi field baru
+                  if (taskName.isNotEmpty && deadline.isNotEmpty && assignmentDate.isNotEmpty && selectedMapel.isNotEmpty) {
+                    final taskId = DateTime.now().millisecondsSinceEpoch.toString();
+                    final newTask = {
+                      'id': taskId,
+                      'name': taskName,
+                      'assignmentDate': assignmentDate,
+                      'deadline': deadline,
+                      'description': description,
+                      'type': selectedClass,
+                      'checked': false,
+                      'image': selectedImage,
+                      'file': selectedFile,
+                      'className': widget.className,
+                      'mapel': selectedMapel,
+                    };
+
+                    try {
+                      await _taskManager.saveTaskToClass(widget.className, newTask);
+                      await _notificationService.addNotification({
+                        'taskId': taskId,
+                        'taskName': taskName,
+                        'className': widget.className,
+                        'deadline': deadline,
+                        'isCompleted': false,
+                        'type': 'deadline',
+                        'description': description,
+                      });
+
+                      this.setState(() {
+                        siswaData[selectedClass]?.add(Map<String, dynamic>.from(newTask));
+                        checkedCount = siswaData[selectedClass]!
+                            .where((task) => task['checked'])
+                            .length;
+                      });
+
+                      await TaskStorage.saveTasks(siswaData);
+
+                      if (widget.onTaskAdded != null) {
+                        widget.onTaskAdded!(newTask, selectedClass!);
+                      }
+
+                      Navigator.pop(context);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Tugas baru berhasil ditambahkan'),
+                          backgroundColor: Colors.green,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    } catch (e) {
+                      print('Error adding task: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Gagal menambahkan tugas'),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 16, 72, 129),
+                  foregroundColor: Colors.white,
                 ),
-              ],
-            );
-          },
-        );
-      },
-    );
+                child: Text('Tambah'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
   }
 
   void _onTaskUpdated(Map<String, dynamic> updatedTask) {

@@ -54,6 +54,17 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
 
   SharedPreferences? _prefs;
 
+  
+  String? tema;
+  String? materi;
+  String? rpp;
+
+  
+  final List<String> jamPelajaranList = [
+    'Jam ke-1', 'Jam ke-2', 'Jam ke-3', 'Jam ke-4', 'Jam ke-5', 'Jam ke-6'
+  ];
+  String? selectedJamPelajaran;
+
   @override
   void initState() {
     super.initState();
@@ -230,14 +241,130 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          // Single date button instead of Row with time
-          OutlinedButton.icon(
-            onPressed: () => _selectDate(context),
-            icon: Icon(Icons.calendar_today),
-            label: Text(DateFormat('dd/MM/yyyy').format(selectedDate)),
-            style: OutlinedButton.styleFrom(
-              minimumSize: Size(double.infinity, 45), // Make button full width
-            ),
+          Row(
+            children: [
+              // Dropdown Jam Pelajaran: 1.5/4 lebar, samakan tinggi dengan tombol di sebelahnya
+              Expanded(
+                flex: 3,
+                child: SizedBox(
+                  height: 48, // samakan dengan tinggi ElevatedButton
+                  child: DropdownButtonFormField<String>(
+                    value: selectedJamPelajaran,
+                    decoration: InputDecoration(
+                      labelText: 'Jam ke ',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    ),
+                    items: jamPelajaranList.map((String jam) {
+                      return DropdownMenuItem(
+                        value: jam,
+                        child: Text(jam),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedJamPelajaran = newValue;
+                      });
+                    },
+                  ),
+                ),
+              ),
+              SizedBox(width: 8),
+              // Tombol Tema/Materi/RPP: 2.5/4 lebar
+              Expanded(
+                flex: 5,
+                child: ElevatedButton.icon(
+                  icon: (tema?.isNotEmpty == true || materi?.isNotEmpty == true || rpp?.isNotEmpty == true)
+                    ? Icon(Icons.task_alt, color: Colors.white)
+                    : Icon(Icons.note_add, color: Colors.white),
+                  label: Text(
+                    (tema?.isNotEmpty == true || materi?.isNotEmpty == true || rpp?.isNotEmpty == true)
+                      ? 'Edit Tema/Materi/RPP'
+                      : 'Isi Tema/Materi/RPP',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: (tema?.isNotEmpty == true || materi?.isNotEmpty == true || rpp?.isNotEmpty == true)
+                      ? Colors.green[700]
+                      : const Color.fromARGB(255, 19, 91, 155),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                    minimumSize: Size(0, 48), // samakan tinggi
+                  ),
+                  onPressed: () async {
+                    await showDialog(
+                      context: context,
+                      builder: (context) {
+                        TextEditingController temaCtrl = TextEditingController(text: tema ?? '');
+                        TextEditingController materiCtrl = TextEditingController(text: materi ?? '');
+                        TextEditingController rppCtrl = TextEditingController(text: rpp ?? '');
+                        return AlertDialog(
+                          title: Text('Input Tema, Materi, RPP'),
+                          content: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextField(
+                                  controller: temaCtrl,
+                                  decoration: InputDecoration(
+                                    labelText: 'Tema',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                TextField(
+                                  controller: materiCtrl,
+                                  decoration: InputDecoration(
+                                    labelText: 'Materi',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                TextField(
+                                  controller: rppCtrl,
+                                  decoration: InputDecoration(
+                                    labelText: 'RPP',
+                                    border: OutlineInputBorder(),
+                                    alignLabelWithHint: true,
+                                  ),
+                                  minLines: 4,
+                                  maxLines: 8,
+                                ),
+                              ],
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text('Batal'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  tema = temaCtrl.text;
+                                  materi = materiCtrl.text;
+                                  rpp = rppCtrl.text;
+                                });
+                                Navigator.pop(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 14, 74, 143),
+                                foregroundColor: Colors.white,
+                              ),
+                              child: Text('Simpan'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
           SizedBox(height: 10),
           Row(
@@ -311,13 +438,41 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
       return;
     }
 
+    // Tambahkan validasi tema, materi, rpp wajib diisi
+    if ((tema == null || tema!.trim().isEmpty) ||
+        (materi == null || materi!.trim().isEmpty) ||
+        (rpp == null || rpp!.trim().isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Tema, Materi, dan RPP wajib diisi sebelum menyimpan absensi!'),
+          backgroundColor: const Color.fromARGB(255, 244, 155, 54),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // Validasi jam pelajaran juga wajib diisi
+    if (selectedJamPelajaran == null || selectedJamPelajaran!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Jam pelajaran wajib dipilih sebelum menyimpan absensi!'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         int totalStudents = siswaData[selectedClass]?.length ?? 0;
-        String currentTime = DateFormat('HH:mm').format(DateTime.now());
-        
+        DateTime now = DateTime.now();
+        String currentTime = DateFormat('HH:mm:ss').format(now);
+        String currentDate = DateFormat('dd/MM/yyyy').format(now);
+
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -331,7 +486,8 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
               SizedBox(height: 8),
               Text('Kelas: $selectedClass'),
               Text('Mata Pelajaran: $selectedSubject'),
-              Text('Tanggal: ${DateFormat('dd/MM/yyyy').format(selectedDate)}'),
+              Text('Jam Pelajaran: ${selectedJamPelajaran ?? "-"}'),
+              Text('Tanggal: $currentDate'),
               Text('Waktu: $currentTime'),
               Text('Jumlah Hadir: $checkedCount dari $totalStudents siswa'),
               if (checkedCount < totalStudents) ...[
@@ -374,9 +530,10 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
 
       Map<String, dynamic> attendanceData = {
         'date': DateFormat('yyyy-MM-dd').format(selectedDate),
-        'time': currentTime, // Add current time
+        'time': currentTime,
         'subject': selectedSubject,
         'class': selectedClass,
+        'jamPelajaran': selectedJamPelajaran ?? '',
         'totalStudents': siswaData[selectedClass]!.length,
         'presentCount': checkedCount,
         'students': siswaData[selectedClass]!.map((student) => {
@@ -386,7 +543,10 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
           'status': student['checked'] ? 'Hadir' : studentAbsenceStatus[student['id']] ?? 'Alpha',
           'note': student['note'] ?? '',
         }).toList(),
-        'savedAt': DateTime.now().toString(), // Add full timestamp for reference
+        'savedAt': DateTime.now().toString(),
+        'tema': tema ?? '',
+        'materi': materi ?? '',
+        'rpp': rpp ?? '',
       };
 
       await _saveToHistory(attendanceData);
@@ -394,10 +554,9 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
       
       setState(() {
         isLoading = false;
-        attendanceSavedStatus[selectedClass!] = true;  // Mark as saved
+        attendanceSavedStatus[selectedClass!] = true;
       });
 
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(

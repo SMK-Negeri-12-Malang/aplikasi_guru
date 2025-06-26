@@ -405,6 +405,14 @@ class _AbsensiHistoryPageState extends State<AbsensiHistoryPage> {
                     final totalStudents = item['totalStudents'];
                     final absentCount = totalStudents - presentCount;
 
+                    final tema = (item['tema'] ?? '').toString();
+                    final materi = (item['materi'] ?? '').toString();
+                    final rpp = (item['rpp'] ?? '').toString();
+                    final jamPelajaran = (item['jamPelajaran'] ?? '').toString();
+
+                    final hadirList = (item['students'] as List).where((s) => s['present']).toList();
+                    final tidakHadirList = (item['students'] as List).where((s) => !s['present']).toList();
+
                     return Card(
                       margin: EdgeInsets.only(bottom: 12),
                       shape: RoundedRectangleBorder(
@@ -415,84 +423,190 @@ class _AbsensiHistoryPageState extends State<AbsensiHistoryPage> {
                           '${item['subject']} - ${item['class']}',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        subtitle: Text('${item['date']} - ${item['time']}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('${item['date']} - ${item['time']}'),
+                            if (jamPelajaran.isNotEmpty)
+                              Text('Jam Pelajaran: $jamPelajaran', style: TextStyle(fontSize: 12, color: Colors.black87)),
+                          ],
+                        ),
                         children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              padding: EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.info_outline, color: Colors.black87, size: 20),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        'Detail Pembelajaran',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 8),
+                                  if (tema.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 4),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('Tema   : ', style: TextStyle(fontWeight: FontWeight.w600)),
+                                          Expanded(child: Text(tema)),
+                                        ],
+                                      ),
+                                    ),
+                                  if (materi.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 4),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('Materi : ', style: TextStyle(fontWeight: FontWeight.w600)),
+                                          Expanded(child: Text(materi)),
+                                        ],
+                                      ),
+                                    ),
+                                  if (rpp.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 2),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('RPP    : ', style: TextStyle(fontWeight: FontWeight.w600)),
+                                          Expanded(
+                                            child: Text(
+                                              rpp,
+                                              style: TextStyle(fontStyle: FontStyle.italic),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 10, bottom: 2),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.touch_app, size: 18, color: Colors.grey[700]),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          'Ketuk nama siswa untuk edit absensi',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.grey[700],
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // Tabel Hadir & Tidak Hadir Responsive
                           Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Hadir ($presentCount dari $totalStudents Siswa)',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: const Color.fromARGB(255, 31, 148, 35),
-                                      ),
+                                Text(
+                                  'Hadir ($presentCount dari $totalStudents Siswa)',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                SizedBox(height: 6),
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      minWidth: MediaQuery.of(context).size.width - 32,
                                     ),
-                                    IconButton(
-                                      icon: Icon(Icons.edit, color: const Color.fromARGB(255, 32, 79, 117)),
-                                      onPressed: () {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Ketuk nama siswa untuk mengedit status'),
-                                            duration: Duration(seconds: 2),
-                                          ),
+                                    child: DataTable(
+                                      headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
+                                      columnSpacing: 16,
+                                      columns: [
+                                        DataColumn(label: Text('No', style: TextStyle(color: Colors.black))),
+                                        DataColumn(label: Text('Nama', style: TextStyle(color: Colors.black))),
+                                        DataColumn(label: Text('Status', style: TextStyle(color: Colors.black))),
+                                      ],
+                                      rows: List.generate(hadirList.length, (i) {
+                                        final student = hadirList[i];
+                                        return DataRow(
+                                          cells: [
+                                            DataCell(Text('${i + 1}', style: TextStyle(color: Colors.black))),
+                                            DataCell(
+                                              GestureDetector(
+                                                onTap: () => _editStudentStatus(item, student),
+                                                child: Text(student['name'], style: TextStyle(color: Colors.black)),
+                                              ),
+                                            ),
+                                            DataCell(Text(student["status"] ?? "Hadir", style: TextStyle(color: Colors.black))),
+                                          ],
                                         );
-                                      },
+                                      }),
                                     ),
-                                  ],
+                                  ),
                                 ),
-                                Divider(),
-                                // Present students list
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: NeverScrollableScrollPhysics(),
-                                  itemCount: (item['students'] as List)
-                                      .where((s) => s['present'])
-                                      .length,
-                                  itemBuilder: (context, idx) {
-                                    final student = (item['students'] as List)
-                                        .where((s) => s['present'])
-                                        .toList()[idx];
-                                    return ListTile(
-                                      dense: true,
-                                      title: Text(student['name']),
-                                      onTap: () => _editStudentStatus(item, student),
-                                    );
-                                  },
-                                ),
+                                SizedBox(height: 16),
                                 if (absentCount > 0) ...[
                                   Text(
                                     'Tidak Hadir ($absentCount Siswa)',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.red,
+                                      color: Colors.black,
                                     ),
                                   ),
-                                  Divider(),
-                                  ListView.builder(
-                                    shrinkWrap: true,
-                                    physics: NeverScrollableScrollPhysics(),
-                                    itemCount: (item['students'] as List)
-                                        .where((s) => !s['present'])
-                                        .length,
-                                    itemBuilder: (context, idx) {
-                                      final student = (item['students'] as List)
-                                          .where((s) => !s['present'])
-                                          .toList()[idx];
-                                      return ListTile(
-                                        dense: true,
-                                        title: Text(student['name']),
-                                        subtitle: Text(
-                                          'Status: ${student["status"]}${student["note"].isNotEmpty ? '\nKeterangan: ${student["note"]}' : ''}',
-                                          style: TextStyle(color: Colors.red.shade700),
-                                        ),
-                                        onTap: () => _editStudentStatus(item, student),
-                                      );
-                                    },
+                                  SizedBox(height: 6),
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minWidth: MediaQuery.of(context).size.width - 32,
+                                      ),
+                                      child: DataTable(
+                                        headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
+                                        columnSpacing: 16,
+                                        columns: [
+                                          DataColumn(label: Text('No', style: TextStyle(color: Colors.black))),
+                                          DataColumn(label: Text('Nama', style: TextStyle(color: Colors.black))),
+                                          DataColumn(label: Text('Status', style: TextStyle(color: Colors.black))),
+                                          DataColumn(label: Text('Keterangan', style: TextStyle(color: Colors.black))),
+                                        ],
+                                        rows: List.generate(tidakHadirList.length, (i) {
+                                          final student = tidakHadirList[i];
+                                          return DataRow(
+                                            cells: [
+                                              DataCell(Text('${i + 1}', style: TextStyle(color: Colors.black))),
+                                              DataCell(
+                                                GestureDetector(
+                                                  onTap: () => _editStudentStatus(item, student),
+                                                  child: Text(student['name'], style: TextStyle(color: Colors.black)),
+                                                ),
+                                              ),
+                                              DataCell(Text(student["status"] ?? "", style: TextStyle(color: Colors.black))),
+                                              DataCell(Text(student["note"] ?? "", style: TextStyle(color: Colors.black))),
+                                            ],
+                                          );
+                                        }),
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ],
@@ -509,3 +623,4 @@ class _AbsensiHistoryPageState extends State<AbsensiHistoryPage> {
     );
   }
 }
+
