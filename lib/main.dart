@@ -17,13 +17,31 @@ import 'package:aplikasi_guru/PETUGAS_KEAMANAN/Home/home_petugas.dart';
 import 'package:aplikasi_guru/PETUGAS_KEAMANAN/Perizinan/keluar.dart';
 import 'package:aplikasi_guru/PETUGAS_KEAMANAN/Perizinan/masuk.dart';
 import 'package:aplikasi_guru/SPLASHSCREEN/splashscreen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aplikasi_guru/data/test_data.dart';
 import 'ANIMASI/page_transitions.dart';
 import 'ANIMASI/animations.dart';
 
+
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if(kIsWeb){  
+     await Firebase.initializeApp(
+      options: FirebaseOptions(
+          apiKey: "AIzaSyBXwb75k4hZdXjP-xEg6coC8t835sGbz_s",
+          authDomain: "backand-apkguru.firebaseapp.com",
+          projectId: "backand-apkguru",
+          storageBucket: "backand-apkguru.firebasestorage.app",
+          messagingSenderId: "550149230830",
+          appId: "1:550149230830:web:ac31d650c9cb18935963ff",
+          measurementId: "G-YVKCP0NDNX"));
+          }else{
+            await Firebase.initializeApp();
+          }
+
   WidgetsFlutterBinding.ensureInitialized();
   await TestData.initializeTestData();
   runApp(MyApp());
@@ -69,14 +87,11 @@ class CustomPageTransitionBuilder extends PageTransitionsBuilder {
   }
 }
 
-
 enum UserRole { guru, musyrif, guru_quran, petugas_keamanan }
-
 
 class homeview extends StatefulWidget {
   final UserRole role;
 
-  
   const homeview({Key? key, this.role = UserRole.guru}) : super(key: key);
 
   @override
@@ -87,7 +102,6 @@ class _DashboardPageState extends State<homeview>
     with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    
     if (widget.role == UserRole.guru) {
       return GuruDashboard();
     } else if (widget.role == UserRole.guru_quran) {
@@ -99,7 +113,6 @@ class _DashboardPageState extends State<homeview>
     }
   }
 }
-
 
 class GuruDashboard extends StatefulWidget {
   @override
@@ -117,12 +130,12 @@ class _GuruDashboardState extends State<GuruDashboard>
   final List<NavItem> _navItems = [
     NavItem(icon: Icons.note_add, label: 'Nilai'),
     NavItem(icon: Icons.calendar_today, label: 'Jadwal'),
-    NavItem(icon: Icons.home, label: 'Home'),     
+    NavItem(icon: Icons.home, label: 'Home'),
     NavItem(icon: Icons.list, label: 'Absen'),
     NavItem(icon: Icons.person, label: 'Profil'),
   ];
 
-  @override 
+  @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
@@ -271,7 +284,6 @@ class _GuruDashboardState extends State<GuruDashboard>
     }
   }
 }
-
 
 class MusyrifDashboard extends StatefulWidget {
   @override
@@ -441,7 +453,6 @@ class _MusyrifDashboardState extends State<MusyrifDashboard>
   }
 }
 
-
 class GuruQuranDashboard extends StatefulWidget {
   @override
   _GuruQuranDashboardState createState() => _GuruQuranDashboardState();
@@ -457,8 +468,7 @@ class _GuruQuranDashboardState extends State<GuruQuranDashboard>
 
   final List<NavItem> _navItems = [
     NavItem(icon: Icons.menu_book, label: 'Absensi'),
-    NavItem(icon: Icons.calendar_today, label: 'Cek Santri'), 
-
+    NavItem(icon: Icons.calendar_today, label: 'Cek Santri'),
     NavItem(icon: Icons.home, label: 'Home'),
     NavItem(icon: Icons.list, label: 'Tazqin '),
     NavItem(icon: Icons.person, label: 'Profil'),
@@ -550,9 +560,9 @@ class _GuruQuranDashboardState extends State<GuruQuranDashboard>
             });
           },
           children: [
-            AbsensiPage(), 
+            AbsensiPage(),
             CekSantri(),
-            HomeQuran(), 
+            HomeQuran(),
             Kepesantrenan(),
             profilquran(),
           ],
@@ -613,7 +623,6 @@ class _GuruQuranDashboardState extends State<GuruQuranDashboard>
     }
   }
 }
-
 
 class PetugasKeamananDashboard extends StatefulWidget {
   @override
@@ -700,8 +709,7 @@ class _PetugasKeamananDashboardState extends State<PetugasKeamananDashboard>
             });
           },
           children: [
-            MasukPage(
-                izinList: []), 
+            MasukPage(izinList: []),
             HomePetugas(),
             KeluarPage(),
           ],
@@ -709,7 +717,7 @@ class _PetugasKeamananDashboardState extends State<PetugasKeamananDashboard>
         bottomNavigationBar: SlideTransition(
           position: _slideAnimation,
           child: Container(
-            height: 65, 
+            height: 65,
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
