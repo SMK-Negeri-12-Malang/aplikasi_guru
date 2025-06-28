@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "550149230830",
+    "project_id": "backand-apkguru",
+    "storage_bucket": "backand-apkguru.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:550149230830:android:50613111e7d7e1eb5963ff",
+        "android_client_info": {
+          "package_name": "com.example.aplikasi_ortu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOWJiyrXVZjalPfg8t4TvMQG20uXYCSMc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
