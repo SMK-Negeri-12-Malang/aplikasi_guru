@@ -43,6 +43,15 @@ class _AbsensiPageState extends State<AbsensiPage> with SingleTickerProviderStat
 
   bool _areAllChecked = false; // Add this variable
 
+  // Search and filter variables
+  String searchNama = '';
+  final _namaController = TextEditingController();
+
+  // Dropdown options (ambil dari data siswa)
+  List<String> kelasOptions = [];
+  List<String> halaqohOptions = [];
+  List<String> ustadzOptions = [];
+
   @override
   void initState() {
     super.initState();
@@ -52,7 +61,22 @@ class _AbsensiPageState extends State<AbsensiPage> with SingleTickerProviderStat
     );
     _controller.forward();
     siswaList = DataSiswa.getMockSiswa();
+    _initDropdownOptions();
     // Remove _loadAbsensi() call since we don't want to auto-load previous checks
+  }
+
+  void _initDropdownOptions() {
+    final kelasSet = <String>{};
+    final halaqohSet = <String>{};
+    final ustadzSet = <String>{};
+    for (var s in siswaList) {
+      if (s['kelas'] != null && s['kelas'].toString().trim().isNotEmpty) kelasSet.add(s['kelas']);
+      if (s['halaqoh'] != null && s['halaqoh'].toString().trim().isNotEmpty) halaqohSet.add(s['halaqoh']);
+      if (s['penanggungJawab'] != null && s['penanggungJawab'].toString().trim().isNotEmpty) ustadzSet.add(s['penanggungJawab']);
+    }
+    kelasOptions = kelasSet.toList()..sort();
+    halaqohOptions = halaqohSet.toList()..sort();
+    ustadzOptions = ustadzSet.toList()..sort();
   }
 
   // Mengambil data absensi yang sudah ada sebelumnya
@@ -290,6 +314,180 @@ class _AbsensiPageState extends State<AbsensiPage> with SingleTickerProviderStat
     );
   }
 
+  void _resetFilter() {
+    setState(() {
+      selectedCategory = null;
+      selectedSesi = null;
+      selectedHalaqoh = null;
+      selectedUstadz = null;
+    });
+  }
+
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  DropdownButtonFormField<String>(
+                    value: selectedCategory,
+                    decoration: InputDecoration(
+                      labelText: 'Kategori',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: categories
+                        .map((k) => DropdownMenuItem(value: k, child: Text(k)))
+                        .toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        selectedCategory = val;
+                        selectedSesi = null;
+                        selectedHalaqoh = null;
+                        selectedUstadz = null;
+                      });
+                      setModalState(() {}); // update modal
+                    },
+                    isExpanded: true,
+                  ),
+                  const SizedBox(height: 12),
+                  if (selectedCategory == 'Tahfidz')
+                    DropdownButtonFormField<String>(
+                      value: selectedSesi,
+                      decoration: InputDecoration(
+                        labelText: 'Sesi',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      items: sesiList
+                          .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          selectedSesi = val;
+                        });
+                        setModalState(() {});
+                      },
+                      isExpanded: true,
+                    ),
+                  if (selectedCategory != null) ...[
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: selectedHalaqoh,
+                      decoration: InputDecoration(
+                        labelText: 'Halaqoh',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      items: halaqohOptions
+                          .map((h) => DropdownMenuItem(value: h, child: Text(h)))
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          selectedHalaqoh = val;
+                          // Otomatis pilih ustadz jika hanya satu ustadz di halaqoh tsb
+                          if (val != null) {
+                            final ustadzSet = siswaList
+                                .where((s) => s['halaqoh'] == val)
+                                .map((s) => s['penanggungJawab']?.toString() ?? '')
+                                .toSet();
+                            if (ustadzSet.length == 1) {
+                              selectedUstadz = ustadzSet.first;
+                            }
+                          }
+                        });
+                        setModalState(() {});
+                      },
+                      isExpanded: true,
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: selectedUstadz,
+                      decoration: InputDecoration(
+                        labelText: 'Penanggung Jawab',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      items: ustadzOptions
+                          .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          selectedUstadz = val;
+                        });
+                        setModalState(() {});
+                      },
+                      isExpanded: true,
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            _resetFilter();
+                            Navigator.pop(context);
+                          },
+                          child: Text('Reset'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF2E3F7F),
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () {
+                            setState(() {});
+                            Navigator.pop(context);
+                          },
+                          child: Text('Terapkan'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  List<Map<String, dynamic>> get filteredSiswaList {
+    return siswaList.where((siswa) {
+      final matchesNama = searchNama.isEmpty ||
+          (siswa['name']?.toString().toLowerCase().contains(searchNama.toLowerCase()) ?? false);
+      final matchesCategory = selectedCategory == null ||
+          (selectedCategory == 'Tahfidz' && siswa['category'] == 'Tahfidz') ||
+          (selectedCategory == 'Tahsin' && siswa['category'] == 'Tahsin');
+      final matchesSesi = selectedSesi == null || siswa['sesi'] == selectedSesi;
+      final matchesHalaqoh = selectedHalaqoh == null || siswa['halaqoh'] == selectedHalaqoh;
+      final matchesUstadz = selectedUstadz == null || siswa['penanggungJawab'] == selectedUstadz;
+      return matchesNama && matchesCategory && matchesSesi && matchesHalaqoh && matchesUstadz;
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -345,8 +543,50 @@ class _AbsensiPageState extends State<AbsensiPage> with SingleTickerProviderStat
             ),
           ),
           SizedBox(height: 16),
-          _buildFilters(),
-          // Add this section after filters
+          // Shopee-style search bar + filter icon
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _namaController,
+                    decoration: InputDecoration(
+                      hintText: 'Cari Nama',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
+                    ),
+                    onChanged: (val) {
+                      setState(() {
+                        searchNama = val;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Material(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: _showFilterSheet,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Icon(Icons.filter_alt, color: Color(0xFF2E3F7F)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
@@ -388,10 +628,10 @@ class _AbsensiPageState extends State<AbsensiPage> with SingleTickerProviderStat
           SizedBox(height: 8),
           Expanded(
             child: ListView.builder(
-              itemCount: siswaList.length,
+              itemCount: filteredSiswaList.length,
               padding: EdgeInsets.all(16),
               itemBuilder: (context, index) {
-                final siswa = siswaList[index];
+                final siswa = filteredSiswaList[index];
                 final id = siswa['id'];
                 return AnimatedListItem(
                   index: index,
