@@ -229,7 +229,7 @@ class _HomeQuranState extends State<HomeQuran> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent, 
+      backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -254,266 +254,259 @@ class _HomeQuranState extends State<HomeQuran> {
                     ),
                     child: Column(
                       children: [
+                        // Profile section (tanpa card)
                         Padding(
-                          padding: EdgeInsets.only(
-                              top: 50, left: 20, right: 20, bottom: 20),
+                          padding: EdgeInsets.only(top: 32, left: 20, right: 20, bottom: 18),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 25,
-                                    backgroundColor: Colors.white,
-                                    backgroundImage: _profileImagePath != null
-                                        ? FileImage(File(_profileImagePath!))
-                                        : AssetImage(
-                                                'assets/profile_picture.png')
-                                            as ImageProvider,
-                                  ),
-                                  SizedBox(width: 10),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _name,
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold),
+                              CircleAvatar(
+                                radius: 32,
+                                backgroundColor: Color(0xFF2E3F7F).withOpacity(0.12),
+                                backgroundImage: _profileImagePath != null
+                                    ? FileImage(File(_profileImagePath!))
+                                    : AssetImage('assets/profile_picture.png') as ImageProvider,
+                              ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _name,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
                                       ),
-                                      Text(
-                                        _email,
-                                        style: TextStyle(
-                                            color: Colors.white, fontSize: 16),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      _email,
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.85),
+                                        fontSize: 15,
                                       ),
-                                    ],
-                                  ),
-                                ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
                         ),
+                        // Academic Year Card
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                height: 250, // diperkecil dari 330 ke 200
-                                child: PageView.builder(
-                                  controller: _pageController,
-                                  itemCount: 2, // 2 halaman: persentase & peringkat
-                                  onPageChanged: (index) {
-                                    setState(() {
-                                      // Update indikator saat halaman berubah
-                                      _pageIndex = index;
-                                    });
-                                  },
-                                  itemBuilder: (context, index) {
-                                    final year = _academicYears[_currentYearIndex];
-                                    final santriList = models.SantriDataProvider.getSantriForYear(year['period']);
-                                    final sortedSantri = List.of(santriList)
-                                      ..sort((a, b) => (b.hafalan ?? 0).compareTo(a.hafalan ?? 0));
-                                    final topSantri = sortedSantri.take(3).toList(); // hanya 3 nama
-                                    if (index == 0) {
-                                      return Card(
-                                        elevation: 5,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(15),
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(15.0),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.blue.shade100.withOpacity(0.13),
+                                  blurRadius: 12,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: SizedBox(
+                              height: 240,
+                              child: PageView.builder(
+                                controller: _pageController,
+                                itemCount: 2,
+                                onPageChanged: (index) {
+                                  setState(() {
+                                    _pageIndex = index;
+                                  });
+                                },
+                                itemBuilder: (context, index) {
+                                  final year = _academicYears[_currentYearIndex];
+                                  final santriList = models.SantriDataProvider.getSantriForYear(year['period']);
+                                  final sortedSantri = List.of(santriList)
+                                    ..sort((a, b) => (b.hafalan ?? 0).compareTo(a.hafalan ?? 0));
+                                  final topSantri = sortedSantri.take(3).toList();
+                                  if (index == 0) {
+                                    return Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  IconButton(
-                                                    icon: Icon(Icons.arrow_back_ios, size: 16),
-                                                    onPressed: _currentYearIndex > 0 
-                                                      ? () {
-                                                          setState(() {
-                                                            _currentYearIndex--;
-                                                            _saveAcademicYearData(_currentYearIndex);
-                                                          });
-                                                        } 
-                                                      : null,
-                                                    color: _currentYearIndex > 0 ? Color(0xFF2E3F7F) : Colors.grey,
-                                                  ),
-                                                  Text(
-                                                    "Persentase Hafalan & Kehadiran",
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Color(0xFF2E3F7F),
-                                                    ),
-                                                  ),
-                                                  IconButton(
-                                                    icon: Icon(Icons.arrow_forward_ios, size: 16),
-                                                    onPressed: _currentYearIndex < _academicYears.length - 1 
-                                                      ? () {
-                                                          setState(() {
-                                                            _currentYearIndex++;
-                                                            _saveAcademicYearData(_currentYearIndex);
-                                                          });
-                                                        } 
-                                                      : null,
-                                                    color: _currentYearIndex < _academicYears.length - 1 ? Color(0xFF2E3F7F) : Colors.grey,
-                                                  ),
-                                                ],
+                                              IconButton(
+                                                icon: Icon(Icons.arrow_back_ios, size: 16),
+                                                onPressed: _currentYearIndex > 0
+                                                    ? () {
+                                                        setState(() {
+                                                          _currentYearIndex--;
+                                                          _saveAcademicYearData(_currentYearIndex);
+                                                        });
+                                                      }
+                                                    : null,
+                                                color: _currentYearIndex > 0 ? Color(0xFF2E3F7F) : Colors.grey,
                                               ),
                                               Text(
-                                                year['period'],
+                                                "Persentase Hafalan & Kehadiran",
                                                 style: TextStyle(
                                                   fontSize: 14,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: Colors.grey[600],
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF2E3F7F),
                                                 ),
                                               ),
-                                              SizedBox(height: 10),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                children: [
-                                                  _buildEnhancedProgressIndicator(
-                                                    value: year['hafalanProgress'] ?? 0.0,
-                                                    color: Colors.green,
-                                                    label: 'Hafalan',
-                                                    presentCount: year['hafalanPresent'] ?? 0,
-                                                    absentCount: year['hafalanAbsent'] ?? 0,
-                                                    totalCount: year['hafalanTotal'] ?? 0,
-                                                  ),
-                                                  _buildEnhancedProgressIndicator(
-                                                    value: year['kehadiranProgress'] ?? 0.0,
-                                                    color: Colors.blue,
-                                                    label: 'Kehadiran',
-                                                    presentCount: year['kehadiranPresent'] ?? 0,
-                                                    absentCount: year['kehadiranAbsent'] ?? 0,
-                                                    totalCount: year['kehadiranTotal'] ?? 0,
-                                                  ),
-                                                ],
+                                              IconButton(
+                                                icon: Icon(Icons.arrow_forward_ios, size: 16),
+                                                onPressed: _currentYearIndex < _academicYears.length - 1
+                                                    ? () {
+                                                        setState(() {
+                                                          _currentYearIndex++;
+                                                          _saveAcademicYearData(_currentYearIndex);
+                                                        });
+                                                      }
+                                                    : null,
+                                                color: _currentYearIndex < _academicYears.length - 1 ? Color(0xFF2E3F7F) : Colors.grey,
                                               ),
                                             ],
                                           ),
-                                        ),
-                                      );
-                                    } else {
-                                      // Halaman peringkat
-                                      return GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => LeaderboardPage(
-                                                academicYear: year['period'],
+                                          Text(
+                                            year['period'],
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                          SizedBox(height: 12),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              _buildEnhancedProgressIndicator(
+                                                value: year['hafalanProgress'] ?? 0.0,
+                                                color: Colors.green,
+                                                label: 'Hafalan',
+                                                presentCount: year['hafalanPresent'] ?? 0,
+                                                absentCount: year['hafalanAbsent'] ?? 0,
+                                                totalCount: year['hafalanTotal'] ?? 0,
+                                              ),
+                                              _buildEnhancedProgressIndicator(
+                                                value: year['kehadiranProgress'] ?? 0.0,
+                                                color: Colors.blue,
+                                                label: 'Kehadiran',
+                                                presentCount: year['kehadiranPresent'] ?? 0,
+                                                absentCount: year['kehadiranAbsent'] ?? 0,
+                                                totalCount: year['kehadiranTotal'] ?? 0,
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  } else {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => LeaderboardPage(
+                                              academicYear: year['period'],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              "Peringkat 3 Besar Santri",
+                                              style: TextStyle(
+                                                fontSize: 17,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF2E3F7F),
                                               ),
                                             ),
-                                          );
-                                        },
-                                        child: Card(
-                                          elevation: 5,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(15),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(15.0),
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              children: [
-                                                Text(
-                                                  "Peringkat 3 Besar Santri",
-                                                  style: TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0xFF2E3F7F),
-                                                  ),
-                                                ),
-                                                SizedBox(height: 10),
-                                                Expanded(
-                                                  child: LayoutBuilder(
-                                                    builder: (context, constraints) {
-                                                      return Row(
-                                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                        crossAxisAlignment: CrossAxisAlignment.end,
-                                                        children: [
-                                                          // Juara 2 (kiri)
-                                                          _buildLeaderboardItem(
-                                                            rank: 2,
-                                                            name: topSantri.length > 1 ? topSantri[1].name : '-',
-                                                            score: topSantri.length > 1 ? '${topSantri[1].hafalan ?? 0}' : '',
-                                                            color: Colors.grey,
-                                                            isSecond: true,
-                                                            maxWidth: constraints.maxWidth / 3.5,
-                                                          ),
-                                                          
-                                                          // Juara 1 (tengah)
-                                                          _buildLeaderboardItem(
-                                                            rank: 1,
-                                                            name: topSantri.isNotEmpty ? topSantri[0].name : '-',
-                                                            score: topSantri.isNotEmpty ? '${topSantri[0].hafalan ?? 0}' : '',
-                                                            color: Colors.amber,
-                                                            isFirst: true,
-                                                            maxWidth: constraints.maxWidth / 3.5,
-                                                          ),
-                                                          
-                                                          // Juara 3 (kanan)
-                                                          _buildLeaderboardItem(
-                                                            rank: 3,
-                                                            name: topSantri.length > 2 ? topSantri[2].name : '-',
-                                                            score: topSantri.length > 2 ? '${topSantri[2].hafalan ?? 0}' : '',
-                                                            color: Colors.brown,
-                                                            isThird: true,
-                                                            maxWidth: constraints.maxWidth / 3.5,
-                                                          ),
-                                                        ],
-                                                      );
-                                                    }
-                                                  ),
-                                                ),
-                                                SizedBox(height: 10),
-                                                Text(
-                                                  'Lihat Detail',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey[600],
-                                                    decoration: TextDecoration.underline,
-                                                  ),
-                                                ),
-                                              ],
+                                            SizedBox(height: 10),
+                                            Expanded(
+                                              child: LayoutBuilder(
+                                                builder: (context, constraints) {
+                                                  return Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                                    children: [
+                                                      _buildLeaderboardItem(
+                                                        rank: 2,
+                                                        name: topSantri.length > 1 ? topSantri[1].name : '-',
+                                                        score: topSantri.length > 1 ? '${topSantri[1].hafalan ?? 0}' : '',
+                                                        color: Colors.grey,
+                                                        isSecond: true,
+                                                        maxWidth: constraints.maxWidth / 3.5,
+                                                      ),
+                                                      _buildLeaderboardItem(
+                                                        rank: 1,
+                                                        name: topSantri.isNotEmpty ? topSantri[0].name : '-',
+                                                        score: topSantri.isNotEmpty ? '${topSantri[0].hafalan ?? 0}' : '',
+                                                        color: Colors.amber,
+                                                        isFirst: true,
+                                                        maxWidth: constraints.maxWidth / 3.5,
+                                                      ),
+                                                      _buildLeaderboardItem(
+                                                        rank: 3,
+                                                        name: topSantri.length > 2 ? topSantri[2].name : '-',
+                                                        score: topSantri.length > 2 ? '${topSantri[2].hafalan ?? 0}' : '',
+                                                        color: Colors.brown,
+                                                        isThird: true,
+                                                        maxWidth: constraints.maxWidth / 3.5,
+                                                      ),
+                                                    ],
+                                                  );
+                                                }
+                                              ),
                                             ),
-                                          ),
+                                            SizedBox(height: 10),
+                                            Text(
+                                              'Lihat Detail',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[600],
+                                                decoration: TextDecoration.underline,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      );
-                                    }
-                                  },
-                                ),
+                                      ),
+                                    );
+                                  }
+                                },
                               ),
-                              SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: List.generate(2, (index) => Container(
-                                  width: 10,
-                                  height: 10,
-                                  margin: EdgeInsets.symmetric(horizontal: 4),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: _pageIndex == index ? Color(0xFF2E3F7F) : Colors.grey[300],
-                                  ),
-                                )),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
+                        // PageView indicator
+                        SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(2, (index) => Container(
+                            width: 10,
+                            height: 10,
+                            margin: EdgeInsets.symmetric(horizontal: 4),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _pageIndex == index ? Color(0xFF2E3F7F) : Colors.grey[300],
+                            ),
+                          )),
+                        ),
+                        // Gallery
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           child: GalleryView(),
                         ),
+                        // News
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           child: NewsView(newsItems: newsItems),
                         ),
-                        SizedBox(height: 20), 
+                        SizedBox(height: 20),
                       ],
                     ),
                   ),

@@ -26,6 +26,7 @@ class _InputHafalanDialogState extends State<InputHafalanDialog> {
   late String ayatAwal;
   late String ayatAkhir;
   late String nilai;
+  String surat = '';
 
   @override
   void initState() {
@@ -33,15 +34,21 @@ class _InputHafalanDialogState extends State<InputHafalanDialog> {
     ayatAwal = widget.ayatAwal;
     ayatAkhir = widget.ayatAkhir;
     nilai = widget.nilaiAwal;
+    surat = '';
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Input Hafalan ${widget.namaSantri}'),
+      title: Text('Input Hafalan ${widget.namaSantri.isNotEmpty ? widget.namaSantri : ""}'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Tambahkan input manual untuk surat
+          TextField(
+            decoration: const InputDecoration(labelText: 'Surat'),
+            onChanged: (value) => surat = value,
+          ),
           TextField(
             decoration: const InputDecoration(labelText: 'Ayat Awal'),
             controller: TextEditingController(text: ayatAwal),
