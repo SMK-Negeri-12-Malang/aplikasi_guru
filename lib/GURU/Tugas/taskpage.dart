@@ -501,11 +501,9 @@ void _addNewTask() async {
   void _onTaskUpdated(Map<String, dynamic> updatedTask) {
     setState(() {
       final taskList = siswaData[selectedClass]!;
-      final index = taskList.indexWhere((task) => task['absen'] == updatedTask['absen']);
+      final index = taskList.indexWhere((task) => task['id'] == updatedTask['id']);
       if (index != -1) {
-        taskList[index] = updatedTask;
-        
-        // Save tasks after updating
+        taskList[index] = Map<String, dynamic>.from(updatedTask);
         TaskStorage.saveTasks(siswaData);
       }
     });
@@ -520,7 +518,7 @@ void _addNewTask() async {
 
   Widget _buildTaskList() {
     final filteredTasks = _getFilteredTasks();
-    
+
     if (filteredTasks.isEmpty) {
       return Expanded(
         child: Center(
@@ -562,91 +560,189 @@ void _addNewTask() async {
         itemBuilder: (context, index) {
           var task = filteredTasks[index];
           final isDeadlineNear = _isDeadlineNear(task['deadline']);
-          
-          return AnimatedContainer(
-            duration: Duration(milliseconds: 300),
-            margin: EdgeInsets.symmetric(vertical: 6),
-            decoration: BoxDecoration(
-              color: task['checked']
-                  ? Colors.blue.shade50
-                  : (isDeadlineNear ? Colors.red.shade50 : Colors.white),
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ListTile(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TaskDetailPage(
-                      task: task,
-                      className: selectedClass!,
-                      onTaskUpdated: _onTaskUpdated,
-                    ),
-                  ),
-                );
-              },
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: task['checked'] ? Colors.blue.shade100 : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    '${index + 1}',
-                    style: TextStyle(
-                      color: task['checked'] ? Colors.blue.shade900 : Colors.grey.shade700,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-              title: Text(
-                task['name'],
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: task['checked'] ? Colors.blue.shade900 : Colors.black87,
-                ),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Deadline: ${task['deadline']}',
-                    style: TextStyle(
-                      color: isDeadlineNear ? Colors.red : Colors.grey.shade600,
-                      fontWeight: isDeadlineNear ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                  if (isDeadlineNear && !task['checked'])
-                    Text(
-                      'Deadline segera!',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+
+          return Container(
+            margin: EdgeInsets.symmetric(vertical: 8),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TaskDetailPage(
+                        task: task,
+                        className: selectedClass!,
+                        onTaskUpdated: _onTaskUpdated,
                       ),
                     ),
-                ],
-              ),
-              trailing: Transform.scale(
-                scale: 1.2,
-                child: Checkbox(
-                  value: task['checked'],
-                  onChanged: (value) => _toggleCheck(index),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
+                  );
+                },
+                child: AnimatedContainer(
+                  duration: Duration(milliseconds: 250),
+                  decoration: BoxDecoration(
+                    color: task['checked']
+                        ? Colors.blue.shade50
+                        : (isDeadlineNear ? Colors.orange.shade50 : Colors.white),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.shade100.withOpacity(0.13),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: isDeadlineNear
+                          ? Colors.orange.shade200
+                          : Colors.grey.shade200,
+                      width: 1,
+                    ),
                   ),
-                  activeColor: Colors.blue.shade700,
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Nomor urut
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: task['checked'] ? Colors.blue.shade100 : Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '${index + 1}',
+                            style: TextStyle(
+                              color: task['checked'] ? Colors.blue.shade900 : Colors.grey.shade700,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 14),
+                      // Info utama tugas
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Nama tugas dan badge selesai
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    task['name'] ?? '-',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: task['checked'] ? Colors.blue.shade900 : Color(0xFF2E3F7F),
+                                      fontSize: 16,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (task['checked'] == true)
+                                  Container(
+                                    margin: EdgeInsets.only(left: 6),
+                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green[600],
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.check, color: Colors.white, size: 13),
+                                        SizedBox(width: 2),
+                                        Text(
+                                          'Selesai',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            SizedBox(height: 4),
+                            // Mapel dan tanggal penugasan
+                            Row(
+                              children: [
+                                Icon(Icons.book, size: 15, color: Colors.blue.shade700),
+                                SizedBox(width: 4),
+                                Text(
+                                  task['mapel'] ?? '-',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.blue.shade900,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                Icon(Icons.event_note, size: 15, color: Colors.orange.shade700),
+                                SizedBox(width: 4),
+                                Text(
+                                  task['assignmentDate'] ?? '-',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.orange.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 4),
+                            // Deadline
+                            Row(
+                              children: [
+                                Icon(Icons.timer, size: 15, color: isDeadlineNear ? Colors.red : Colors.grey),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Deadline: ${task['deadline']}',
+                                  style: TextStyle(
+                                    color: isDeadlineNear ? Colors.red : Colors.grey.shade700,
+                                    fontWeight: isDeadlineNear ? FontWeight.bold : FontWeight.normal,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                if (isDeadlineNear && !task['checked'])
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8),
+                                    child: Text(
+                                      'Segera!',
+                                      style: TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Checkbox
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8, top: 2),
+                        child: Transform.scale(
+                          scale: 1.15,
+                          child: Checkbox(
+                            value: task['checked'],
+                            onChanged: (value) => _toggleCheck(index),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            activeColor: Colors.blue.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
