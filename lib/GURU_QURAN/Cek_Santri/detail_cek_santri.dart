@@ -101,7 +101,7 @@ class DetailCekSantri extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 48), // Untuk mengimbangi IconButton
+                  const SizedBox(width: 48), 
                 ],
               ),
             ),

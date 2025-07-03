@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../SERVICE/Service_Musyrif/data_siswa.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'popup.dart';
 
 class Kepesantrenan extends StatefulWidget {
   const Kepesantrenan({super.key});
@@ -202,7 +203,9 @@ class _KepesantrenanState extends State<Kepesantrenan> {
             s['session'] == selectedSession && s['level'] == selectedLevel)
         .toList();
 
-    return ListView.builder(
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      separatorBuilder: (_, __) => SizedBox(height: 10),
       itemCount: students.length,
       itemBuilder: (context, index) {
         final student = students[index];
@@ -213,24 +216,192 @@ class _KepesantrenanState extends State<Kepesantrenan> {
         final ayatAkhir = data['ayatAkhir'] ?? '-';
         final nilai = data['nilai'] ?? '-';
 
-        return GestureDetector(
+        final initials = (student['name'] ?? '')
+            .toString()
+            .split(' ')
+            .map((e) => e.isNotEmpty ? e[0] : '')
+            .take(2)
+            .join()
+            .toUpperCase();
+
+        Color badgeColor;
+        Color badgeText;
+        switch (nilai) {
+          case 'Mumtaz':
+            badgeColor = Colors.green.shade100;
+            badgeText = Colors.green.shade800;
+            break;
+          case 'Jayyid Jiddan':
+            badgeColor = Colors.blue.shade100;
+            badgeText = Colors.blue.shade800;
+            break;
+          case 'Jayyid':
+            badgeColor = Colors.orange.shade100;
+            badgeText = Colors.orange.shade800;
+            break;
+          case 'Maqbul':
+            badgeColor = Colors.red.shade100;
+            badgeText = Colors.red.shade800;
+            break;
+          default:
+            badgeColor = Colors.grey.shade200;
+            badgeText = Colors.grey.shade700;
+        }
+
+        return InkWell(
+          borderRadius: BorderRadius.circular(22),
           onTap: () => _showInputDialog(student),
-          child: Card(
-            child: ListTile(
-              title: Text(
-                selectedLevel == 'SMP' || selectedLevel == 'SMA'
-                    ? '${student['name'] ?? ''} ${student['kelas'] ?? ''}'
-                    : student['name'] ?? '',
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white,
+                  primaryColor.withOpacity(0.03),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              subtitle: Column(
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  color: primaryColor.withOpacity(0.10),
+                  blurRadius: 16,
+                  offset: Offset(0, 6),
+                ),
+              ],
+              border: Border.all(
+                color: badgeColor,
+                width: 1.2,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Ayat Awal: $ayatAwal'),
-                  Text('Ayat Akhir: $ayatAkhir'),
-                  Text('Nilai: $nilai'),
+                  // Avatar
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: primaryColor.withOpacity(0.13),
+                    child: Text(
+                      initials,
+                      style: TextStyle(
+                        color: primaryColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 14),
+                  // Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Nama dan badge nilai
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                student['name'] ?? '',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: primaryColor,
+                                  fontSize: 16.5,
+                                  letterSpacing: 0.2,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.only(left: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: badgeColor,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                nilai,
+                                style: TextStyle(
+                                  color: badgeText,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 4),
+                        // Kelas dan sesi
+                        Row(
+                          children: [
+                            Icon(Icons.class_, size: 15, color: Colors.blue.shade700),
+                            SizedBox(width: 4),
+                            Text(
+                              student['kelas'] ?? '-',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.blue.shade700,
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Icon(Icons.event_note, size: 15, color: Colors.orange.shade700),
+                            SizedBox(width: 4),
+                            Text(
+                              selectedSession,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.orange.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 4),
+                        // Ayat Awal/Akhir
+                        Row(
+                          children: [
+                            Icon(Icons.bookmark, size: 15, color: Colors.purple.shade400),
+                            SizedBox(width: 4),
+                            Text(
+                              'Awal: ',
+                              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+                            ),
+                            Text(
+                              ayatAwal,
+                              style: TextStyle(fontSize: 12, color: Colors.grey[800]),
+                            ),
+                            SizedBox(width: 10),
+                            Icon(Icons.bookmark_border, size: 15, color: Colors.purple.shade400),
+                            SizedBox(width: 4),
+                            Text(
+                              'Akhir: ',
+                              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+                            ),
+                            Text(
+                              ayatAkhir,
+                              style: TextStyle(fontSize: 12, color: Colors.grey[800]),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Edit icon
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8, top: 2),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: primaryColor.withOpacity(0.10),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.all(7),
+                      child: Icon(Icons.edit, color: primaryColor, size: 22),
+                    ),
+                  ),
                 ],
               ),
-              trailing: const Icon(Icons.edit, color: Colors.grey),
             ),
           ),
         );
@@ -241,8 +412,10 @@ class _KepesantrenanState extends State<Kepesantrenan> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF2F4F7),
       body: Column(
         children: [
+          // Header
           Container(
             height: 110,
             decoration: BoxDecoration(
@@ -266,14 +439,15 @@ class _KepesantrenanState extends State<Kepesantrenan> {
             ),
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.only(top: 1.0), // Add padding to move the title down
+                padding: const EdgeInsets.only(top: 1.0),
                 child: Center(
                   child: Text(
                     'Kepesantrenan',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 20,
+                      fontSize: 23,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
                     ),
                   ),
                 ),
@@ -283,14 +457,14 @@ class _KepesantrenanState extends State<Kepesantrenan> {
           // Filter panel
           Container(
             margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
-                  color: primaryColor.withOpacity(0.1),
-                  blurRadius: 10,
+                  color: primaryColor.withOpacity(0.10),
+                  blurRadius: 14,
                   spreadRadius: 1,
                 ),
               ],
@@ -300,6 +474,8 @@ class _KepesantrenanState extends State<Kepesantrenan> {
               children: [
                 DropdownButton<String>(
                   value: selectedSession,
+                  underline: SizedBox(),
+                  style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
                   items: sessions
                       .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                       .toList(),
@@ -311,26 +487,32 @@ class _KepesantrenanState extends State<Kepesantrenan> {
                 ),
                 InkWell(
                   onTap: _showDatePicker,
+                  borderRadius: BorderRadius.circular(8),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: primaryColor.withOpacity(0.1),
+                      color: primaryColor.withOpacity(0.10),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       children: [
-                        Text(selectedDate,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.calendar_today, size: 16),
+                        Icon(Icons.calendar_today, size: 16, color: primaryColor),
+                        const SizedBox(width: 6),
+                        Text(
+                          selectedDate,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: primaryColor,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
                 DropdownButton<String>(
                   value: selectedLevel,
+                  underline: SizedBox(),
+                  style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
                   items: levels
                       .map((l) => DropdownMenuItem(value: l, child: Text(l)))
                       .toList(),
@@ -343,44 +525,124 @@ class _KepesantrenanState extends State<Kepesantrenan> {
               ],
             ),
           ),
-          // Tahfidz/Tahsin switch
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: primaryColor.withOpacity(0.1),
-                  blurRadius: 10,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () => setState(() => _currentPage = 0),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        _currentPage == 0 ? primaryColor : Colors.grey[300],
+          // Tahfidz/Tahsin switch + Add button in one row, 3/4 and 1/4
+          Row(
+            children: [
+              // Switch Card (3/4)
+              Expanded(
+                flex: 3,
+                child: Container(
+                  margin: const EdgeInsets.only(left: 16, top: 6, bottom: 6, right: 6),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryColor.withOpacity(0.10),
+                        blurRadius: 14,
+                        spreadRadius: 1,
+                      ),
+                    ],
                   ),
-                  child: const Text('Tahfidz',
-                      style: TextStyle(color: Colors.white)),
-                ),
-                ElevatedButton(
-                  onPressed: () => setState(() => _currentPage = 1),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        _currentPage == 1 ? primaryColor : Colors.grey[300],
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: AnimatedContainer(
+                          duration: Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
+                            color: _currentPage == 0 ? primaryColor : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: TextButton(
+                            onPressed: () => setState(() => _currentPage = 0),
+                            child: Text(
+                              'Tahfidz',
+                              style: TextStyle(
+                                color: _currentPage == 0 ? Colors.white : primaryColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: AnimatedContainer(
+                          duration: Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
+                            color: _currentPage == 1 ? primaryColor : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: TextButton(
+                            onPressed: () => setState(() => _currentPage = 1),
+                            child: Text(
+                              'Tahsin',
+                              style: TextStyle(
+                                color: _currentPage == 1 ? Colors.white : primaryColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  child: const Text('Tahsin',
-                      style: TextStyle(color: Colors.white)),
                 ),
-              ],
-            ),
+              ),
+              // Add Button Card (1/4)
+              Expanded(
+                flex: 1,
+                child: Container(
+                  margin: const EdgeInsets.only(right: 16, top: 6, bottom: 6, left: 0),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryColor.withOpacity(0.10),
+                        blurRadius: 14,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Material(
+                      color: primaryColor,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => InputHafalanDialog(
+                              namaSantri: '',
+                              ayatAwal: '',
+                              ayatAkhir: '',
+                              nilaiAwal: grades[0],
+                              nilaiList: grades,
+                              onSimpan: (ayatAwal, ayatAkhir, nilai) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Data hafalan berhasil ditambahkan')),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                        child: SizedBox(
+                          height: 38,
+                          width: 38,
+                          child: Icon(Icons.add, color: Colors.white, size: 22),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           // Student list
           Expanded(child: _buildStudentList()),
@@ -389,3 +651,4 @@ class _KepesantrenanState extends State<Kepesantrenan> {
     );
   }
 }
+

@@ -264,7 +264,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     backgroundColor: const Color.fromARGB(255, 16, 72, 129),
                     foregroundColor: Colors.white,
                   ),
-                  child: Text('Simpan'),
+                  child: Text('Simpan'),  
                 ),
               ],
             );

@@ -85,6 +85,17 @@ class DataSiswa {
             'ustadz': 'Ustadz Ali',
             'status': 'Lulus',
           },
+            {
+            'tanggal': '2024-06-01',
+            'sesi': '1',
+            'surat': 'Al-Baqarah',
+            'ayatAwal': '1',
+            'ayatAkhir': '10',
+            'jumlahBaris': 10,
+            'nilai': 'Mumtaz',
+            'ustadz': 'Ustadz Ali',
+            'status': 'Lulus',
+          },
         ],
       },
       // ...tambahkan data siswa lain sesuai kebutuhan...
