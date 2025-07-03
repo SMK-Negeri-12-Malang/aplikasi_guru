@@ -281,7 +281,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                     (tema?.isNotEmpty == true || materi?.isNotEmpty == true || rpp?.isNotEmpty == true)
                       ? 'Edit Tema/Materi/RPP'
                       : 'Isi Tema/Materi/RPP',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: (tema?.isNotEmpty == true || materi?.isNotEmpty == true || rpp?.isNotEmpty == true)
@@ -293,7 +293,7 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 2,
-                    minimumSize: Size(0, 48), // samakan tinggi
+                    minimumSize: Size(0, 48),
                   ),
                   onPressed: () async {
                     await showDialog(
@@ -692,6 +692,251 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
     });
   }
 
+  // Hapus Shopee-style search bar dan pindahkan tombol isi tema/materi/rpp ke samping filter
+  Widget _buildShopeeFilterBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+      child: Row(
+        children: [
+          // Tombol Filter
+          Material(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.grey[300]!),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: _showFilterSheet,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Icon(Icons.filter_alt, color: Color(0xFF2E3F7F)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Tombol Tema/Materi/RPP
+          Expanded(
+            child: ElevatedButton.icon(
+              icon: (tema?.isNotEmpty == true || materi?.isNotEmpty == true || rpp?.isNotEmpty == true)
+                  ? Icon(Icons.task_alt, color: Colors.white)
+                  : Icon(Icons.note_add, color: Colors.white),
+              label: Text(
+                (tema?.isNotEmpty == true || materi?.isNotEmpty == true || rpp?.isNotEmpty == true)
+                    ? 'Edit Tema/Materi/RPP'
+                    : 'Isi Tema/Materi/RPP',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: (tema?.isNotEmpty == true || materi?.isNotEmpty == true || rpp?.isNotEmpty == true)
+                    ? Colors.green[700]
+                    : const Color.fromARGB(255, 19, 91, 155),
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
+                minimumSize: Size(0, 48),
+              ),
+              onPressed: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) {
+                    TextEditingController temaCtrl = TextEditingController(text: tema ?? '');
+                    TextEditingController materiCtrl = TextEditingController(text: materi ?? '');
+                    TextEditingController rppCtrl = TextEditingController(text: rpp ?? '');
+                    return AlertDialog(
+                      title: Text('Input Tema, Materi, RPP'),
+                      content: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextField(
+                              controller: temaCtrl,
+                              decoration: InputDecoration(
+                                labelText: 'Tema',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            TextField(
+                              controller: materiCtrl,
+                              decoration: InputDecoration(
+                                labelText: 'Materi',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            TextField(
+                              controller: rppCtrl,
+                              decoration: InputDecoration(
+                                labelText: 'RPP',
+                                border: OutlineInputBorder(),
+                                alignLabelWithHint: true,
+                              ),
+                              minLines: 4,
+                              maxLines: 8,
+                            ),
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Batal'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              tema = temaCtrl.text;
+                              materi = materiCtrl.text;
+                              rpp = rppCtrl.text;
+                            });
+                            Navigator.pop(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 14, 74, 143),
+                            foregroundColor: Colors.white,
+                          ),
+                          child: Text('Simpan'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Ubah _showFilterSheet agar hanya filter kelas, mata pelajaran, jam pelajaran
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  DropdownButtonFormField<String>(
+                    value: selectedClass,
+                    decoration: InputDecoration(
+                      labelText: 'Kelas',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: kelasList
+                        .map((k) => DropdownMenuItem(value: k, child: Text(k)))
+                        .toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        selectedClass = val;
+                        _resetAttendance();
+                      });
+                      setModalState(() {});
+                    },
+                    isExpanded: true,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedSubject,
+                    decoration: InputDecoration(
+                      labelText: 'Mata Pelajaran',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: subjects
+                        .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                        .toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        selectedSubject = val;
+                        _resetAttendance();
+                      });
+                      setModalState(() {});
+                    },
+                    isExpanded: true,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedJamPelajaran,
+                    decoration: InputDecoration(
+                      labelText: 'Jam Pelajaran',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: jamPelajaranList
+                        .map((j) => DropdownMenuItem(value: j, child: Text(j)))
+                        .toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        selectedJamPelajaran = val;
+                      });
+                      setModalState(() {});
+                    },
+                    isExpanded: true,
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedClass = null;
+                              selectedSubject = null;
+                              selectedJamPelajaran = null;
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: Text('Reset'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF2E3F7F),
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () {
+                            setState(() {});
+                            Navigator.pop(context);
+                          },
+                          child: Text('Terapkan'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Hapus _buildDateTimeSubjectSelector dari tampilan utama
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -783,8 +1028,8 @@ class _AbsensiKelasPageState extends State<AbsensiKelasPage>
               ),
             ),
           ),
-          SizedBox(height: 20),
-          _buildDateTimeSubjectSelector(),
+          SizedBox(height: 12),
+          _buildShopeeFilterBar(),
           SizedBox(height: 20),
           if (selectedClass != null) ...[
             Padding(

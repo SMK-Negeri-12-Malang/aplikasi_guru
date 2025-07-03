@@ -128,32 +128,62 @@ class DetailCekSantri extends StatelessWidget {
               padding: const EdgeInsets.all(16.0),
               child: ListView(
                 children: [
+                  // --- Data Pribadi ---
                   _buildCard(
-                    title: "Data Santri",
+                    title: "Data Pribadi",
                     children: [
                       _buildInfoTile(Icons.person, "Nama", studentName),
+                      _buildInfoTile(Icons.badge, "No. Induk (NIS)", studentId),
                       _buildInfoTile(Icons.class_, "Kelas", className),
                       _buildInfoTile(Icons.meeting_room, "Ruang", room),
-                      _buildInfoTile(Icons.badge, "No. Induk (NIS)", studentId),
+                      _buildInfoTile(Icons.group, "Halaqoh", halaqoh),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // --- Kontak & Alamat ---
+                  _buildCard(
+                    title: "Kontak & Alamat",
+                    children: [
                       _buildInfoTile(Icons.location_on, "Jalan", jalan),
                       _buildInfoTile(Icons.home, "RT/RW", rtrw),
                       _buildInfoTile(Icons.location_city, "Kota/Kabupaten", kota),
                       _buildInfoTile(Icons.phone, "Telepon", telepon),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // --- Orang Tua & Wali ---
+                  _buildCard(
+                    title: "Orang Tua & Wali",
+                    children: [
                       _buildInfoTile(Icons.person_outline, "Nama Ayah", namaAyah),
                       _buildInfoTile(Icons.phone_android, "No. Telepon Ayah", teleponAyah),
                       _buildInfoTile(Icons.person_outline, "Nama Ibu", namaIbu),
                       _buildInfoTile(Icons.phone_android, "No. Telepon Ibu", teleponIbu),
                       _buildInfoTile(Icons.person_outline, "Nama Wali", namaWali),
                       _buildInfoTile(Icons.phone_android, "No. Telepon Wali", teleponWali),
-                      _buildInfoTile(Icons.group, "Halaqoh", halaqoh),
-                      _buildInfoTile(Icons.book, "Tahfidz Terakhir", tahfidzTerakhir),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // --- Keuangan ---
+                  _buildCard(
+                    title: "Keuangan",
+                    children: [
                       _buildInfoTile(Icons.credit_card, "Virtual Account", virtualAccount),
                       _buildInfoTile(Icons.account_balance_wallet, "VA Uang Saku", vaUangSaku),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // --- Tahfidz Terakhir ---
+                  _buildCard(
+                    title: "Tahfidz Terakhir",
+                    children: [
+                      _buildInfoTile(Icons.book, "Tahfidz Terakhir", tahfidzTerakhir),
                     ],
                   ),
                   const SizedBox(height: 18),
                   Divider(thickness: 1.2, color: Colors.grey[300]),
                   const SizedBox(height: 10),
+                  // --- Detail Hafalan ---
                   _buildCard(
                     title: "Detail Hafalan",
                     children: [
@@ -167,6 +197,7 @@ class DetailCekSantri extends StatelessWidget {
                   const SizedBox(height: 18),
                   Divider(thickness: 1.2, color: Colors.grey[300]),
                   const SizedBox(height: 10),
+                  // --- Riwayat Tahfidz ---
                   _buildTahfidzTable(dataTahfidz),
                 ],
               ),

@@ -53,10 +53,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   void _editTask() async {
     File? selectedImage = widget.task['image'];
-    PlatformFile? selectedFile = widget.task['file']; 
-    String taskName = widget.task['name'];
-    String deadline = widget.task['deadline'];
+    PlatformFile? selectedFile = widget.task['file'];
+    String taskName = widget.task['name'] ?? '';
+    String deadline = widget.task['deadline'] ?? '';
     String description = widget.task['description'] ?? '';
+    String assignmentDate = widget.task['assignmentDate'] ?? '';
+    String selectedMapel = widget.task['mapel'] ?? '';
+    final List<String> mapelList = [
+      'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'IPA', 'IPS', 'PPKN', 'Agama', 'Seni', 'PJOK', 'Lainnya'
+    ];
+
+    DateTime? selectedDeadlineDate = deadline.isNotEmpty ? DateTime.tryParse(deadline) : null;
+    DateTime? selectedAssignmentDate = assignmentDate.isNotEmpty ? DateTime.tryParse(assignmentDate) : null;
 
     final result = await showDialog(
       context: context,
@@ -69,8 +77,118 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    DropdownButtonFormField<String>(
+                      value: selectedMapel.isNotEmpty ? selectedMapel : null,
+                      items: mapelList.map((mapel) {
+                        return DropdownMenuItem(
+                          value: mapel,
+                          child: Text(mapel),
+                        );
+                      }).toList(),
+                      decoration: InputDecoration(
+                        labelText: 'Mata Pelajaran',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedMapel = value ?? '';
+                        });
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    TextField(
+                      decoration: InputDecoration(
+                        labelText: 'Nama Tugas',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      controller: TextEditingController(text: taskName),
+                      onChanged: (value) => taskName = value,
+                    ),
+                    SizedBox(height: 10),
+                    InkWell(
+                      onTap: () async {
+                        final DateTime? date = await showDatePicker(
+                          context: context,
+                          initialDate: selectedAssignmentDate ?? DateTime.now(),
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2030),
+                        );
+                        if (date != null) {
+                          setState(() {
+                            selectedAssignmentDate = date;
+                            assignmentDate = DateFormat('yyyy-MM-dd').format(date);
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.event_note, color: Colors.blue),
+                            SizedBox(width: 10),
+                            Text(
+                              assignmentDate.isEmpty
+                                  ? 'Pilih Tanggal Penugasan'
+                                  : 'Penugasan: $assignmentDate',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: assignmentDate.isEmpty ? Colors.grey : Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    InkWell(
+                      onTap: () async {
+                        final DateTime? date = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDeadlineDate ?? DateTime.now(),
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2030),
+                        );
+                        if (date != null) {
+                          setState(() {
+                            selectedDeadlineDate = date;
+                            deadline = DateFormat('yyyy-MM-dd').format(date);
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.calendar_today, color: Colors.blue),
+                            SizedBox(width: 10),
+                            Text(
+                              deadline.isEmpty
+                                  ? 'Pilih Deadline'
+                                  : 'Deadline: $deadline',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: deadline.isEmpty ? Colors.grey : Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
                     Container(
-                      height: 70,
+                      height: 60,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
@@ -91,10 +209,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              selectedFile != null 
+                              selectedFile != null
                                   ? Icons.file_present
                                   : Icons.upload_file,
-                              size: 30,
+                              size: 28,
                               color: Colors.grey,
                             ),
                             SizedBox(width: 12),
@@ -109,28 +227,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           ],
                         ),
                       ),
-                    ),
-                    SizedBox(height: 10),
-                    TextField(
-                      decoration: InputDecoration(
-                        labelText: 'Nama Tugas',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      controller: TextEditingController(text: taskName),
-                      onChanged: (value) => taskName = value,
-                    ),
-                    SizedBox(height: 10),
-                    TextField(
-                      decoration: InputDecoration(
-                        labelText: 'Deadline',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      controller: TextEditingController(text: deadline),
-                      onChanged: (value) => deadline = value,
                     ),
                     SizedBox(height: 10),
                     TextField(
@@ -159,7 +255,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       'deadline': deadline,
                       'description': description,
                       'image': selectedImage,
-                      'file': selectedFile, 
+                      'file': selectedFile,
+                      'assignmentDate': assignmentDate,
+                      'mapel': selectedMapel,
                     });
                   },
                   style: ElevatedButton.styleFrom(
@@ -183,12 +281,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         'description': result['description'],
         'image': result['image'],
         'file': result['file'],
+        'assignmentDate': result['assignmentDate'],
+        'mapel': result['mapel'],
       };
 
       await _taskManager.updateTaskInClass(
         widget.className,
         widget.task['id'],
-        updatedTask
+        updatedTask,
       );
 
       setState(() {
@@ -264,10 +364,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       body: Column(
         children: [
+          // Header dengan gradient dan icon
           Container(
-            height: 110,
+            height: 120,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFF2E3F7F), Color(0xFF4557A4)],
@@ -276,84 +378,201 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  spreadRadius: 5,
-                  blurRadius: 15,
-                  offset: Offset(0, 3),
+                  color: Colors.black.withOpacity(0.18),
+                  spreadRadius: 2,
+                  blurRadius: 16,
+                  offset: Offset(0, 4),
                 ),
               ],
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
               ),
             ),
             child: SafeArea(
-              child: Center(
-                child: Stack(
-                  children: [
-                    Positioned(
-                      left: 8,
-                      top: 0,
-                      bottom: 0,
-                      child: Center(
-                        child: IconButton(
-                          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
-                        ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 8,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
                       ),
                     ),
-                    Center(
-                      child: Text(
-                        'Detail Tugas',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                  ),
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.assignment_turned_in_rounded, color: Colors.white, size: 28),
+                        SizedBox(width: 10),
+                        Text(
+                          'Detail Tugas',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
                         ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    right: 8,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: IconButton(
+                        icon: Icon(Icons.edit, color: Colors.white),
+                        onPressed: _editTask,
                       ),
                     ),
-                    Positioned(
-                      right: 8,
-                      top: 0,
-                      bottom: 0,
-                      child: Center(
-                        child: IconButton(
-                          icon: Icon(Icons.edit, color: Colors.white),
-                          onPressed: _editTask,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Card utama info tugas
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    margin: EdgeInsets.only(bottom: 18),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Nama tugas dan badge selesai
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  widget.task['name'] ?? '-',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF2E3F7F),
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                              if (widget.task['checked'] == true)
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green[600],
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.check_circle, color: Colors.white, size: 16),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Selesai',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+                          Divider(),
+                          SizedBox(height: 8),
+                          // Mata pelajaran
+                          Row(
+                            children: [
+                              Icon(Icons.book, color: Colors.blue.shade700, size: 20),
+                              SizedBox(width: 8),
+                              Text('Mata Pelajaran:', style: TextStyle(fontWeight: FontWeight.w600)),
+                              SizedBox(width: 4),
+                              Flexible(
+                                child: Text(widget.task['mapel'] ?? '-', style: TextStyle(color: Colors.black87)),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          // Kelas
+                          Row(
+                            children: [
+                              Icon(Icons.class_, color: Colors.blue.shade700, size: 20),
+                              SizedBox(width: 8),
+                              Text('Kelas:', style: TextStyle(fontWeight: FontWeight.w600)),
+                              SizedBox(width: 4),
+                              Text(widget.className, style: TextStyle(color: Colors.black87)),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          // Tanggal Penugasan
+                          Row(
+                            children: [
+                              Icon(Icons.event_note, color: Colors.blue.shade700, size: 20),
+                              SizedBox(width: 8),
+                              Text('Tanggal Penugasan:', style: TextStyle(fontWeight: FontWeight.w600)),
+                              SizedBox(width: 4),
+                              Text(widget.task['assignmentDate'] ?? '-', style: TextStyle(color: Colors.black87)),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          // Deadline
+                          Row(
+                            children: [
+                              Icon(Icons.timer, color: Colors.blue.shade700, size: 20),
+                              SizedBox(width: 8),
+                              Text('Deadline:', style: TextStyle(fontWeight: FontWeight.w600)),
+                              SizedBox(width: 4),
+                              Text(widget.task['deadline'] ?? '-', style: TextStyle(color: Colors.black87)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // File/Gambar tugas
                   if (widget.task['image'] != null || widget.task['file'] != null)
                     Card(
                       elevation: 2,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
+                      margin: EdgeInsets.only(bottom: 18),
                       child: Container(
                         width: double.infinity,
                         padding: EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'File Tugas',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF2E3F7F),
-                              ),
+                            Row(
+                              children: [
+                                Icon(Icons.attach_file, color: Color(0xFF2E3F7F)),
+                                SizedBox(width: 8),
+                                Text(
+                                  'File/Gambar Tugas',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF2E3F7F),
+                                  ),
+                                ),
+                              ],
                             ),
+                            SizedBox(height: 10),
                             if (widget.task['image'] != null)
                               GestureDetector(
                                 onTap: _showFullImage,
@@ -362,13 +581,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                   child: Image.file(
                                     widget.task['image'],
                                     width: double.infinity,
-                                    height: 200,
+                                    height: 180,
                                     fit: BoxFit.cover,
                                   ),
                                 ),
-                              )
-                            else if (widget.task['file'] != null)
+                              ),
+                            if (widget.task['file'] != null)
                               Container(
+                                margin: EdgeInsets.only(top: 12),
                                 padding: EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: Colors.grey[100],
@@ -459,88 +679,49 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         ),
                       ),
                     ),
-                  SizedBox(height: 20),
+                  // Info deadline
+                  _buildDeadlineInfo(),
+                  SizedBox(height: 18),
+                  // Deskripsi tugas
                   Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                    child: Container(
+                      width: double.infinity,
+                      constraints: BoxConstraints(
+                        minHeight: 90,
+                      ),
+                      padding: const EdgeInsets.all(18.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  widget.task['name'],
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF2E3F7F),
-                                  ),
+                              Icon(Icons.description, color: Color(0xFF2E3F7F)),
+                              SizedBox(width: 8),
+                              Text(
+                                'Deskripsi Tugas',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              if (widget.task['checked'])
-                                Chip(
-                                  label: Text(
-                                    'Selesai',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
                             ],
-                          ),
-                          SizedBox(height: 12),
-                          Text(
-                            widget.className,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  _buildDeadlineInfo(),
-                  SizedBox(height: 20),
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Container(
-                      width: double.infinity, // Full width
-                      constraints: BoxConstraints(
-                        minHeight: 200, 
-                      ),
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Deskripsi Tugas',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
                           ),
                           SizedBox(height: 10),
                           Text(
-                            widget.task['description'] ?? 'Tidak ada deskripsi',
-                            style: TextStyle(fontSize: 16),
+                            widget.task['description']?.isNotEmpty == true
+                                ? widget.task['description']
+                                : 'Tidak ada deskripsi',
+                            style: TextStyle(fontSize: 15, color: Colors.grey[800]),
                           ),
                         ],
                       ),
                     ),
                   ),
+                  SizedBox(height: 18),
                 ],
               ),
             ),

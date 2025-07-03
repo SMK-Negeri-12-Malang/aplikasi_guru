@@ -64,101 +64,110 @@ class _AbsensiHistoryPageState extends State<AbsensiHistoryPage> {
 
   Widget _buildFilters() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
         children: [
-          // Date Filter
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate ?? DateTime.now(),
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime.now(),
-                    );
-                    if (date != null) {
-                      setState(() => selectedDate = date);
-                    }
-                  },
-                  icon: Icon(Icons.calendar_today),
-                  label: Text(selectedDate == null 
-                    ? 'Pilih Tanggal'
-                    : DateFormat('dd/MM/yyyy').format(selectedDate!)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.blue[900],
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+          // Pilih Kelas
+          Expanded(
+            flex: 5,
+            child: DropdownButtonFormField<String>(
+              value: selectedClass,
+              decoration: InputDecoration(
+                labelText: 'Kelas',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                filled: true,
+                fillColor: Colors.white,
               ),
-              if (selectedDate != null)
-                IconButton(
-                  onPressed: () => setState(() => selectedDate = null),
-                  icon: Icon(Icons.clear),
+              style: TextStyle(fontSize: 13),
+              items: [
+                DropdownMenuItem(
+                  value: null,
+                  child: Text('Semua Kelas', style: TextStyle(fontSize: 13)),
                 ),
-            ],
+                ...classes.map((kelas) => DropdownMenuItem(
+                  value: kelas,
+                  child: Text(kelas, style: TextStyle(fontSize: 13)),
+                )).toList(),
+              ],
+              onChanged: (value) => setState(() => selectedClass = value),
+            ),
           ),
-          SizedBox(height: 12),
-          // Class and Subject Filters
-          Row(
-            children: [
-              Expanded(
-                child: DropdownButtonFormField<String>(
-                  value: selectedClass,
-                  decoration: InputDecoration(
-                    labelText: 'Filter Kelas',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  items: [
-                    DropdownMenuItem(
-                      value: null,
-                      child: Text('Semua Kelas'),
-                    ),
-                    ...classes.map((kelas) => DropdownMenuItem(
-                      value: kelas,
-                      child: Text(kelas),
-                    )).toList(),
-                  ],
-                  onChanged: (value) => setState(() => selectedClass = value),
+          SizedBox(width: 8),
+          // Pilih Mapel
+          Expanded(
+            flex: 6,
+            child: DropdownButtonFormField<String>(
+              value: selectedSubject,
+              decoration: InputDecoration(
+                labelText: 'Mapel',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                filled: true,
+                fillColor: Colors.white,
               ),
-              SizedBox(width: 8),
-              Expanded(
-                child: DropdownButtonFormField<String>(
-                  value: selectedSubject,
-                  decoration: InputDecoration(
-                    labelText: 'Filter Mapel',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  items: [
-                    DropdownMenuItem(
-                      value: null,
-                      child: Text('Semua Mapel'),
-                    ),
-                    ...subjects.map((subject) => DropdownMenuItem(
-                      value: subject,
-                      child: Text(subject),
-                    )).toList(),
-                  ],
-                  onChanged: (value) => setState(() => selectedSubject = value),
+              style: TextStyle(fontSize: 13),
+              items: [
+                DropdownMenuItem(
+                  value: null,
+                  child: Text('Semua Mapel', style: TextStyle(fontSize: 13)),
                 ),
-              ),
-            ],
+                ...subjects.map((subject) => DropdownMenuItem(
+                  value: subject,
+                  child: Text(subject, style: TextStyle(fontSize: 13)),
+                )).toList(),
+              ],
+              onChanged: (value) => setState(() => selectedSubject = value),
+            ),
           ),
+          SizedBox(width: 8),
+          // Pilih Tanggal
+          Expanded(
+            flex: 7,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: selectedDate ?? DateTime.now(),
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime.now(),
+                );
+                if (date != null) {
+                  setState(() => selectedDate = date);
+                }
+              },
+              icon: Icon(Icons.calendar_today, size: 18),
+              label: Text(
+                selectedDate == null
+                  ? 'Pilih Tanggal'
+                  : DateFormat('dd/MM/yyyy').format(selectedDate!),
+                style: TextStyle(fontSize: 13),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.blue[900],
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                minimumSize: Size(0, 38),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                elevation: 1,
+              ),
+            ),
+          ),
+          if (selectedDate != null)
+            IconButton(
+              onPressed: () => setState(() => selectedDate = null),
+              icon: Icon(Icons.clear, size: 18),
+              padding: EdgeInsets.only(left: 2),
+              constraints: BoxConstraints(),
+            ),
         ],
       ),
     );
@@ -317,6 +326,221 @@ class _AbsensiHistoryPageState extends State<AbsensiHistoryPage> {
     );
   }
 
+  Widget _buildShopeeFilterBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Row(
+        children: [
+          // Tanggal (quick info) - langsung show date picker
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: selectedDate ?? DateTime.now(),
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime.now(),
+                );
+                if (date != null) {
+                  setState(() => selectedDate = date);
+                }
+              },
+              icon: Icon(Icons.calendar_today, size: 16, color: Color(0xFF2E3F7F)),
+              label: Text(
+                selectedDate == null
+                  ? 'Pilih Tanggal'
+                  : DateFormat('dd/MM/yyyy').format(selectedDate!),
+                style: TextStyle(fontSize: 13, color: Color(0xFF2E3F7F)),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Color(0xFF2E3F7F),
+                elevation: 0,
+                side: BorderSide(color: Colors.grey[300]!),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Filter icon di kanan
+          Material(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.grey[300]!),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: _showFilterSheet,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Icon(Icons.filter_alt, color: Color(0xFF2E3F7F), size: 22),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  // Pilih Kelas
+                  DropdownButtonFormField<String>(
+                    value: selectedClass,
+                    decoration: InputDecoration(
+                      labelText: 'Kelas',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text('Semua Kelas', style: TextStyle(fontSize: 13)),
+                      ),
+                      ...classes.map((kelas) => DropdownMenuItem(
+                        value: kelas,
+                        child: Text(kelas, style: TextStyle(fontSize: 13)),
+                      )),
+                    ],
+                    onChanged: (val) {
+                      setState(() => selectedClass = val);
+                      setModalState(() {});
+                    },
+                    isExpanded: true,
+                  ),
+                  const SizedBox(height: 12),
+                  // Pilih Mapel
+                  DropdownButtonFormField<String>(
+                    value: selectedSubject,
+                    decoration: InputDecoration(
+                      labelText: 'Mapel',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text('Semua Mapel', style: TextStyle(fontSize: 13)),
+                      ),
+                      ...subjects.map((subject) => DropdownMenuItem(
+                        value: subject,
+                        child: Text(subject, style: TextStyle(fontSize: 13)),
+                      )),
+                    ],
+                    onChanged: (val) {
+                      setState(() => selectedSubject = val);
+                      setModalState(() {});
+                    },
+                    isExpanded: true,
+                  ),
+                  // HAPUS PILIH TANGGAL DARI SINI
+                  // const SizedBox(height: 12),
+                  // ElevatedButton.icon(
+                  //   onPressed: () async {
+                  //     final date = await showDatePicker(
+                  //       context: context,
+                  //       initialDate: selectedDate ?? DateTime.now(),
+                  //       firstDate: DateTime(2020),
+                  //       lastDate: DateTime.now(),
+                  //     );
+                  //     if (date != null) {
+                  //       setState(() => selectedDate = date);
+                  //       setModalState(() {});
+                  //     }
+                  //   },
+                  //   icon: Icon(Icons.calendar_today, size: 16, color: Color(0xFF2E3F7F)),
+                  //   label: Text(
+                  //     selectedDate == null
+                  //       ? 'Pilih Tanggal'
+                  //       : DateFormat('dd/MM/yyyy').format(selectedDate!),
+                  //     style: TextStyle(fontSize: 13, color: Color(0xFF2E3F7F)),
+                  //   ),
+                  //   style: ElevatedButton.styleFrom(
+                  //     backgroundColor: Colors.white,
+                  //     foregroundColor: Color(0xFF2E3F7F),
+                  //     elevation: 0,
+                  //     side: BorderSide(color: Colors.grey[300]!),
+                  //     shape: RoundedRectangleBorder(
+                  //       borderRadius: BorderRadius.circular(12),
+                  //     ),
+                  //     padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  //   ),
+                  // ),
+                  // if (selectedDate != null)
+                  //   TextButton.icon(
+                  //     onPressed: () {
+                  //       setState(() => selectedDate = null);
+                  //       setModalState(() {});
+                  //     },
+                  //     icon: Icon(Icons.clear, size: 16, color: Colors.red),
+                  //     label: Text('Reset Tanggal', style: TextStyle(color: Colors.red, fontSize: 13)),
+                  //   ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedClass = null;
+                              selectedSubject = null;
+                              // selectedDate = null; // tidak perlu reset tanggal di sini
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: Text('Reset'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF2E3F7F),
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () {
+                            setState(() {});
+                            Navigator.pop(context);
+                          },
+                          child: Text('Terapkan'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredHistory = _getFilteredHistory();
@@ -384,7 +608,16 @@ class _AbsensiHistoryPageState extends State<AbsensiHistoryPage> {
               ),
             ),
           ),
-          _buildFilters(),
+          _buildShopeeFilterBar(),
+          // Tambahkan garis pemisah
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Divider(
+              thickness: 1.2,
+              color: Colors.grey[300],
+              height: 1,
+            ),
+          ),
           Expanded(
             child: filteredHistory.isEmpty
               ? Center(
