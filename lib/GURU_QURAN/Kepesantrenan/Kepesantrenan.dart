@@ -101,7 +101,7 @@ class _KepesantrenanState extends State<Kepesantrenan> {
     final data = hafalanData[key] ?? {
       'ayatAwal': '',
       'ayatAkhir': '',
-      'nilai': grades[0],
+      'nilai': grades[0], 
     };
     String ayatAwal = data['ayatAwal'] ?? '';
     String ayatAkhir = data['ayatAkhir'] ?? '';
